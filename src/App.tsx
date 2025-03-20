@@ -1,0 +1,54 @@
+import { Suspense } from "react";
+import { useRoutes, Routes, Route, Navigate } from "react-router-dom";
+import Home from "./components/home";
+import StoreRegistration from "./components/StoreRegistration";
+import StoreRegistrationForm from "./components/StoreRegistrationForm";
+import VendorRegistrationForm from "./components/VendorRegistrationForm";
+import SellWithUs from "./components/SellWithUs";
+import ProductsPage from "./components/ProductsPage";
+import DonationsPage from "./components/DonationsPage";
+import Login from "./components/auth/Login";
+import Signup from "./components/auth/Signup";
+import routes from "tempo-routes";
+import { AuthProvider } from "./components/auth/AuthContext";
+
+function App() {
+  return (
+    <AuthProvider>
+      <Suspense fallback={<p>Loading...</p>}>
+        <>
+          {/* For the tempo routes */}
+          {import.meta.env.VITE_TEMPO === "true" && useRoutes(routes)}
+
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/why-register" element={<StoreRegistration />} />
+            <Route
+              path="/store-registration"
+              element={<StoreRegistrationForm />}
+            />
+            <Route
+              path="/vendor-registration-form"
+              element={<VendorRegistrationForm />}
+            />
+            <Route path="/sell-with-us" element={<SellWithUs />} />
+            <Route path="/products" element={<ProductsPage />} />
+            <Route path="/donations" element={<DonationsPage />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+
+            {/* Add this before any catchall route */}
+            {import.meta.env.VITE_TEMPO === "true" && (
+              <Route path="/tempobook/*" element={<></>} />
+            )}
+
+            {/* Fallback route */}
+            <Route path="*" element={<Navigate to="/" />} />
+          </Routes>
+        </>
+      </Suspense>
+    </AuthProvider>
+  );
+}
+
+export default App;
