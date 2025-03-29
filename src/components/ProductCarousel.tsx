@@ -137,7 +137,7 @@ const ProductCarousel = ({
           </p>
           <button
             className="bg-[#006699] hover:bg-[#005588] text-white px-6 py-2 rounded-md font-medium transition-colors"
-            onClick={() => (window.location.href = "/products")}
+            onClick={() => (window.location.href = "./products")}
           >
             View All Products
           </button>

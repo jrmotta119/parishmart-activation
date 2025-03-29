@@ -89,6 +89,7 @@ const VendorRegistrationForm = () => {
   const [toastMessage, setToastMessage] = useState("");
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [attemptedSteps, setAttemptedSteps] = useState<number[]>([]);
 
   const parishes = [
     "St. Mary's Parish",
@@ -166,6 +167,17 @@ const VendorRegistrationForm = () => {
           [productIndex]: [...currentPreviews, ...newPreviews].slice(0, 5),
         };
       });
+    }
+  };
+
+  const handleBulkUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      // Here you would implement the CSV parsing logic
+      // For now, just show a message that the file was received
+      const file = e.target.files[0];
+      setToastMessage(`CSV file received: ${file.name}`);
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
     }
   };
 
@@ -283,6 +295,43 @@ const VendorRegistrationForm = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Mark all steps as attempted for validation
+    setAttemptedSteps([1, 2, 3, 4, 5]);
+
+    // Validate all required fields before submission
+    if (
+      !formData.fullName ||
+      !formData.email ||
+      !formData.phone ||
+      !formData.businessName ||
+      !formData.businessDescription ||
+      !formData.logo ||
+      !formData.contactEmail ||
+      !formData.contactPhone
+    ) {
+      setToastMessage("Please fill in all required fields before submitting");
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+      return;
+    }
+
+    // Validate products if not basic subscription
+    if (formData.subscriptionType !== "basic" && formData.products.length > 0) {
+      const invalidProducts = formData.products.filter(
+        (product) => !product.name || !product.category || !product.description,
+      );
+
+      if (invalidProducts.length > 0) {
+        setToastMessage(
+          "Please complete all product information before submitting",
+        );
+        setShowToast(true);
+        setTimeout(() => setShowToast(false), 3000);
+        return;
+      }
+    }
+
     setIsSubmitting(true);
 
     // Simulate API call
@@ -299,6 +348,11 @@ const VendorRegistrationForm = () => {
   // This was causing issues with the subscription type not updating properly
 
   const nextStep = () => {
+    // Mark this step as attempted
+    if (!attemptedSteps.includes(step)) {
+      setAttemptedSteps([...attemptedSteps, step]);
+    }
+
     // Validate current step before proceeding
     if (step === 1) {
       if (!formData.fullName || !formData.email || !formData.phone) {
@@ -357,13 +411,13 @@ const VendorRegistrationForm = () => {
   return (
     <>
       {showToast && (
-        <div className="fixed top-4 right-4 z-50 bg-amber-50 border-l-4 border-amber-500 p-4 rounded shadow-md max-w-md">
+        <div className="fixed top-4 right-4 z-50 bg-red-50 border-l-4 border-red-500 p-4 rounded shadow-md max-w-md">
           <div className="flex">
             <div className="flex-shrink-0">
-              <Info className="h-5 w-5 text-amber-500" />
+              <Info className="h-5 w-5 text-red-500" />
             </div>
             <div className="ml-3">
-              <p className="text-sm text-amber-700">{toastMessage}</p>
+              <p className="text-sm text-red-700">{toastMessage}</p>
             </div>
           </div>
         </div>
@@ -479,8 +533,13 @@ const VendorRegistrationForm = () => {
                       value={formData.fullName}
                       onChange={handleInputChange}
                       required
-                      className="w-full"
+                      className={`w-full ${!formData.fullName && attemptedSteps.includes(1) && "border-red-300"}`}
                     />
+                    {!formData.fullName && attemptedSteps.includes(1) && (
+                      <p className="mt-1 text-sm text-red-600">
+                        Full name is required
+                      </p>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -498,8 +557,13 @@ const VendorRegistrationForm = () => {
                         value={formData.email}
                         onChange={handleInputChange}
                         required
-                        className="w-full"
+                        className={`w-full ${!formData.email && attemptedSteps.includes(1) && "border-red-300"}`}
                       />
+                      {!formData.email && attemptedSteps.includes(1) && (
+                        <p className="mt-1 text-sm text-red-600">
+                          Email is required
+                        </p>
+                      )}
                     </div>
                     <div>
                       <Label
@@ -515,8 +579,13 @@ const VendorRegistrationForm = () => {
                         value={formData.phone}
                         onChange={handleInputChange}
                         required
-                        className="w-full"
+                        className={`w-full ${!formData.phone && attemptedSteps.includes(1) && "border-red-300"}`}
                       />
+                      {!formData.phone && attemptedSteps.includes(1) && (
+                        <p className="mt-1 text-sm text-red-600">
+                          Phone number is required
+                        </p>
+                      )}
                     </div>
                   </div>
 
@@ -617,8 +686,13 @@ const VendorRegistrationForm = () => {
                       value={formData.businessName}
                       onChange={handleInputChange}
                       required
-                      className="w-full"
+                      className={`w-full ${!formData.businessName && attemptedSteps.includes(2) && "border-red-300"}`}
                     />
+                    {!formData.businessName && attemptedSteps.includes(2) && (
+                      <p className="mt-1 text-sm text-red-600">
+                        Business name is required
+                      </p>
+                    )}
                   </div>
 
                   <div className="mb-6">
@@ -667,9 +741,15 @@ const VendorRegistrationForm = () => {
                       value={formData.businessDescription}
                       onChange={handleInputChange}
                       required
-                      className="w-full h-32"
+                      className={`w-full h-32 ${!formData.businessDescription && attemptedSteps.includes(2) && "border-red-300"}`}
                       placeholder="Describe your business in detail..."
                     />
+                    {!formData.businessDescription &&
+                      attemptedSteps.includes(2) && (
+                        <p className="mt-1 text-sm text-red-600">
+                          Business description is required
+                        </p>
+                      )}
                   </div>
 
                   {/* Logo Upload */}
@@ -679,7 +759,9 @@ const VendorRegistrationForm = () => {
                     </Label>
                     <div className="flex items-start space-x-4">
                       <div className="flex-1">
-                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:bg-gray-50 transition-colors">
+                        <div
+                          className={`border-2 border-dashed ${!formData.logo && attemptedSteps.includes(2) ? "border-red-300" : "border-gray-300"} rounded-lg p-4 text-center cursor-pointer hover:bg-gray-50 transition-colors`}
+                        >
                           <input
                             type="file"
                             id="logo"
@@ -701,6 +783,11 @@ const VendorRegistrationForm = () => {
                             </span>
                           </label>
                         </div>
+                        {!formData.logo && attemptedSteps.includes(2) && (
+                          <p className="mt-1 text-sm text-red-600">
+                            Logo is required
+                          </p>
+                        )}
                       </div>
                       {logoPreview && (
                         <div className="w-24 h-24 relative border rounded-lg overflow-hidden">
@@ -763,7 +850,7 @@ const VendorRegistrationForm = () => {
                     Choose Your Subscription Plan
                   </h2>
 
-                  <div className="mb-8">
+                  <div className="mb-4">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                       <Card
                         className={`cursor-pointer transition-all ${formData.subscriptionType === "basic" ? "border-2 border-[#006699] shadow-md" : "border border-gray-200"}`}
@@ -794,7 +881,7 @@ const VendorRegistrationForm = () => {
                         </CardHeader>
                         <CardContent>
                           <p className="text-2xl font-bold mb-2">
-                            $9.99
+                            $49.99
                             <span className="text-sm font-normal">/month</span>
                           </p>
                           <ul className="space-y-2 text-sm">
@@ -845,7 +932,7 @@ const VendorRegistrationForm = () => {
                         </CardHeader>
                         <CardContent>
                           <p className="text-2xl font-bold mb-2">
-                            $29.99
+                            $69.99
                             <span className="text-sm font-normal">/month</span>
                           </p>
                           <ul className="space-y-2 text-sm">
@@ -859,7 +946,7 @@ const VendorRegistrationForm = () => {
                             </li>
                             <li className="flex items-center">
                               <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                              Up to 3 product listings
+                              Up to 3 product listings *
                             </li>
                           </ul>
                         </CardContent>
@@ -894,7 +981,7 @@ const VendorRegistrationForm = () => {
                         </CardHeader>
                         <CardContent>
                           <p className="text-2xl font-bold mb-2">
-                            $49.99
+                            $99.99
                             <span className="text-sm font-normal">/month</span>
                           </p>
                           <ul className="space-y-2 text-sm">
@@ -908,15 +995,26 @@ const VendorRegistrationForm = () => {
                             </li>
                             <li className="flex items-center">
                               <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                              Unlimited product listings
+                              Unlimited product listings*
                             </li>
                             <li className="flex items-center">
                               <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
                               Featured placement
                             </li>
+                            <li className="flex items-center">
+                              <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                              API integration available**
+                            </li>
                           </ul>
                         </CardContent>
                       </Card>
+                    </div>
+                    <div className="mt-4 text-sm text-gray-600">
+                      <p>
+                        * Transactional fees apply. Please review our full
+                        policy for details.
+                      </p>
+                      <p>** One-time set-up fee may apply.</p>
                     </div>
                   </div>
 
@@ -967,9 +1065,15 @@ const VendorRegistrationForm = () => {
                           value={formData.contactEmail}
                           onChange={handleInputChange}
                           required
-                          className="w-full"
+                          className={`w-full ${!formData.contactEmail && attemptedSteps.includes(4) && "border-red-300"}`}
                           placeholder="customer-service@yourbusiness.com"
                         />
+                        {!formData.contactEmail &&
+                          attemptedSteps.includes(4) && (
+                            <p className="mt-1 text-sm text-red-600">
+                              Contact email is required
+                            </p>
+                          )}
                       </div>
                       <div>
                         <Label
@@ -985,9 +1089,15 @@ const VendorRegistrationForm = () => {
                           value={formData.contactPhone}
                           onChange={handleInputChange}
                           required
-                          className="w-full"
+                          className={`w-full ${!formData.contactPhone && attemptedSteps.includes(4) && "border-red-300"}`}
                           placeholder="(555) 123-4567"
                         />
+                        {!formData.contactPhone &&
+                          attemptedSteps.includes(4) && (
+                            <p className="mt-1 text-sm text-red-600">
+                              Contact phone is required
+                            </p>
+                          )}
                       </div>
                     </div>
                   </div>
@@ -1006,14 +1116,35 @@ const VendorRegistrationForm = () => {
                         <h3 className="text-lg font-medium text-gray-800">
                           Products & Services
                         </h3>
-                        <Button
-                          type="button"
-                          onClick={addProduct}
-                          size="sm"
-                          className="bg-[#006699] hover:bg-[#005588] text-white"
-                        >
-                          Add Product
-                        </Button>
+                        <div className="flex space-x-2">
+                          {formData.subscriptionType === "elite" && (
+                            <label className="relative cursor-pointer">
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                className="border-[#006699] text-[#006699] flex items-center"
+                              >
+                                <Upload className="h-4 w-4 mr-1" />
+                                Upload in bulk (CSV file)
+                              </Button>
+                              <input
+                                type="file"
+                                accept=".csv"
+                                onChange={handleBulkUpload}
+                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                              />
+                            </label>
+                          )}
+                          <Button
+                            type="button"
+                            onClick={addProduct}
+                            size="sm"
+                            className="bg-[#006699] hover:bg-[#005588] text-white"
+                          >
+                            Add Product
+                          </Button>
+                        </div>
                       </div>
 
                       {formData.products.length === 0 ? (
@@ -1032,7 +1163,7 @@ const VendorRegistrationForm = () => {
                             >
                               <div className="flex justify-between items-center mb-4">
                                 <h4 className="font-medium">
-                                  Product {productIndex + 1}
+                                  Listing {productIndex + 1}
                                 </h4>
                                 <Button
                                   type="button"
@@ -1063,8 +1194,14 @@ const VendorRegistrationForm = () => {
                                     )
                                   }
                                   required
-                                  className="w-full"
+                                  className={`w-full ${!product.name && attemptedSteps.includes(4) && "border-red-300"}`}
                                 />
+                                {!product.name &&
+                                  attemptedSteps.includes(4) && (
+                                    <p className="mt-1 text-sm text-red-600">
+                                      Product name is required
+                                    </p>
+                                  )}
                               </div>
 
                               <div className="mb-4">
@@ -1084,7 +1221,9 @@ const VendorRegistrationForm = () => {
                                   }
                                   value={product.category}
                                 >
-                                  <SelectTrigger className="w-full">
+                                  <SelectTrigger
+                                    className={`w-full ${!product.category && attemptedSteps.includes(4) && "border-red-300"}`}
+                                  >
                                     <SelectValue placeholder="Select a category" />
                                   </SelectTrigger>
                                   <SelectContent>
@@ -1098,6 +1237,12 @@ const VendorRegistrationForm = () => {
                                     ))}
                                   </SelectContent>
                                 </Select>
+                                {!product.category &&
+                                  attemptedSteps.includes(4) && (
+                                    <p className="mt-1 text-sm text-red-600">
+                                      Category is required
+                                    </p>
+                                  )}
                               </div>
 
                               <div className="mb-4">
@@ -1118,9 +1263,15 @@ const VendorRegistrationForm = () => {
                                     )
                                   }
                                   required
-                                  className="w-full h-32"
+                                  className={`w-full h-32 ${!product.description && attemptedSteps.includes(4) && "border-red-300"}`}
                                   placeholder="Describe your product or service in detail..."
                                 />
+                                {!product.description &&
+                                  attemptedSteps.includes(4) && (
+                                    <p className="mt-1 text-sm text-red-600">
+                                      Description is required
+                                    </p>
+                                  )}
                               </div>
 
                               {/* Product Images Upload */}
@@ -1167,7 +1318,7 @@ const VendorRegistrationForm = () => {
                                             <div className="w-full h-24 border rounded-lg overflow-hidden">
                                               <img
                                                 src={preview}
-                                                alt={`Product ${productIndex + 1} Image ${imageIndex + 1}`}
+                                                alt={`Listing ${productIndex + 1} Image ${imageIndex + 1}`}
                                                 className="w-full h-full object-cover"
                                               />
                                             </div>
@@ -1382,7 +1533,7 @@ const VendorRegistrationForm = () => {
                           {formData.products.map((product, index) => (
                             <div key={index} className="mt-2">
                               <p className="text-gray-600 font-medium">
-                                Product {index + 1}: {product.name}
+                                Listing {index + 1}: {product.name}
                               </p>
                               {product.category && (
                                 <p className="text-gray-600 text-sm">

@@ -36,7 +36,7 @@ const Login = () => {
       if (error) throw error;
 
       // Redirect to home page after successful login
-      navigate("/");
+      navigate("./");
     } catch (error: any) {
       setError(error.message || "An error occurred during login");
     } finally {
@@ -46,8 +46,8 @@ const Login = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <a href="/" className="mb-8">
-        <img src="/logo1.png" alt="ParishMart Logo" className="h-16 w-auto" />
+      <a href="./" className="mb-8">
+        <img src="./logo1.png" alt="ParishMart Logo" className="h-16 w-auto" />
       </a>
       <Card className="w-full max-w-md bg-white">
         <CardHeader className="space-y-1">
@@ -121,7 +121,7 @@ const Login = () => {
           <div className="text-sm text-center">
             Don't have an account?{" "}
             <a
-              href="/signup"
+              href="./signup"
               className="font-medium text-[#006699] hover:text-[#005588]"
             >
               Sign up

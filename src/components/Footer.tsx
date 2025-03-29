@@ -26,7 +26,7 @@ interface FooterProps {
 }
 
 const Footer = ({
-  missionStatement = "ParishMart is dedicated to connecting communities through purpose-driven shopping. Every purchase you make directly supports local parish initiatives and community development programs.",
+  missionStatement = "ParishMart is dedicated to connecting communities through purpose-driven shopping. Every purchase you make directly supports community initiatives and charitable causes.",
   socialLinks = {
     facebook: "https://facebook.com/parishmart",
     twitter: "https://twitter.com/parishmart",

@@ -16,8 +16,7 @@ const SellWithUs = () => {
               Sell With Us
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Your trusted online destination for Catholic faith resources and
-              products
+              Grow your business while giving back to your community
             </p>
           </div>
 
@@ -38,19 +37,18 @@ const SellWithUs = () => {
             <div className="bg-gray-50 rounded-xl p-8 mb-12">
               <p className="text-lg text-gray-700 mb-6">
                 ParishMart, powered by Gurupia, is the first dedicated
-                marketplace connecting Catholic parishes with trusted vendors,
-                service providers, and community artisans. By selling on
-                ParishMart, you gain access to a unique audience passionate
-                about faith-based products and services. Our platform not only
-                helps you expand your reach within Catholic communities but also
-                contributes to meaningful causes, as parishes receive referral
-                fees that support their missions. With easy onboarding, secure
-                transactions, and a supportive network of parishes and
-                parishioners, ParishMart offers a powerful channel to grow your
-                business while making a positive impact.
+                marketplace connecting parishes, churches, and non-profits with
+                trusted vendors, services providers, and community artisans. By
+                selling on ParishMart you gain access to a unique audience
+                passionate about purpose-driven shopping. Our platform helps
+                expand your reach while also contributing a portion of your sale
+                to a meaningful cause of your choosing. With easy onboarding,
+                secure transactions, and a supportive network, ParishMart offers
+                a powerful channel to grow your business while making a positive
+                impact.
               </p>
               <p className="text-lg text-gray-700 font-medium">
-                Join us and become a part of a faith-driven marketplace that
+                Join us and become a part of a purpose-driven marketplace that
                 turns commerce into community support.
               </p>
             </div>
@@ -61,17 +59,16 @@ const SellWithUs = () => {
             <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">
               How It Works
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100 text-center">
                 <div className="w-12 h-12 bg-[#006699] text-white rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">
                   1
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                  Register to join
+                  Select Your Membership
                 </h3>
                 <p className="text-gray-700">
-                  Register to get the Custom feature set applied to your
-                  account.
+                  Explore and select the membership that best suits your needs.
                 </p>
               </div>
               <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100 text-center">
@@ -79,11 +76,10 @@ const SellWithUs = () => {
                   2
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                  Enable your listings
+                  Complete Your Registration
                 </h3>
                 <p className="text-gray-700">
-                  Once your account is registered, you'll be given access to
-                  enable your product listings for customization.
+                  Provide your business information and set up your listings.
                 </p>
               </div>
               <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100 text-center">
@@ -91,22 +87,10 @@ const SellWithUs = () => {
                   3
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                  Set up your experience
+                  Start Selling
                 </h3>
                 <p className="text-gray-700">
-                  Using our listing tool within PML, start configuring your
-                  customization experiences.
-                </p>
-              </div>
-              <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100 text-center">
-                <div className="w-12 h-12 bg-[#006699] text-white rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">
-                  4
-                </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                  Start selling
-                </h3>
-                <p className="text-gray-700">
-                  Start offering your Products or Services for our Parrish
+                  Amplify your reach and offer your products and services to our
                   community.
                 </p>
               </div>
@@ -125,7 +109,7 @@ const SellWithUs = () => {
                 </h3>
                 <p className="text-gray-700">
                   Connect with customers who are specifically looking for
-                  faith-based products and services.
+                  purpose-driven products and services.
                 </p>
               </div>
               <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100">
@@ -133,8 +117,7 @@ const SellWithUs = () => {
                   Community Support
                 </h3>
                 <p className="text-gray-700">
-                  Be part of a marketplace that supports parish missions and
-                  community initiatives.
+                  Be part of a marketplace that supports community initiatives.
                 </p>
               </div>
               <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100">
@@ -160,8 +143,8 @@ const SellWithUs = () => {
                   Marketing Support
                 </h3>
                 <p className="text-gray-700">
-                  Benefit from our platform's marketing efforts to parishes and
-                  Catholic communities.
+                  Benefit from our platform's marketing efforts to faith
+                  communities and non-profits.
                 </p>
               </div>
               <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100">
@@ -170,7 +153,7 @@ const SellWithUs = () => {
                 </h3>
                 <p className="text-gray-700">
                   Expand your business reach to new customers across multiple
-                  parish communities.
+                  communities.
                 </p>
               </div>
             </div>
@@ -179,12 +162,12 @@ const SellWithUs = () => {
           {/* CTA Section */}
           <div className="text-center">
             <p className="text-xl text-gray-700 mb-8">
-              Ready to grow your business while supporting Catholic communities?
+              Ready to grow your business while supporting your community?
             </p>
             <Button
               className="bg-[#006699] hover:bg-[#005588] text-white font-semibold text-lg px-8 py-6 h-auto rounded-full transition-all duration-300 transform hover:scale-105"
               onClick={() =>
-                (window.location.href = "/vendor-registration-form")
+                (window.location.href = "./vendor-registration-form")
               }
             >
               Register Now

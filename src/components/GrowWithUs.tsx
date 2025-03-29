@@ -75,23 +75,23 @@ const GrowWithUs = ({
       buttonText: "Start Your Store",
       imageSrc:
         "https://images.unsplash.com/photo-1556740738-b6a63e27c4df?w=800&q=80",
-      onClick: () => (window.location.href = "/why-register"),
+      onClick: () => (window.location.href = "./why-register"),
     },
     {
       title: "Sell & Support Your Community",
-      description: "Turn Your Products into Support for Your Parish",
+      description: "Boost Your Business while Supporting Your Community",
       buttonText: "Start Selling",
       imageSrc:
         "https://images.unsplash.com/photo-1556740772-1a741367b93e?w=800&q=80",
-      onClick: () => (window.location.href = "/sell-with-us"),
+      onClick: () => (window.location.href = "./sell-with-us"),
     },
     {
       title: "Set Up Donations for Your Cause",
       description: "Raise Funds, Inspire Giving",
-      buttonText: "Create a Donation Cause",
+      buttonText: "Start a Donation Cause",
       imageSrc:
         "https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?w=800&q=80",
-      onClick: () => (window.location.href = "/donations"),
+      onClick: () => (window.location.href = "./donations"),
     },
   ],
 }: GrowWithUsProps) => {

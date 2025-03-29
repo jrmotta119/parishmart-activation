@@ -29,17 +29,17 @@ const ValueProposition = ({
     {
       icon: <Users className="h-8 w-8" />,
       value: "15,000+",
-      label: "People helped annually",
+      label: "Causes helped annually",
       color: "bg-green-100 text-green-600",
     },
     {
       icon: <Heart className="h-8 w-8" />,
       value: "100%",
-      label: "Of profits reinvested",
+      label: "Of purchases give back to the community",
       color: "bg-red-100 text-red-600",
     },
   ],
-  ctaText = "Learn about our impact",
+  ctaText = "Learn about our mission",
   onCtaClick = () => console.log("Learn more clicked"),
 }: ValuePropositionProps) => {
   return (

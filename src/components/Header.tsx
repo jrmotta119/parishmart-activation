@@ -23,126 +23,67 @@ interface HeaderProps {
 
 const shopCategories = [
   {
-    name: "Bibles & Religious Texts",
+    name: "Apparel & Accessories",
     subcategories: [
-      "Bibles (Douay-Rheims, NAB, RSV-CE, Latin Vulgate)",
-      "Study Bibles & Commentaries",
-      "Catechism of the Church",
-      "Missals (Daily, Sunday, Latin, Tridentine)",
-      "Prayer Books & Devotionals",
-      "Lives of the Saints & Biographies",
-      "Papal Documents & Encyclicals",
+      "Clothing, Footwear, and Accessories",
+      "Uniforms, Workwear, and Custom Merchandise",
     ],
   },
   {
-    name: "Jewelry & Accessories",
+    name: "Electronics & Technology",
     subcategories: [
-      "Crucifix & Cross Necklaces",
-      "Saint Medals (St. Benedict, St. Michael, Miraculous Medal, etc.)",
-      "Rosary Bracelets & Rings",
-      "Scapulars (Brown, Green, Red, Blue, White)",
-      "Papal & Vatican Jewelry",
-      "Patron Saint Keychains & Charms",
+      "Mobile Devices, Laptops, and Accessories",
+      "Audio/Video Equipment and Security Systems",
     ],
   },
   {
-    name: "Home Décor & Art",
+    name: "Home & Living",
     subcategories: [
-      "Statues & Figurines (Jesus, Mary, Saints, Angels)",
-      "Wall Crucifixes & Crosses",
+      "Furniture, Kitchenware, and Home Decor",
+      "Cleaning Supplies and Household Essentials",
       "Religious Paintings & Icons",
-      "Holy Water Fonts & Bottles",
-      "Advent & Christmas Decorations (Nativity Sets, Star of Bethlehem)",
-      "Religious Plaques & Inspirational Signs",
     ],
   },
   {
-    name: "Music & Media",
+    name: "Automotive & Transportation",
     subcategories: [
-      "Gregorian Chant & Sacred Music",
-      "Hymnals & Worship Music",
-      "Religious Movies (Marian Apparitions, Saints' Lives, The Passion)",
-      "Audiobooks & Podcasts",
-      "Latin Mass Recordings",
+      "Car Parts, Tools, and Accessories",
+      "Electric Scooters, Bikes, and Mobility Solutions",
     ],
   },
   {
-    name: "Clothing & Apparel",
+    name: "Food & Beverages",
     subcategories: [
-      "Marian & Saint-Themed T-Shirts",
-      "Hoodies & Sweatshirts",
-      "Clergy & Religious Habit Apparel",
-      "Mantillas & Veils for Mass",
-      "Hats & Accessories",
+      "Packaged Foods, Snacks, and Specialty Items",
+      "Beverages, Coffee, and Tea",
     ],
   },
   {
-    name: "Children's Items",
+    name: "Outdoor & Gardening",
     subcategories: [
-      "Children's Bibles & Storybooks",
-      "First Communion Gifts & Keepsakes",
-      "Dolls & Plush Toys",
-      "Kids' Rosaries & Prayer Cards",
-      "Coloring & Activity Books",
+      "Gardening Tools, Plants, and Landscaping Supplies",
+      "Outdoor Furniture and Equipment",
     ],
   },
   {
-    name: "Sacramental Gifts & Devotional Items",
+    name: "Religious Products",
     subcategories: [
-      "Baptism Gifts (Baby Crosses, Christening Gowns)",
-      "First Communion Sets (Rosary, Missal, Medal, Candle)",
-      "Confirmation Gifts (Holy Spirit Medals, Saint Books)",
-      "Wedding & Anniversary Religious Gifts",
-      "Ordination & Clergy Appreciation Gifts",
+      "Liturgical Supplies, Sacramental Gifts, and Apparel",
+      "Bibles, Prayer Books, and Devotional Items",
     ],
   },
   {
-    name: "Devotional & Spirituality Items",
+    name: "Toys, Games & Hobbies",
     subcategories: [
-      "Rosaries (Handmade, Wooden, Crystal, Luminous, Cord)",
-      "Chaplets (Divine Mercy, St. Michael, Holy Face, Seven Sorrows)",
-      "Novena & Prayer Cards",
-      "Holy Water & Blessed Oils",
-      "Saint Relics & Ex-Voto Offerings",
-      "Pilgrimage Souvenirs (Lourdes Water, Fatima Statues)",
+      "Educational Games, Board Games, and Crafts",
+      "Sports Equipment and Musical Instruments",
     ],
   },
   {
-    name: "Seasonal & Liturgical Calendar Items",
+    name: "Gifts & Souvenirs",
     subcategories: [
-      "Advent Wreaths & Candles",
-      "Lenten Devotional Books & Stations of the Cross Items",
-      "Easter Decorations & Religious Gifts",
-      "Christmas Ornaments & Nativity Sets",
-      "Feast Day Celebrations Items",
-    ],
-  },
-  {
-    name: "Books & Study Materials",
-    subcategories: [
-      "Theology & Apologetics (Church Fathers, Doctors of the Church)",
-      "Lives & Writings of the Saints",
-      "Papal Encyclicals & Vatican Documents",
-      "Traditional Latin Mass Resources",
-      "Marian Apparitions & Devotions",
-    ],
-  },
-  {
-    name: "Personalized & Custom Items",
-    subcategories: [
-      "Engraved Crucifixes & Plaques",
-      "Customized Rosaries & Chaplets",
-      "Personalized Bible Covers",
-      "Name-Engraved Medals & Jewelry",
-    ],
-  },
-  {
-    name: "Holy Land & Pilgrimage Items",
-    subcategories: [
-      "Olive Wood Crosses & Statues",
-      "Lourdes & Fatima Holy Water Bottles",
-      "Imported Incense & Anointing Oils",
-      "Relic Cards & Medals",
+      "Personalized Items, Cards, and Custom Keepsakes",
+      "Handmade Artisan Products from Local Communities",
     ],
   },
 ];
@@ -201,9 +142,9 @@ const Header = ({
         <div className="container mx-auto h-full px-4 flex items-center justify-between">
           {/* Logo */}
           <div className="flex items-center">
-            <a href="/" className="h-12 flex items-center">
+            <a href="./" className="h-12 flex items-center">
               <img
-                src="/logo1.png"
+                src="./logo1.png"
                 alt="ParishMart Logo"
                 className="h-12 w-auto"
                 onError={(e) => {
@@ -221,7 +162,7 @@ const Header = ({
                 <NavigationMenuItem>
                   <NavigationMenuTrigger className="text-[#006699] hover:text-[#005588] px-4 py-2 text-sm font-medium bg-transparent hover:bg-gray-50">
                     <NavigationMenuLink
-                      href="/products"
+                      href="./products"
                       className="text-[#006699] hover:text-[#005588] px-4 py-2 text-sm font-medium bg-transparent hover:bg-gray-50 flex items-center gap-1"
                     >
                       Shop
@@ -238,7 +179,7 @@ const Header = ({
                             {category.subcategories.map((subcat, idx) => (
                               <li key={idx}>
                                 <NavigationMenuLink
-                                  href={`/products/${category.name.toLowerCase().replace(/\s+/g, "-")}/${subcat.toLowerCase().replace(/\s+/g, "-")}`}
+                                  href={`./products/${category.name.toLowerCase().replace(/\s+/g, "-")}/${subcat.toLowerCase().replace(/\s+/g, "-")}`}
                                   className="block text-sm text-gray-600 hover:text-[#006699] hover:underline"
                                 >
                                   {subcat}
@@ -266,7 +207,7 @@ const Header = ({
                             {category.subcategories.map((subcat, idx) => (
                               <li key={idx}>
                                 <NavigationMenuLink
-                                  href={`/marketplace/${category.name.toLowerCase().replace(/\s+/g, "-")}/${subcat.toLowerCase().replace(/\s+/g, "-")}`}
+                                  href={`./marketplace/${category.name.toLowerCase().replace(/\s+/g, "-")}/${subcat.toLowerCase().replace(/\s+/g, "-")}`}
                                   className="block text-sm text-gray-600 hover:text-[#006699] hover:underline"
                                 >
                                   {subcat}
@@ -298,7 +239,7 @@ const Header = ({
                 <NavigationMenuItem>
                   <NavigationMenuLink
                     className="text-[#006699] hover:text-[#005588] px-4 py-2 text-sm font-medium"
-                    href="/about"
+                    href="./about"
                   >
                     About
                   </NavigationMenuLink>
@@ -306,7 +247,7 @@ const Header = ({
                 <NavigationMenuItem>
                   <NavigationMenuLink
                     className="text-[#006699] hover:text-[#005588] px-4 py-2 text-sm font-medium"
-                    href="/contact"
+                    href="./contact"
                   >
                     Contact Us
                   </NavigationMenuLink>
@@ -328,7 +269,7 @@ const Header = ({
                     className="text-[#006699] border-[#006699] hover:bg-[#006699] hover:text-white"
                     onClick={async () => {
                       await signOut();
-                      navigate("/login");
+                      navigate("./login");
                     }}
                   >
                     <LogOut className="h-4 w-4 mr-2" />
@@ -340,13 +281,13 @@ const Header = ({
                   <Button
                     variant="outline"
                     className="text-[#006699] border-[#006699] hover:bg-[#006699] hover:text-white"
-                    onClick={() => navigate("/login")}
+                    onClick={() => navigate("./login")}
                   >
                     Login
                   </Button>
                   <Button
                     className="bg-[#006699] hover:bg-[#005588] text-white"
-                    onClick={() => navigate("/signup")}
+                    onClick={() => navigate("./signup")}
                   >
                     Sign Up
                   </Button>
@@ -397,7 +338,7 @@ const Header = ({
                     {category.subcategories.map((subcat, idx) => (
                       <a
                         key={idx}
-                        href={`/products/${category.name.toLowerCase().replace(/\s+/g, "-")}/${subcat.toLowerCase().replace(/\s+/g, "-")}`}
+                        href={`./products/${category.name.toLowerCase().replace(/\s+/g, "-")}/${subcat.toLowerCase().replace(/\s+/g, "-")}`}
                         className="block py-1 px-4 text-sm text-gray-600 hover:text-[#006699]"
                       >
                         {subcat}
@@ -419,7 +360,7 @@ const Header = ({
                     {category.subcategories.map((subcat, idx) => (
                       <a
                         key={idx}
-                        href={`/marketplace/${category.name.toLowerCase().replace(/\s+/g, "-")}/${subcat.toLowerCase().replace(/\s+/g, "-")}`}
+                        href={`./marketplace/${category.name.toLowerCase().replace(/\s+/g, "-")}/${subcat.toLowerCase().replace(/\s+/g, "-")}`}
                         className="block py-1 px-4 text-sm text-gray-600 hover:text-[#006699]"
                       >
                         {subcat}
@@ -432,13 +373,13 @@ const Header = ({
               <div className="border-t border-gray-200 my-2"></div>
 
               <a
-                href="/about"
+                href="./about"
                 className="py-2 px-4 text-[#006699] hover:bg-gray-100 rounded-md"
               >
                 About
               </a>
               <a
-                href="/contact"
+                href="./contact"
                 className="py-2 px-4 text-[#006699] hover:bg-gray-100 rounded-md"
               >
                 Contact Us
@@ -447,7 +388,7 @@ const Header = ({
                 <button
                   onClick={async () => {
                     await signOut();
-                    navigate("/login");
+                    navigate("./login");
                   }}
                   className="py-2 px-4 text-[#006699] hover:bg-gray-100 rounded-md flex items-center"
                 >
@@ -457,13 +398,13 @@ const Header = ({
               ) : (
                 <>
                   <button
-                    onClick={() => navigate("/login")}
+                    onClick={() => navigate("./login")}
                     className="py-2 px-4 text-[#006699] hover:bg-gray-100 rounded-md"
                   >
                     Login
                   </button>
                   <button
-                    onClick={() => navigate("/signup")}
+                    onClick={() => navigate("./signup")}
                     className="py-2 px-4 text-[#006699] hover:bg-gray-100 rounded-md"
                   >
                     Sign Up

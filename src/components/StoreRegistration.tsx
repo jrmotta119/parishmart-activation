@@ -15,7 +15,7 @@ const StoreRegistration = () => {
               Store Registration
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Expand your outreach and support your cause by opening a web store
+              Expand your outreach and support a cause by opening a web store
               with us. Whether you're a parish, church, or non-profit, we make
               it easy to sell products, fundraise, and grow your community
               online. Start today and make a bigger impact!
@@ -26,13 +26,14 @@ const StoreRegistration = () => {
             <div className="bg-gray-50 rounded-xl p-8 mb-12">
               <p className="text-lg text-gray-700 mb-6">
                 ParishMart is more than just an online store—it is a platform
-                designed to support parishes and their communities. Through
-                ParishMart, your parish can offer a curated marketplace that
-                connects local businesses, community fundraising, donation-based
-                products, personalized merchandise, and faith-inspired gifts.
+                designed to support parishes, churches, and non-profits and
+                their communities. Through ParishMart, you can offer a curated
+                marketplace that connects local businesses, community
+                fundraising, donation-based products, personalized merchandise,
+                and faith-inspired gifts.
               </p>
               <p className="text-lg text-gray-700">
-                This turnkey solution allows parishes to raise funds, support
+                This innovative solution allows parishes to raise funds, support
                 their members, and promote evangelization—all with zero
                 investment, no inventory, and no operational burden.
               </p>
@@ -53,11 +54,11 @@ const StoreRegistration = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100">
                   <h3 className="text-xl font-semibold text-[#006699] mb-2">
-                    Your Parish, Your Platform
+                    Your Cause, Your Platform
                   </h3>
                   <p className="text-gray-700">
-                    Create an online marketplace that reflects your parish's
-                    mission and serves your community.
+                    Create an online marketplace that reflects your mission and
+                    serves your community.
                   </p>
                 </div>
                 <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100">
@@ -66,7 +67,7 @@ const StoreRegistration = () => {
                   </h3>
                   <p className="text-gray-700">
                     Offer products and services from trusted local vendors,
-                    strengthening the parish economy.
+                    while supporting your cause.
                   </p>
                 </div>
                 <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100">
@@ -74,8 +75,8 @@ const StoreRegistration = () => {
                     Donations as Store Products
                   </h3>
                   <p className="text-gray-700">
-                    Provide an easy way for parishioners to contribute to causes
-                    by purchasing donation-based items.
+                    Provide an easy way for your community to contribute to
+                    causes by purchasing donation-based items.
                   </p>
                 </div>
                 <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100">
@@ -83,7 +84,7 @@ const StoreRegistration = () => {
                     Merch Store & Personalized Items
                   </h3>
                   <p className="text-gray-700">
-                    Sell parish-branded merchandise, event apparel, and custom
+                    Sell branded merchandise, customized apparel, and custom
                     products on demand.
                   </p>
                 </div>
@@ -92,7 +93,7 @@ const StoreRegistration = () => {
                     Religious Gifts & Faith-Based Products
                   </h3>
                   <p className="text-gray-700">
-                    Access a curated selection of books, gifts, and essential
+                    Access to a curated selection of books, gifts, and essential
                     religious items.
                   </p>
                 </div>
@@ -135,8 +136,7 @@ const StoreRegistration = () => {
                     24/7 Support
                   </h3>
                   <p className="text-gray-700">
-                    Dedicated assistance for your parish and customers at any
-                    time.
+                    Dedicated assistance for you and your customers at any time.
                   </p>
                 </div>
               </div>
@@ -152,7 +152,7 @@ const StoreRegistration = () => {
                     1
                   </div>
                   <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                    Register Your Parish
+                    Register
                   </h3>
                   <p className="text-gray-700">
                     Gain access to your own community-driven online marketplace.
@@ -166,7 +166,7 @@ const StoreRegistration = () => {
                     Customize Your Store
                   </h3>
                   <p className="text-gray-700">
-                    Select and feature products that benefit your parish and
+                    Select and feature products that benefit your community and
                     local businesses.
                   </p>
                 </div>
@@ -178,8 +178,8 @@ const StoreRegistration = () => {
                     Promote & Earn
                   </h3>
                   <p className="text-gray-700">
-                    Share your ParishMart store link and start generating funds
-                    for your parish.
+                    Share your ParishMart store link and start raising funds for
+                    your cause.
                   </p>
                 </div>
               </div>
@@ -187,8 +187,8 @@ const StoreRegistration = () => {
 
             <div className="text-center">
               <p className="text-xl text-gray-700 mb-8">
-                Join ParishMart today and turn your parish into a hub of faith,
-                community, and commerce.
+                Join ParishMart today and elevate your cause through
+                purchase-driven shopping.
               </p>
               <Button
                 className="bg-[#006699] hover:bg-[#005588] text-white font-semibold text-lg px-8 py-6 h-auto rounded-full transition-all duration-300 transform hover:scale-105"

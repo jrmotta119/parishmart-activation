@@ -5,7 +5,7 @@ interface AnnouncementStripProps {
 }
 
 const AnnouncementStrip = ({
-  message = "When you make a purchase, a portion of the sale supports your Parish.",
+  message = "When you make a purchase, a portion of the sale supports your community",
 }: AnnouncementStripProps) => {
   return (
     <div className="w-full bg-[#006699] text-white py-2">
