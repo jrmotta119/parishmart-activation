@@ -65,7 +65,7 @@ const Footer = ({
             <div className="flex items-center">
               <MapPin className="h-5 w-5 text-gray-500 mr-2" />
               <span className="text-sm text-gray-500">
-                123 Parish Way, Community Center, CA 94103
+                1443 Parish Way, Community Center, CA 94103
               </span>
             </div>
           </div>
