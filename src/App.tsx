@@ -6,6 +6,7 @@ import StoreRegistrationForm from "./components/StoreRegistrationForm";
 import VendorRegistrationForm from "./components/VendorRegistrationForm";
 import SellWithUs from "./components/SellWithUs";
 import ProductsPage from "./components/ProductsPage";
+import ShopPage from "./components/ShopPage";
 import DonationsPage from "./components/DonationsPage";
 import Login from "./components/auth/Login";
 import Signup from "./components/auth/Signup";
@@ -32,7 +33,10 @@ function App() {
               element={<VendorRegistrationForm />}
             />
             <Route path="/sell-with-us" element={<SellWithUs />} />
+            <Route path="/shop" element={<ShopPage />} />
             <Route path="/products" element={<ProductsPage />} />
+            <Route path="/products/:category" element={<ProductsPage />} />
+            <Route path="/products/:category/:subcategory" element={<ProductsPage />} />
             <Route path="/donations" element={<DonationsPage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />

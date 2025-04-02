@@ -1,9 +1,11 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import Header from "./Header";
 import Footer from "./Footer";
 import { motion } from "framer-motion";
 import { Button } from "./ui/button";
 import { ShoppingCart } from "lucide-react";
+import { shopCategories } from "./Header"; // Import shopCategories from Header
 
 interface Product {
   id: string;
@@ -11,6 +13,8 @@ interface Product {
   title: string;
   price: number;
   description: string;
+  category?: string;
+  subcategory?: string;
 }
 
 const products: Product[] = [
@@ -22,6 +26,8 @@ const products: Product[] = [
     price: 39.99,
     description:
       "Beautiful wooden rosary handcrafted by local artisans. Proceeds support parish youth ministry.",
+    category: "Religious Products",
+    subcategory: "Liturgical Supplies, Sacramental Gifts, and Apparel",
   },
   {
     id: "2",
@@ -31,6 +37,8 @@ const products: Product[] = [
     price: 49.99,
     description:
       "Premium leather Bible cover with cross embossing. Protects your Bible while supporting local craftsmen.",
+    category: "Religious Products",
+    subcategory: "Bibles, Prayer Books, and Devotional Items",
   },
   {
     id: "3",
@@ -39,6 +47,8 @@ const products: Product[] = [
     price: 24.99,
     description:
       "Set of five beautifully detailed saint medals. Perfect for gifts or personal devotion.",
+    category: "Religious Products",
+    subcategory: "Liturgical Supplies, Sacramental Gifts, and Apparel",
   },
   {
     id: "4",
@@ -47,6 +57,8 @@ const products: Product[] = [
     price: 18.99,
     description:
       "Beautifully designed journal with guided prayer prompts. Supports parish literacy programs.",
+    category: "Religious Products",
+    subcategory: "Bibles, Prayer Books, and Devotional Items",
   },
   {
     id: "5",
@@ -56,6 +68,8 @@ const products: Product[] = [
     price: 32.99,
     description:
       "Personalized baptism candle handcrafted with care. A beautiful keepsake for this special sacrament.",
+    category: "Religious Products",
+    subcategory: "Liturgical Supplies, Sacramental Gifts, and Apparel",
   },
   {
     id: "6",
@@ -65,6 +79,8 @@ const products: Product[] = [
     price: 29.99,
     description:
       "Authentic olive wood cross from the Holy Land. Each piece is unique with beautiful natural grain patterns.",
+    category: "Religious Products",
+    subcategory: "Liturgical Supplies, Sacramental Gifts, and Apparel",
   },
   {
     id: "7",
@@ -74,6 +90,8 @@ const products: Product[] = [
     price: 34.99,
     description:
       "Traditional church incense with brass burner. Creates a reverent atmosphere for home prayer.",
+    category: "Religious Products",
+    subcategory: "Liturgical Supplies, Sacramental Gifts, and Apparel",
   },
   {
     id: "8",
@@ -83,6 +101,8 @@ const products: Product[] = [
     price: 45.99,
     description:
       "Beautifully illuminated scripture verse in calligraphy. Perfect for home or office display.",
+    category: "Religious Products",
+    subcategory: "Bibles, Prayer Books, and Devotional Items",
   },
   {
     id: "9",
@@ -92,6 +112,8 @@ const products: Product[] = [
     price: 27.99,
     description:
       "Elegant wooden box for storing communion hosts. Handcrafted with reverence for the Eucharist.",
+    category: "Religious Products",
+    subcategory: "Liturgical Supplies, Sacramental Gifts, and Apparel",
   },
   {
     id: "10",
@@ -101,6 +123,8 @@ const products: Product[] = [
     price: 15.99,
     description:
       "Colorfully illustrated prayer book for children. Introduces young ones to the beauty of prayer.",
+    category: "Religious Products",
+    subcategory: "Bibles, Prayer Books, and Devotional Items",
   },
 ];
 
@@ -138,6 +162,39 @@ const ProductCard = ({ product }: { product: Product }) => {
 };
 
 const ProductsPage = () => {
+  const { category, subcategory } = useParams();
+  const navigate = useNavigate();
+  const [filteredProducts, setFilteredProducts] = useState(products);
+  const [selectedCategory, setSelectedCategory] = useState<string | undefined>(category);
+  const [selectedSubcategory, setSelectedSubcategory] = useState<string | undefined>(subcategory);
+
+  useEffect(() => {
+    let filtered = products;
+
+    if (category) {
+      filtered = filtered.filter((product) => product.category === category);
+      setSelectedCategory(category);
+    }
+
+    if (subcategory) {
+      filtered = filtered.filter((product) => product.subcategory === subcategory);
+      setSelectedSubcategory(subcategory);
+    }
+
+    setFilteredProducts(filtered);
+  }, [category, subcategory]);
+
+  const handleCategoryClick = (cat: string) => {
+    setSelectedCategory(cat);
+    navigate(`/products/${cat.toLowerCase().replace(/\s+/g, "-")}`);
+  };
+
+  const handleSubcategoryClick = (cat: string, subcat: string) => {
+    setSelectedCategory(cat);
+    setSelectedSubcategory(subcat);
+    navigate(`/products/${cat.toLowerCase().replace(/\s+/g, "-")}/${subcat.toLowerCase().replace(/\s+/g, "-")}`);
+  };
+
   return (
     <div className="min-h-screen bg-white">
       <Header />
@@ -145,7 +202,7 @@ const ProductsPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <div className="text-center mb-12">
             <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              Our Products
+              {subcategory || category || "Our Products"}
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               Discover our collection of faith-inspired products that support
@@ -153,43 +210,47 @@ const ProductsPage = () => {
             </p>
           </div>
 
-          {/* Filter/Sort Options */}
-          <div className="flex flex-wrap justify-between items-center mb-8 p-4 bg-gray-50 rounded-lg">
-            <div className="flex items-center space-x-4 mb-4 md:mb-0">
-              <span className="text-gray-700 font-medium">Filter by:</span>
+          {/* Category Navigation */}
+          <div className="mb-8">
+            <div className="flex flex-wrap gap-4">
               <Button
-                variant="outline"
-                className="border-[#006699] text-[#006699]"
+                variant={!selectedCategory ? "default" : "outline"}
+                className={!selectedCategory ? "bg-[#006699] text-white" : ""}
+                onClick={() => navigate("/products")}
               >
                 All Products
               </Button>
-              <Button
-                variant="outline"
-                className="border-gray-300 text-gray-700"
-              >
-                Devotional
-              </Button>
-              <Button
-                variant="outline"
-                className="border-gray-300 text-gray-700"
-              >
-                Sacramental
-              </Button>
-            </div>
-            <div className="flex items-center space-x-2">
-              <span className="text-gray-700">Sort by:</span>
-              <select className="border border-gray-300 rounded-md p-2 bg-white">
-                <option>Featured</option>
-                <option>Price: Low to High</option>
-                <option>Price: High to Low</option>
-                <option>Newest</option>
-              </select>
+              {shopCategories.map((cat) => (
+                <div key={cat.name} className="flex flex-col gap-2">
+                  <Button
+                    variant={selectedCategory === cat.name ? "default" : "outline"}
+                    className={selectedCategory === cat.name ? "bg-[#006699] text-white" : ""}
+                    onClick={() => handleCategoryClick(cat.name)}
+                  >
+                    {cat.name}
+                  </Button>
+                  {selectedCategory === cat.name && (
+                    <div className="flex flex-wrap gap-2 ml-4">
+                      {cat.subcategories.map((subcat) => (
+                        <Button
+                          key={subcat}
+                          variant={selectedSubcategory === subcat ? "default" : "outline"}
+                          className={selectedSubcategory === subcat ? "bg-[#006699] text-white" : "text-sm"}
+                          onClick={() => handleSubcategoryClick(cat.name, subcat)}
+                        >
+                          {subcat}
+                        </Button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
 
           {/* Products Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-            {products.map((product) => (
+            {filteredProducts.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
           </div>

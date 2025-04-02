@@ -21,7 +21,7 @@ interface HeaderProps {
   cartItemCount?: number;
 }
 
-const shopCategories = [
+export const shopCategories = [
   {
     name: "Apparel & Accessories",
     subcategories: [
@@ -162,7 +162,7 @@ const Header = ({
                 <NavigationMenuItem>
                   <NavigationMenuTrigger className="text-[#006699] hover:text-[#005588] px-4 py-2 text-sm font-medium bg-transparent hover:bg-gray-50">
                     <NavigationMenuLink
-                      href="./products"
+                      href="/shop"
                       className="text-[#006699] hover:text-[#005588] px-4 py-2 text-sm font-medium bg-transparent hover:bg-gray-50 flex items-center gap-1"
                     >
                       Shop
