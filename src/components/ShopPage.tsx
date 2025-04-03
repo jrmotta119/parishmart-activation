@@ -139,7 +139,7 @@ const ShopPage = () => {
                 Check out the marketplace to find great deals on a wide range of products and services!
               </p>
               <Button 
-                onClick={() => navigate('/sell-with-us')}
+                onClick={() => navigate('/marketplace')}
                 className="bg-[#006699] hover:bg-[#005588] text-white text-xl px-10 py-8 h-auto rounded-md"
               >
                 Go to Marketplace
@@ -148,13 +148,13 @@ const ShopPage = () => {
             <div className="h-[600px] relative">
               <div className="absolute inset-0 grid grid-cols-2 gap-6 p-12 pr-0">
                 <img
-                  src="https://images.unsplash.com/photo-1720454623734-4da157fa6596?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                  src="https://images.unsplash.com/photo-1501523460185-2aa5d2a0f981?q=80&w=2131&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
                   alt="Religious items"
                   className="w-full h-full object-cover rounded-lg"
                 />
                 <div className="grid grid-rows-2 gap-6">
                   <img
-                    src="https://images.unsplash.com/photo-1501523460185-2aa5d2a0f981?q=80&w=2131&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                    src="https://images.unsplash.com/photo-1720454623734-4da157fa6596?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
                     alt="Marketplace"
                     className="w-full h-full object-cover rounded-lg"
                   />

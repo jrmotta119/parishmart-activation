@@ -7,11 +7,13 @@ import VendorRegistrationForm from "./components/VendorRegistrationForm";
 import SellWithUs from "./components/SellWithUs";
 import ProductsPage from "./components/ProductsPage";
 import ShopPage from "./components/ShopPage";
+import MarketplacePage from "./components/MarketplacePage";
 import DonationsPage from "./components/DonationsPage";
 import Login from "./components/auth/Login";
 import Signup from "./components/auth/Signup";
 import routes from "tempo-routes";
 import { AuthProvider } from "./components/auth/AuthContext";
+import VendorProfilePage from "./components/VendorProfilePage";
 
 function App() {
   return (
@@ -34,12 +36,16 @@ function App() {
             />
             <Route path="/sell-with-us" element={<SellWithUs />} />
             <Route path="/shop" element={<ShopPage />} />
+            <Route path="/marketplace" element={<MarketplacePage />} />
+            <Route path="/marketplace/:category" element={<MarketplacePage />} />
+            <Route path="/marketplace/:category/:subcategory" element={<MarketplacePage />} />
             <Route path="/products" element={<ProductsPage />} />
             <Route path="/products/:category" element={<ProductsPage />} />
             <Route path="/products/:category/:subcategory" element={<ProductsPage />} />
             <Route path="/donations" element={<DonationsPage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/marketplace/vendor/:vendorId" element={<VendorProfilePage />} />
 
             {/* Add this before any catchall route */}
             {import.meta.env.VITE_TEMPO === "true" && (

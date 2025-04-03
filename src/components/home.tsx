@@ -4,8 +4,6 @@ import HeroSection from "./HeroSection";
 import GrowWithUs from "./GrowWithUs";
 import ProductCarousel from "./ProductCarousel";
 import ValueProposition from "./ValueProposition";
-import TestimonialSection from "./TestimonialSection";
-import TransparentImpactReporting from "./TransparentImpactReporting";
 import Footer from "./Footer";
 import Notification from "./Notification";
 import AnnouncementStrip from "./AnnouncementStrip";

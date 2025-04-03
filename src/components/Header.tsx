@@ -10,8 +10,8 @@ import {
 } from "./ui/navigation-menu";
 import { ShoppingCart, Menu, X, LogOut, ChevronDown } from "lucide-react";
 import { useAuth } from "./auth/AuthContext";
-import { useNavigate } from "react-router-dom";
-// Import logo directly
+import { useNavigate, Link } from "react-router-dom";
+import logo from "../assets/logo1.png";
 
 interface HeaderProps {
   logo?: string;
@@ -88,7 +88,7 @@ export const shopCategories = [
   },
 ];
 
-const marketplaceCategories = [
+export const marketplaceCategories = [
   {
     name: "Community Businesses",
     subcategories: [
@@ -142,17 +142,13 @@ const Header = ({
         <div className="container mx-auto h-full px-4 flex items-center justify-between">
           {/* Logo */}
           <div className="flex items-center">
-            <a href="./" className="h-12 flex items-center">
+            <Link to="/" className="h-12 flex items-center">
               <img
-                src="./logo1.png"
+                src={logo}
                 alt="ParishMart Logo"
                 className="h-12 w-auto"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.style.display = "none";
-                }}
               />
-            </a>
+            </Link>
           </div>
 
           {/* Desktop Navigation with Dropdown Menus */}
@@ -194,7 +190,12 @@ const Header = ({
                 </NavigationMenuItem>
                 <NavigationMenuItem>
                   <NavigationMenuTrigger className="text-[#006699] hover:text-[#005588] px-4 py-2 text-sm font-medium bg-transparent hover:bg-gray-50">
-                    Marketplace
+                  <NavigationMenuLink
+                      href="/marketplace"
+                      className="text-[#006699] hover:text-[#005588] px-4 py-2 text-sm font-medium bg-transparent hover:bg-gray-50 flex items-center gap-1"
+                    >
+                      Marketplace
+                    </NavigationMenuLink>
                   </NavigationMenuTrigger>
                   <NavigationMenuContent>
                     <div className="grid grid-cols-3 gap-3 p-4 w-[600px] bg-white">
@@ -207,7 +208,7 @@ const Header = ({
                             {category.subcategories.map((subcat, idx) => (
                               <li key={idx}>
                                 <NavigationMenuLink
-                                  href={`./marketplace/${category.name.toLowerCase().replace(/\s+/g, "-")}/${subcat.toLowerCase().replace(/\s+/g, "-")}`}
+                                  href={`/marketplace/vendor/${subcat.toLowerCase().replace(/\s+/g, "-")}`}
                                   className="block text-sm text-gray-600 hover:text-[#006699] hover:underline"
                                 >
                                   {subcat}
@@ -360,7 +361,7 @@ const Header = ({
                     {category.subcategories.map((subcat, idx) => (
                       <a
                         key={idx}
-                        href={`./marketplace/${category.name.toLowerCase().replace(/\s+/g, "-")}/${subcat.toLowerCase().replace(/\s+/g, "-")}`}
+                        href={`/marketplace/vendor/${subcat.toLowerCase().replace(/\s+/g, "-")}`}
                         className="block py-1 px-4 text-sm text-gray-600 hover:text-[#006699]"
                       >
                         {subcat}
