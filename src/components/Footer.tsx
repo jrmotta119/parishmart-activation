@@ -62,12 +62,7 @@ const Footer = ({
               <h3 className="text-lg font-semibold">Our Mission</h3>
             </div>
             <p className="text-gray-600 mb-4">{missionStatement}</p>
-            <div className="flex items-center">
-              <MapPin className="h-5 w-5 text-gray-500 mr-2" />
-              <span className="text-sm text-gray-500">
-                1443 Parish Way, Community Center, CA 94103
-              </span>
-            </div>
+            
           </div>
 
           {/* Quick Links */}

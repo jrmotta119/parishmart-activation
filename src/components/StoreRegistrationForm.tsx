@@ -21,6 +21,7 @@ interface FormData {
   secondaryColor: string;
   subscriptionTier: "basic" | "elite";
   needsConsultation: boolean;
+  taxExemptionForm: File | null;
 }
 
 const StoreRegistrationForm = () => {
@@ -37,6 +38,7 @@ const StoreRegistrationForm = () => {
     secondaryColor: "#ffffff",
     subscriptionTier: "basic",
     needsConsultation: false,
+    taxExemptionForm: null,
   });
 
   const [logoPreview, setLogoPreview] = useState<string>("");
@@ -112,6 +114,18 @@ const StoreRegistrationForm = () => {
 
   const handleConsultationChange = (needsConsultation: boolean) => {
     setFormData({ ...formData, needsConsultation });
+  };
+
+  const handleTaxExemptionFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      if (file.type === 'application/pdf') {
+        setFormData({ ...formData, taxExemptionForm: file });
+      } else {
+        alert('Please upload a PDF file');
+        e.target.value = ''; // Reset the input
+      }
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -414,6 +428,42 @@ const StoreRegistrationForm = () => {
                     className="w-full h-32"
                     placeholder="Tell us about your organization and mission..."
                   />
+                </div>
+
+                {/* Tax Exemption Form Section */}
+                <div className="mb-6">
+                  <Label className="block text-sm font-medium text-gray-700 mb-1">
+                    Tax Exemption Status
+                  </Label>
+                  <p className="text-sm text-gray-500 mb-2">
+                    If your organization has a 501(c)(3) tax exemption status, please upload your documentation here. This is optional and can be added later.
+                  </p>
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                    <input
+                      type="file"
+                      id="taxExemptionForm"
+                      accept=".pdf"
+                      onChange={handleTaxExemptionFormChange}
+                      className="hidden"
+                    />
+                    <label
+                      htmlFor="taxExemptionForm"
+                      className="cursor-pointer flex flex-col items-center"
+                    >
+                      <Upload className="h-8 w-8 text-gray-400 mb-2" />
+                      <span className="text-sm text-gray-500">
+                        Click to upload your tax exemption form
+                      </span>
+                      <span className="text-xs text-gray-400 mt-1">
+                        PDF only, max 5MB
+                      </span>
+                    </label>
+                  </div>
+                  {formData.taxExemptionForm && (
+                    <p className="mt-2 text-sm text-green-600">
+                      ✓ Tax exemption form uploaded
+                    </p>
+                  )}
                 </div>
 
                 <div className="flex justify-between">

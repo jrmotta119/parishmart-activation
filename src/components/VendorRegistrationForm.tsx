@@ -44,6 +44,11 @@ interface FormData {
   businessName: string;
   businessType: "product" | "service" | "both";
   businessDescription: string;
+  businessPolicy: string;
+  businessAddress: string;
+  businessCity: string;
+  businessCountry: string;
+  businessZipCode: string;
   logo: File | null;
   websiteLinks: string;
   subscriptionType: "basic" | "premium" | "elite";
@@ -71,6 +76,11 @@ const VendorRegistrationForm = () => {
     businessName: "",
     businessType: "product",
     businessDescription: "",
+    businessPolicy: "",
+    businessAddress: "",
+    businessCity: "",
+    businessCountry: "",
+    businessZipCode: "",
     logo: null,
     websiteLinks: "",
     subscriptionType: "basic",
@@ -641,7 +651,7 @@ const VendorRegistrationForm = () => {
                       htmlFor="communityContribution"
                       className="block text-sm font-medium text-gray-700 mb-1"
                     >
-                      How do you contribute to your community or parish?
+                      Please provide a description of your community involvement or who you are and what you do.
                     </Label>
                     <Textarea
                       id="communityContribution"
@@ -750,6 +760,119 @@ const VendorRegistrationForm = () => {
                           Business description is required
                         </p>
                       )}
+                  </div>
+
+                  <div className="mb-6">
+                    <Label
+                      htmlFor="businessPolicy"
+                      className="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      Business Policy
+                    </Label>
+                    <Textarea
+                      id="businessPolicy"
+                      name="businessPolicy"
+                      value={formData.businessPolicy}
+                      onChange={handleInputChange}
+                      className="w-full h-32"
+                      placeholder="Describe your business policies regarding returns, shipping, etc..."
+                    />
+                  </div>
+
+                  <div className="mb-6">
+                    <Label
+                      htmlFor="businessAddress"
+                      className="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      Business Address *
+                    </Label>
+                    <Input
+                      id="businessAddress"
+                      name="businessAddress"
+                      value={formData.businessAddress}
+                      onChange={handleInputChange}
+                      required
+                      className={`w-full ${!formData.businessAddress && attemptedSteps.includes(2) && "border-red-300"}`}
+                      placeholder="Street address, P.O. box"
+                    />
+                    {!formData.businessAddress && attemptedSteps.includes(2) && (
+                      <p className="mt-1 text-sm text-red-600">
+                        Business address is required
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                      <Label
+                        htmlFor="businessCity"
+                        className="block text-sm font-medium text-gray-700 mb-1"
+                      >
+                        City *
+                      </Label>
+                      <Input
+                        id="businessCity"
+                        name="businessCity"
+                        value={formData.businessCity}
+                        onChange={handleInputChange}
+                        required
+                        className={`w-full ${!formData.businessCity && attemptedSteps.includes(2) && "border-red-300"}`}
+                        placeholder="City"
+                      />
+                      {!formData.businessCity && attemptedSteps.includes(2) && (
+                        <p className="mt-1 text-sm text-red-600">
+                          City is required
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <Label
+                        htmlFor="businessCountry"
+                        className="block text-sm font-medium text-gray-700 mb-1"
+                      >
+                        Country *
+                      </Label>
+                      <Input
+                        id="businessCountry"
+                        name="businessCountry"
+                        value={formData.businessCountry}
+                        onChange={handleInputChange}
+                        required
+                        className={`w-full ${!formData.businessCountry && attemptedSteps.includes(2) && "border-red-300"}`}
+                        placeholder="Country"
+                      />
+                      {!formData.businessCountry && attemptedSteps.includes(2) && (
+                        <p className="mt-1 text-sm text-red-600">
+                          Country is required
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="mb-6">
+                    <Label
+                      htmlFor="businessZipCode"
+                      className="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      ZIP/Postal Code *
+                    </Label>
+                    <Input
+                      id="businessZipCode"
+                      name="businessZipCode"
+                      value={formData.businessZipCode}
+                      onChange={handleInputChange}
+                      required
+                      className={`w-full ${!formData.businessZipCode && attemptedSteps.includes(2) && "border-red-300"}`}
+                      placeholder="ZIP/Postal code"
+                      pattern="[0-9]*"
+                      title="Please enter a valid ZIP/Postal code"
+                    />
+                    {!formData.businessZipCode && attemptedSteps.includes(2) && (
+                      <p className="mt-1 text-sm text-red-600">
+                        ZIP/Postal code is required
+                      </p>
+                    )}
                   </div>
 
                   {/* Logo Upload */}
@@ -1048,7 +1171,7 @@ const VendorRegistrationForm = () => {
 
                   <div className="mb-6">
                     <h3 className="text-lg font-medium text-gray-800 mb-4">
-                      Contact Information
+                      Please provide your contact information for your customer service.
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                       <div>
