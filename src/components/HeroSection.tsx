@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "./ui/button";
 import { ArrowRight } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface HeroSectionProps {
   logo?: string;
@@ -10,70 +11,164 @@ interface HeroSectionProps {
   onCtaClick?: () => void;
 }
 
-const HeroSection = ({
-  logo = "/parishmart-full-logo.png",
-  tagline = "Shop with purpose, serve with love",
-  ctaText = "Browse Products",
-  backgroundImage = "https://s3-us-west-2.amazonaws.com/tota-images/1280px-sainte-ch-f916f606d44074ce.jpg",
-  onCtaClick = () => console.log("CTA clicked"),
-}: HeroSectionProps) => {
+const slides = [
+  {
+    key: "join",
+    backgroundImage: "https://images.pexels.com/photos/3280130/pexels-photo-3280130.jpeg", // Example image, replace as needed
+    content: (
+      <div className="flex flex-col justify-center h-full pl-10">
+        <p className="text-white text-lg md:text-xl mb-2">Become a part of ParishMart</p>
+        <h2 className="text-4xl md:text-6xl font-bold mb-4" style={{ color: '#006699' }}>JOIN OUR COMMUNITY</h2>
+        <p className="text-white text-xl md:text-3xl font-medium">Sell with us or support a cause. Make a difference today!</p>
+      </div>
+    ),
+    // image: "https://cdn-icons-png.flaticon.com/512/3135/3135715.png", // Example icon, optional
+    // imageAlt: "Join Community Icon",
+    // imageRight: true,
+  },
+  {
+    key: "main",
+    backgroundImage: "https://s3-us-west-2.amazonaws.com/tota-images/1280px-sainte-ch-f916f606d44074ce.jpg",
+    content: (
+      <div className="flex flex-col justify-center h-full pl-10">
+        <p className="text-white text-lg md:text-xl mb-2">Discover products that make a difference</p>
+        <h2 className="text-4xl md:text-6xl font-bold mb-4" style={{ color: '#006699' }}>SHOP WITH PURPOSE.</h2>
+        <p className="text-white text-xl md:text-3xl font-medium">Every purchase supports community initiatives and charitable causes.</p>
+      </div>
+    ),
+    imageRight: true,
+  },
+];
+
+const HeroSection = () => {
+  const [current, setCurrent] = useState(0);
+  const total = slides.length;
+  const [direction, setDirection] = useState(0); // for animation
+
+  const goTo = (idx: number, dir = 0) => {
+    setDirection(dir);
+    setCurrent((idx + total) % total);
+  };
+  const next = () => goTo(current + 1, 1);
+  const prev = () => goTo(current - 1, -1);
+
+  const slide = slides[current];
+
+  // Handler for slide click
+  const handleSlideClick = () => {
+    if (current === 0) {
+      const el = document.getElementById('grow-with-us');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+      }
+    } else if (current === 1) {
+      window.location.href = 'https://parishmart.com';
+    }
+  };
+
+  // Animation variants for swipe
+  const variants = {
+    enter: (dir: number) => ({
+      x: dir > 0 ? 300 : -300,
+      opacity: 0,
+      position: 'absolute' as const,
+    }),
+    center: {
+      x: 0,
+      opacity: 1,
+      position: 'relative' as const,
+    },
+    exit: (dir: number) => ({
+      x: dir < 0 ? 300 : -300,
+      opacity: 0,
+      position: 'absolute' as const,
+    }),
+  };
+
+  // Swipe detection threshold
+  const swipeConfidenceThreshold = 100;
+  const handleDragEnd = (event: any, info: any) => {
+    if (info.offset.x < -swipeConfidenceThreshold) {
+      next();
+    } else if (info.offset.x > swipeConfidenceThreshold) {
+      prev();
+    }
+  };
+
   return (
-    <section className="relative w-full h-[600px] flex items-center justify-center bg-white overflow-hidden">
-      {/* Background Image with Overlay */}
+    <section className="relative w-full max-w-5xl mx-auto mt-8 rounded-2xl overflow-hidden bg-white shadow-lg flex items-center min-h-[320px] md:min-h-[400px] lg:min-h-[480px]">
+      {/* Background */}
       <div className="absolute inset-0 z-0">
-        <div className="absolute inset-0 bg-[#006699]/40 z-10" />
         <img
-          src={backgroundImage}
-          alt="ParishMart Background"
+          src={slide.backgroundImage}
+          alt="Slide background"
           className="w-full h-full object-cover"
         />
+        <div className="absolute inset-0 bg-[#1a2341]/90" />
       </div>
-
-      {/* Content Container */}
-      <div className="relative z-20 max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-        {/* Logo */}
-        <div className="mb-8 flex justify-center">
-          {logo ? (
-            <img
-              src={logo}
-              alt="ParishMart Logo"
-              className="h-24 w-auto"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.style.display = "none";
-              }}
-            />
+      {/* Left Arrow - now inside the card */}
+      <button
+        aria-label="Previous slide"
+        onClick={prev}
+        className="absolute z-20 bg-white text-[#006699] shadow-md rounded-full w-12 h-12 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-[#006699] left-6 top-1/2 -translate-y-1/2"
+      >
+        <span className="text-3xl">&#60;</span>
+      </button>
+      {/* Slide Content - swipeable and clickable */}
+      <motion.div
+        key={current}
+        className="relative z-10 flex flex-1 flex-row items-center justify-between px-12 py-12 cursor-pointer"
+        onClick={handleSlideClick}
+        role="button"
+        tabIndex={0}
+        onKeyPress={e => { if (e.key === 'Enter' || e.key === ' ') handleSlideClick(); }}
+        style={{ outline: 'none' }}
+        drag="x"
+        dragConstraints={{ left: 0, right: 0 }}
+        onDragEnd={handleDragEnd}
+        custom={direction}
+        variants={variants}
+        initial="enter"
+        animate="center"
+        exit="exit"
+        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+      >
+        {/* Text */}
+        <div className="flex-1 min-w-0">
+          {current === 0 ? (
+            <div className="flex flex-col justify-center h-full pl-10">
+              <p className="text-white text-lg md:text-xl mb-2">Become a part of ParishMart</p>
+              <h2 className="text-4xl md:text-6xl font-bold mb-4" style={{ color: '#006699' }}>JOIN OUR COMMUNITY</h2>
+              <p className="text-white text-xl md:text-3xl font-medium">Sell with us or support a cause. Make a difference today!</p>
+            </div>
           ) : (
-            <div className="bg-white p-4 rounded-lg shadow-md">
-              <h1 className="text-3xl font-bold text-[#006699]">ParishMart</h1>
+            <div className="flex flex-col justify-center h-full pl-10">
+              <p className="text-white text-lg md:text-xl mb-2">Discover products that make a difference</p>
+              <h2 className="text-4xl md:text-6xl font-bold mb-4" style={{ color: '#006699' }}>SHOP WITH PURPOSE.</h2>
+              <p className="text-white text-xl md:text-3xl font-medium">Every purchase supports community initiatives and charitable causes.</p>
             </div>
           )}
         </div>
-
-        {/* Tagline */}
-        <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-8 drop-shadow-lg">
-          {tagline}
-        </h2>
-
-        {/* Description */}
-        <p className="text-lg sm:text-xl text-white mb-10 max-w-2xl mx-auto drop-shadow-md">
-          Discover products that make a difference. Every purchase supports
-          community initiatives and charitable causes.
-        </p>
-
-        {/* CTA Button */}
-        <Button
-          onClick={onCtaClick}
-          size="lg"
-          className="bg-[#006699] hover:bg-[#005588] text-white font-semibold text-lg px-8 py-6 h-auto rounded-full transition-all duration-300 transform hover:scale-105"
-        >
-          {ctaText}
-          <ArrowRight className="ml-2 h-5 w-5" />
-        </Button>
+        {/* No image rendering here */}
+      </motion.div>
+      {/* Right Arrow - now inside the card */}
+      <button
+        aria-label="Next slide"
+        onClick={next}
+        className="absolute z-20 bg-white text-[#006699] shadow-md rounded-full w-12 h-12 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-[#006699] right-6 top-1/2 -translate-y-1/2"
+      >
+        <span className="text-3xl">&#62;</span>
+      </button>
+      {/* Dots */}
+      <div className="absolute left-0 right-0 bottom-6 flex justify-center z-30">
+        {slides.map((_, idx) => (
+          <span
+            key={idx}
+            className={`inline-block mx-1 w-4 h-2 rounded-full transition-all duration-300 ${idx === current ? 'bg-white' : 'bg-white/40'}`}
+            style={{ minWidth: '22px' }}
+          />
+        ))}
       </div>
-
-      {/* Decorative Elements */}
-      <div className="absolute bottom-0 left-0 w-full h-16 bg-gradient-to-t from-white/20 to-transparent z-10" />
     </section>
   );
 };

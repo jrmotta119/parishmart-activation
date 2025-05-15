@@ -4,14 +4,15 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Textarea } from "./ui/textarea";
 import { Card, CardContent } from "./ui/card";
-import { Upload, Check, Eye, ArrowRight, Crown, Globe } from "lucide-react";
+import { Upload, Check, Eye, ArrowRight, Crown, Globe, Info } from "lucide-react";
 import Header from "./Header";
 import Footer from "./Footer";
 
 interface FormData {
-  firstName: string;
-  lastName: string;
+  adminFullName: string;
   email: string;
+  billingAddress: string;
+  phoneNumber: string;
   organizationName: string;
   organizationType: string;
   description: string;
@@ -24,11 +25,22 @@ interface FormData {
   taxExemptionForm: File | null;
 }
 
+// Tooltip component
+const Tooltip = ({ text, children }: { text: string; children: React.ReactNode }) => (
+  <span className="relative group cursor-pointer">
+    {children}
+    <span className="absolute left-1/2 -translate-x-1/2 mt-2 w-64 bg-gray-900 text-white text-xs rounded px-3 py-2 opacity-0 group-hover:opacity-100 pointer-events-none z-50 transition-opacity duration-200 shadow-lg">
+      {text}
+    </span>
+  </span>
+);
+
 const StoreRegistrationForm = () => {
   const [formData, setFormData] = useState<FormData>({
-    firstName: "",
-    lastName: "",
+    adminFullName: "",
     email: "",
+    billingAddress: "",
+    phoneNumber: "",
     organizationName: "",
     organizationType: "parish",
     description: "",
@@ -50,6 +62,8 @@ const StoreRegistrationForm = () => {
 
   const [customPrimaryColor, setCustomPrimaryColor] = useState("#006699");
   const [customSecondaryColor, setCustomSecondaryColor] = useState("#e6f7ff");
+
+  const [hasTaxExemptStatus, setHasTaxExemptStatus] = useState<string>("");
 
   const colorOptions = [
     { name: "Blue", primary: "#006699", secondary: "#e6f7ff" },
@@ -136,12 +150,17 @@ const StoreRegistrationForm = () => {
 
     // Validate all required fields
     if (
-      !formData.firstName ||
-      !formData.lastName ||
+      !formData.adminFullName ||
       !formData.email ||
-      !formData.organizationName
+      !formData.billingAddress ||
+      !formData.organizationName ||
+      hasTaxExemptStatus === ""
     ) {
       alert("Please fill in all required fields");
+      return;
+    }
+    if (hasTaxExemptStatus === "yes" && !formData.taxExemptionForm) {
+      alert("Please upload your tax exemption form");
       return;
     }
 
@@ -171,7 +190,7 @@ const StoreRegistrationForm = () => {
 
     // Validate current step before proceeding
     if (step === 1) {
-      if (!formData.firstName || !formData.lastName || !formData.email) {
+      if (!formData.adminFullName || !formData.email) {
         return;
       }
     } else if (step === 2) {
@@ -223,7 +242,7 @@ const StoreRegistrationForm = () => {
                   1
                 </div>
                 <span className="mt-2 text-sm font-medium">
-                  Administrator Info
+                  Admin & Org Info
                 </span>
               </div>
               <div
@@ -238,7 +257,7 @@ const StoreRegistrationForm = () => {
                   2
                 </div>
                 <span className="mt-2 text-sm font-medium">
-                  Organization Info
+                  Subscription
                 </span>
               </div>
               <div
@@ -252,109 +271,111 @@ const StoreRegistrationForm = () => {
                 >
                   3
                 </div>
-                <span className="mt-2 text-sm font-medium">Subscription</span>
-              </div>
-              <div
-                className={`flex-1 h-1 mx-4 ${step >= 4 ? "bg-[#006699]" : "bg-gray-200"}`}
-              ></div>
-              <div
-                className={`flex flex-col items-center ${step >= 4 ? "text-[#006699]" : "text-gray-400"}`}
-              >
-                <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center ${step >= 4 ? "bg-[#006699] text-white" : "bg-gray-200 text-gray-500"}`}
-                >
-                  4
-                </div>
                 <span className="mt-2 text-sm font-medium">Final Steps</span>
               </div>
             </div>
           </div>
 
           <form onSubmit={handleSubmit}>
-            {/* Step 1: Administrator Information */}
+            {/* Step 1: Admin & Organization Information (Merged) */}
             {step === 1 && (
               <div className="bg-white p-6 rounded-lg shadow-md mb-8">
                 <h2 className="text-xl font-semibold text-gray-900 mb-6">
-                  Administrator Information
+                  Administrator & Organization Information
                 </h2>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  {/* Left: Organization Info */}
                   <div>
-                    <Label
-                      htmlFor="firstName"
-                      className="block text-sm font-medium text-gray-700 mb-1"
-                    >
-                      First Name *
+                    <h3 className="text-lg font-medium mb-4">Organization Information</h3>
+                    <Label htmlFor="organizationName" className="block text-sm font-medium text-gray-700 mb-1">Organization Name *</Label>
+                    <Input id="organizationName" name="organizationName" value={formData.organizationName} onChange={handleInputChange} required className={`w-full ${!formData.organizationName && attemptedSteps.includes(1) ? "border-red-500" : ""}`} />
+                    {!formData.organizationName && attemptedSteps.includes(1) && (<p className="mt-1 text-sm text-red-500">Organization name is required</p>)}
+                    <Label htmlFor="organizationType" className="text-sm font-medium text-gray-700 mb-1 mt-4 flex items-center gap-2">
+                      Organization Type *
+                      <Tooltip text={
+                        `
+Parish: A local Catholic community.
+
+Church: A local Christian community.
+
+Cause: A non-profit or charitable organization focused on a specific mission or community service.`
+                      }>
+                        <Info className="h-4 w-4 text-gray-400 hover:text-[#006699]" />
+                      </Tooltip>
                     </Label>
-                    <Input
-                      id="firstName"
-                      name="firstName"
-                      value={formData.firstName}
-                      onChange={handleInputChange}
-                      required
-                      className={`w-full ${!formData.firstName && attemptedSteps.includes(1) ? "border-red-500" : ""}`}
-                    />
-                    {!formData.firstName && attemptedSteps.includes(1) && (
-                      <p className="mt-1 text-sm text-red-500">
-                        First name is required
-                      </p>
+                    <select id="organizationType" name="organizationType" value={formData.organizationType} onChange={handleInputChange} required className="w-full rounded-md border border-gray-300 py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#006699] focus:border-transparent">
+                      <option value="parish">Parish</option>
+                      <option value="church">Church</option>
+                      <option value="cause">Cause</option>
+                      <option value="other">Other</option>
+                    </select>
+                    <Label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1 mt-4">Organization Description</Label>
+                    <Textarea id="description" name="description" value={formData.description} onChange={handleInputChange} className="w-full h-32" placeholder="Tell us about your organization and mission..." />
+                    {/* Tax Exemption Status Question */}
+                    <Label className="block text-sm font-medium text-gray-700 mb-1 mt-4">Does your organization qualify for tax-exempt status as defined by the IRS? *</Label>
+                    <div className="flex items-center gap-6 mb-2">
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="radio"
+                          name="hasTaxExemptStatus"
+                          value="yes"
+                          checked={hasTaxExemptStatus === "yes"}
+                          onChange={() => setHasTaxExemptStatus("yes")}
+                          required
+                        />
+                        <span>Yes</span>
+                      </label>
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="radio"
+                          name="hasTaxExemptStatus"
+                          value="no"
+                          checked={hasTaxExemptStatus === "no"}
+                          onChange={() => setHasTaxExemptStatus("no")}
+                          required
+                        />
+                        <span>No</span>
+                      </label>
+                    </div>
+                    {hasTaxExemptStatus === "" && attemptedSteps.includes(1) && (
+                      <p className="text-sm text-red-500 mb-2">This field is required</p>
+                    )}
+                    {/* Tax Exemption Form Section (conditional) */}
+                    {hasTaxExemptStatus === "yes" && (
+                      <>
+                        <Label className="block text-sm font-medium text-gray-700 mb-1 mt-4">Tax Exemption Status</Label>
+                        <p className="text-sm text-gray-500 mb-2">If your organization has a 501(c)(3) tax exemption status, please upload your documentation here. This is optional and can be added later.</p>
+                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                          <input type="file" id="taxExemptionForm" accept=".pdf" onChange={handleTaxExemptionFormChange} className="hidden" />
+                          <label htmlFor="taxExemptionForm" className="cursor-pointer flex flex-col items-center">
+                            <Upload className="h-8 w-8 text-gray-400 mb-2" />
+                            <span className="text-sm text-gray-500">Click to upload your tax exemption form</span>
+                            <span className="text-xs text-gray-400 mt-1">PDF only, max 5MB</span>
+                          </label>
+                        </div>
+                        {formData.taxExemptionForm && (<p className="mt-2 text-sm text-green-600">✓ Tax exemption form uploaded</p>)}
+                      </>
                     )}
                   </div>
+                  {/* Right: Administrator Info */}
                   <div>
-                    <Label
-                      htmlFor="lastName"
-                      className="block text-sm font-medium text-gray-700 mb-1"
-                    >
-                      Last Name *
-                    </Label>
-                    <Input
-                      id="lastName"
-                      name="lastName"
-                      value={formData.lastName}
-                      onChange={handleInputChange}
-                      required
-                      className={`w-full ${!formData.lastName && attemptedSteps.includes(1) ? "border-red-500" : ""}`}
-                    />
-                    {!formData.lastName && attemptedSteps.includes(1) && (
-                      <p className="mt-1 text-sm text-red-500">
-                        Last name is required
-                      </p>
-                    )}
+                    <h3 className="text-lg font-medium mb-4">Administrator Information</h3>
+                    <Label htmlFor="adminFullName" className="block text-sm font-medium text-gray-700 mb-1">Administrator Full Name *</Label>
+                    <Input id="adminFullName" name="adminFullName" value={formData.adminFullName} onChange={handleInputChange} required className={`w-full ${!formData.adminFullName && attemptedSteps.includes(1) ? "border-red-500" : ""}`} />
+                    {!formData.adminFullName && attemptedSteps.includes(1) && (<p className="mt-1 text-sm text-red-500">Full name is required</p>)}
+                    <Label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1 mt-4">Email Address *</Label>
+                    <Input id="email" name="email" type="email" value={formData.email} onChange={handleInputChange} required className={`w-full ${!formData.email && attemptedSteps.includes(1) ? "border-red-500" : ""}`} />
+                    {!formData.email && attemptedSteps.includes(1) && (<p className="mt-1 text-sm text-red-500">Email is required</p>)}
+                    <p className="mt-1 text-sm text-gray-500">We'll send your login credentials to this email</p>
+                    <Label htmlFor="billingAddress" className="block text-sm font-medium text-gray-700 mb-1 mt-4">Billing Address *</Label>
+                    <Input id="billingAddress" name="billingAddress" value={formData.billingAddress} onChange={handleInputChange} required className={`w-full ${!formData.billingAddress && attemptedSteps.includes(1) ? "border-red-500" : ""}`} />
+                    {!formData.billingAddress && attemptedSteps.includes(1) && (<p className="mt-1 text-sm text-red-500">Billing address is required</p>)}
+                    <Label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-1 mt-4">Phone Number</Label>
+                    <Input id="phoneNumber" name="phoneNumber" value={formData.phoneNumber} onChange={handleInputChange} className="w-full" />
                   </div>
                 </div>
-
-                <div className="mb-6">
-                  <Label
-                    htmlFor="email"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  >
-                    Email Address *
-                  </Label>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    required
-                    className={`w-full ${!formData.email && attemptedSteps.includes(1) ? "border-red-500" : ""}`}
-                  />
-                  {!formData.email && attemptedSteps.includes(1) && (
-                    <p className="mt-1 text-sm text-red-500">
-                      Email is required
-                    </p>
-                  )}
-                  <p className="mt-1 text-sm text-gray-500">
-                    We'll send your login credentials to this email
-                  </p>
-                </div>
-
-                <div className="flex justify-end">
-                  <Button
-                    type="button"
-                    onClick={nextStep}
-                    className="bg-[#006699] hover:bg-[#005588] text-white"
-                  >
+                <div className="flex justify-end mt-8">
+                  <Button type="button" onClick={nextStep} className="bg-[#006699] hover:bg-[#005588] text-white">
                     Next Step
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
@@ -362,133 +383,8 @@ const StoreRegistrationForm = () => {
               </div>
             )}
 
-            {/* Step 2: Organization Information */}
+            {/* Step 2: Subscription Selection */}
             {step === 2 && (
-              <div className="bg-white p-6 rounded-lg shadow-md mb-8">
-                <h2 className="text-xl font-semibold text-gray-900 mb-6">
-                  Organization Information
-                </h2>
-
-                <div className="mb-6">
-                  <Label
-                    htmlFor="organizationName"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  >
-                    Organization Name *
-                  </Label>
-                  <Input
-                    id="organizationName"
-                    name="organizationName"
-                    value={formData.organizationName}
-                    onChange={handleInputChange}
-                    required
-                    className={`w-full ${!formData.organizationName && attemptedSteps.includes(2) ? "border-red-500" : ""}`}
-                  />
-                  {!formData.organizationName && attemptedSteps.includes(2) && (
-                    <p className="mt-1 text-sm text-red-500">
-                      Organization name is required
-                    </p>
-                  )}
-                </div>
-
-                <div className="mb-6">
-                  <Label
-                    htmlFor="organizationType"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  >
-                    Organization Type *
-                  </Label>
-                  <select
-                    id="organizationType"
-                    name="organizationType"
-                    value={formData.organizationType}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full rounded-md border border-gray-300 py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#006699] focus:border-transparent"
-                  >
-                    <option value="parish">Parish</option>
-                    <option value="church">Church</option>
-                    <option value="non-profit">Non-Profit</option>
-                    <option value="other">Other</option>
-                  </select>
-                </div>
-
-                <div className="mb-6">
-                  <Label
-                    htmlFor="description"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  >
-                    Organization Description
-                  </Label>
-                  <Textarea
-                    id="description"
-                    name="description"
-                    value={formData.description}
-                    onChange={handleInputChange}
-                    className="w-full h-32"
-                    placeholder="Tell us about your organization and mission..."
-                  />
-                </div>
-
-                {/* Tax Exemption Form Section */}
-                <div className="mb-6">
-                  <Label className="block text-sm font-medium text-gray-700 mb-1">
-                    Tax Exemption Status
-                  </Label>
-                  <p className="text-sm text-gray-500 mb-2">
-                    If your organization has a 501(c)(3) tax exemption status, please upload your documentation here. This is optional and can be added later.
-                  </p>
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
-                    <input
-                      type="file"
-                      id="taxExemptionForm"
-                      accept=".pdf"
-                      onChange={handleTaxExemptionFormChange}
-                      className="hidden"
-                    />
-                    <label
-                      htmlFor="taxExemptionForm"
-                      className="cursor-pointer flex flex-col items-center"
-                    >
-                      <Upload className="h-8 w-8 text-gray-400 mb-2" />
-                      <span className="text-sm text-gray-500">
-                        Click to upload your tax exemption form
-                      </span>
-                      <span className="text-xs text-gray-400 mt-1">
-                        PDF only, max 5MB
-                      </span>
-                    </label>
-                  </div>
-                  {formData.taxExemptionForm && (
-                    <p className="mt-2 text-sm text-green-600">
-                      ✓ Tax exemption form uploaded
-                    </p>
-                  )}
-                </div>
-
-                <div className="flex justify-between">
-                  <Button
-                    type="button"
-                    onClick={prevStep}
-                    variant="outline"
-                    className="border-[#006699] text-[#006699]"
-                  >
-                    Previous
-                  </Button>
-                  <Button
-                    type="button"
-                    onClick={nextStep}
-                    className="bg-[#006699] hover:bg-[#005588] text-white"
-                  >
-                    Next Step
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            {/* Step 3: Subscription Selection */}
-            {step === 3 && (
               <div className="bg-white p-6 rounded-lg shadow-md mb-8">
                 <h2 className="text-xl font-semibold text-gray-900 mb-6">
                   Choose Your Subscription
@@ -623,8 +519,8 @@ const StoreRegistrationForm = () => {
               </div>
             )}
 
-            {/* Step 4: Finalize Steps */}
-            {step === 4 && (
+            {/* Step 3: Finalize Steps */}
+            {step === 3 && (
               <div className="bg-white p-6 rounded-lg shadow-md mb-8">
                 <h2 className="text-xl font-semibold text-gray-900 mb-6">
                   Store Customization
@@ -1104,12 +1000,13 @@ const StoreRegistrationForm = () => {
               <Button
                 variant="outline"
                 className="text-[#006699] border-[#006699]"
+                onClick={() => window.open("https://parishmart.com/pages/contact", "_blank")}
               >
                 Contact Support
               </Button>
-              <Button variant="link" className="text-[#006699]">
+              {/* <Button variant="link" className="text-[#006699]">
                 View FAQ
-              </Button>
+              </Button> */}
             </div>
           </div>
         </div>

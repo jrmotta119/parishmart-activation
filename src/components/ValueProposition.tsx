@@ -40,7 +40,7 @@ const ValueProposition = ({
     },
   ],
   ctaText = "Learn about our mission",
-  onCtaClick = () => console.log("Learn more clicked"),
+  onCtaClick = () => { window.location.href = "https://parishmart.com/pages/about-us"; },
 }: ValuePropositionProps) => {
   return (
     <section className="w-full py-20 px-4 md:px-8 lg:px-16 bg-white">

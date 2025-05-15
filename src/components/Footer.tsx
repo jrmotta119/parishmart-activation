@@ -71,7 +71,7 @@ const Footer = ({
             <ul className="space-y-2">
               <li>
                 <a
-                  href="#"
+                  href="https://parishmart.com/pages/about-us"
                   className="text-gray-600 hover:text-[#006699] transition-colors"
                 >
                   About Us
@@ -79,36 +79,22 @@ const Footer = ({
               </li>
               <li>
                 <a
-                  href="#"
+                  href="https://parishmart.com/collections/all-products"
                   className="text-gray-600 hover:text-[#006699] transition-colors"
                 >
                   Shop All
                 </a>
               </li>
+            
               <li>
                 <a
-                  href="#"
-                  className="text-gray-600 hover:text-[#006699] transition-colors"
-                >
-                  Community Impact
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#"
+                  href="https://parishmart.com/pages/contact"
                   className="text-gray-600 hover:text-[#006699] transition-colors"
                 >
                   Contact Us
                 </a>
               </li>
-              <li>
-                <a
-                  href="#"
-                  className="text-gray-600 hover:text-[#006699] transition-colors"
-                >
-                  FAQs
-                </a>
-              </li>
+              
             </ul>
           </div>
 
@@ -118,7 +104,7 @@ const Footer = ({
             <ul className="space-y-2">
               <li>
                 <a
-                  href="#"
+                  href="/why-register"
                   className="text-gray-600 hover:text-[#006699] transition-colors"
                 >
                   Your Store
@@ -126,7 +112,7 @@ const Footer = ({
               </li>
               <li>
                 <a
-                  href="#"
+                  href="/sell-with-us"
                   className="text-gray-600 hover:text-[#006699] transition-colors"
                 >
                   Vendors
@@ -134,7 +120,7 @@ const Footer = ({
               </li>
               <li>
                 <a
-                  href="#"
+                  href="/donations"
                   className="text-gray-600 hover:text-[#006699] transition-colors"
                 >
                   Donations

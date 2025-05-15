@@ -52,27 +52,22 @@ const HomePage = ({
       <main className="pt-20">
         <AnnouncementStrip />
         {/* Hero Section */}
-        <HeroSection
-          onCtaClick={() => {
-            // Scroll to product section
-            document
-              .getElementById("products")
-              ?.scrollIntoView({ behavior: "smooth" });
-          }}
-        />
+        <HeroSection/>
 
         {/* Grow With Us Section */}
+        
         <GrowWithUs />
+      
 
         {/* Product Carousel */}
-        <div id="products">
+        {/* <div id="products">
           <ProductCarousel
             onProductSelect={(product) => {
               // This now only handles product selection, not cart addition
               console.log("Product selected:", product.title);
             }}
           />
-        </div>
+        </div> */}
 
         {/* Value Proposition */}
         <ValueProposition />

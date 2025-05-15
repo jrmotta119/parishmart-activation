@@ -605,7 +605,7 @@ const VendorRegistrationForm = () => {
                         htmlFor="parishAffiliation"
                         className="block text-sm font-medium text-gray-700"
                       >
-                        Parish/Non-profit Affiliation
+                        Select a Mission to Support
                       </Label>
                       <TooltipProvider>
                         <Tooltip>
@@ -642,7 +642,7 @@ const VendorRegistrationForm = () => {
                     </Select>
                     <p className="mt-1 text-sm text-gray-500">
                       A percentage of your sales will be donated to your
-                      selected parish
+                      selected mission (Parish, Church, or Cause)
                     </p>
                   </div>
 
@@ -1715,12 +1715,13 @@ const VendorRegistrationForm = () => {
                 <Button
                   variant="outline"
                   className="text-[#006699] border-[#006699]"
+                  onClick={() => window.open("https://parishmart.com/pages/contact", "_blank")}
                 >
                   Contact Support
                 </Button>
-                <Button variant="link" className="text-[#006699]">
+                {/* <Button variant="link" className="text-[#006699]">
                   View FAQ
-                </Button>
+                </Button> */}
               </div>
             </div>
           </div>

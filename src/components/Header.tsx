@@ -138,8 +138,9 @@ const Header = ({
 
   return (
     <>
-      <header className="w-full h-20 bg-white shadow-sm fixed top-0 left-0 z-50">
-        <div className="container mx-auto h-full px-4 flex items-center justify-between">
+      <header className="w-full bg-white shadow-sm fixed top-0 left-0 z-50">
+        {/* Top Row: Logo and Search Bar */}
+        <div className="container mx-auto px-4 flex items-center justify-between h-20">
           {/* Logo */}
           <div className="flex items-center">
             <Link to="/" className="h-12 flex items-center">
@@ -150,242 +151,86 @@ const Header = ({
               />
             </Link>
           </div>
-
-          {/* Desktop Navigation with Dropdown Menus */}
-          <div className="hidden md:block">
-            <NavigationMenu>
-              <NavigationMenuList>
-                <NavigationMenuItem>
-                  <NavigationMenuTrigger className="text-[#006699] hover:text-[#005588] px-4 py-2 text-sm font-medium bg-transparent hover:bg-gray-50">
-                    <NavigationMenuLink
-                      href="/shop"
-                      className="text-[#006699] hover:text-[#005588] px-4 py-2 text-sm font-medium bg-transparent hover:bg-gray-50 flex items-center gap-1"
-                    >
-                      Shop
-                    </NavigationMenuLink>
-                  </NavigationMenuTrigger>
-                  <NavigationMenuContent>
-                    <div className="grid grid-cols-3 gap-3 p-4 w-[900px] bg-white">
-                      {shopCategories.map((category, index) => (
-                        <div key={index} className="space-y-2">
-                          <h3 className="font-medium text-[#006699]">
-                            {category.name}
-                          </h3>
-                          <ul className="space-y-1">
-                            {category.subcategories.map((subcat, idx) => (
-                              <li key={idx}>
-                                <NavigationMenuLink
-                                  href={`./products/${category.name.toLowerCase().replace(/\s+/g, "-")}/${subcat.toLowerCase().replace(/\s+/g, "-")}`}
-                                  className="block text-sm text-gray-600 hover:text-[#006699] hover:underline"
-                                >
-                                  {subcat}
-                                </NavigationMenuLink>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      ))}
-                    </div>
-                  </NavigationMenuContent>
-                </NavigationMenuItem>
-                <NavigationMenuItem>
-                  <NavigationMenuTrigger className="text-[#006699] hover:text-[#005588] px-4 py-2 text-sm font-medium bg-transparent hover:bg-gray-50">
-                  <NavigationMenuLink
-                      href="/marketplace"
-                      className="text-[#006699] hover:text-[#005588] px-4 py-2 text-sm font-medium bg-transparent hover:bg-gray-50 flex items-center gap-1"
-                    >
-                      Marketplace
-                    </NavigationMenuLink>
-                  </NavigationMenuTrigger>
-                  <NavigationMenuContent>
-                    <div className="grid grid-cols-3 gap-3 p-4 w-[600px] bg-white">
-                      {marketplaceCategories.map((category, index) => (
-                        <div key={index} className="space-y-2">
-                          <h3 className="font-medium text-[#006699]">
-                            {category.name}
-                          </h3>
-                          <ul className="space-y-1">
-                            {category.subcategories.map((subcat, idx) => (
-                              <li key={idx}>
-                                <NavigationMenuLink
-                                  href={`/marketplace/vendor/${subcat.toLowerCase().replace(/\s+/g, "-")}`}
-                                  className="block text-sm text-gray-600 hover:text-[#006699] hover:underline"
-                                >
-                                  {subcat}
-                                </NavigationMenuLink>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      ))}
-                    </div>
-                  </NavigationMenuContent>
-                </NavigationMenuItem>
-              </NavigationMenuList>
-            </NavigationMenu>
-          </div>
-
-          {/* Search Bar */}
-          <div className="hidden md:flex items-center mx-4 flex-1 max-w-md">
+          {/* Search Bar (visible on md+) */}
+          {/* <div className="hidden md:flex items-center ml-8 flex-1 max-w-md justify-end">
             <input
               type="text"
               placeholder="Search for religious items, rosaries, bibles..."
               className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#006699] focus:border-transparent"
             />
-          </div>
-
-          <div className="hidden md:block">
-            <NavigationMenu>
-              <NavigationMenuList>
-                <NavigationMenuItem>
-                  <NavigationMenuLink
-                    className="text-[#006699] hover:text-[#005588] px-4 py-2 text-sm font-medium"
-                    href="./about"
-                  >
-                    About
-                  </NavigationMenuLink>
-                </NavigationMenuItem>
-                <NavigationMenuItem>
-                  <NavigationMenuLink
-                    className="text-[#006699] hover:text-[#005588] px-4 py-2 text-sm font-medium"
-                    href="./contact"
-                  >
-                    Contact Us
-                  </NavigationMenuLink>
-                </NavigationMenuItem>
-              </NavigationMenuList>
-            </NavigationMenu>
-          </div>
-
-          {/* Auth Buttons and Cart */}
-          <div className="flex items-center space-x-4">
-            <div className="hidden md:flex items-center space-x-2">
-              {user ? (
-                <div className="flex items-center space-x-2">
-                  <span className="text-[#006699] mr-2">
-                    Hello, {user.user_metadata?.full_name || "User"}
-                  </span>
-                  <Button
-                    variant="outline"
-                    className="text-[#006699] border-[#006699] hover:bg-[#006699] hover:text-white"
-                    onClick={async () => {
-                      await signOut();
-                      navigate("./login");
-                    }}
-                  >
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Logout
-                  </Button>
-                </div>
-              ) : (
-                <>
-                  <Button
-                    variant="outline"
-                    className="text-[#006699] border-[#006699] hover:bg-[#006699] hover:text-white"
-                    onClick={() => navigate("./login")}
-                  >
-                    Login
-                  </Button>
-                  <Button
-                    className="bg-[#006699] hover:bg-[#005588] text-white"
-                    onClick={() => navigate("./signup")}
-                  >
-                    Sign Up
-                  </Button>
-                </>
-              )}
-            </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onCartClick}
-              className="relative text-[#006699] hover:text-[#005588] hover:bg-gray-100"
-            >
-              <ShoppingCart className="h-5 w-5" />
-              {cartItemCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                  {cartItemCount}
-                </span>
-              )}
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="md:hidden text-[#006699] hover:text-[#005588] hover:bg-gray-100"
-              onClick={handleMobileMenuToggle}
-            >
-              {isMobileMenuOpen ? (
-                <X className="h-5 w-5" />
-              ) : (
-                <Menu className="h-5 w-5" />
-              )}
-            </Button>
+          </div> */}
+        </div>
+        {/* Bottom Row: Navigation Links */}
+        <div className="w-full border-t border-gray-100 bg-white">
+          <div className="container mx-auto px-4">
+            <nav className="flex justify-center space-x-8 h-12 items-center">
+              <a
+                href="https://parishmart.com/collections/all-products"
+                className="text-[#006699] hover:text-[#005588] px-2 py-1 text-sm font-medium"
+              >
+                Shop
+              </a>
+              <a
+                href="https://parishmart.com/collections/localbusinesses"
+                className="text-[#006699] hover:text-[#005588] px-2 py-1 text-sm font-medium"
+              >
+                Marketplace
+              </a>
+              <a
+                href="https://parishmart.com/pages/e-store"
+                className="text-[#006699] hover:text-[#005588] px-2 py-1 text-sm font-medium"
+              >
+                E-Stores
+              </a>
+              
+              <a
+                href="https://parishmart.com/pages/about-us"
+                className="text-[#006699] hover:text-[#005588] px-2 py-1 text-sm font-medium"
+              >
+                About
+              </a>
+              <a
+                href="https://parishmart.com/pages/contact"
+                className="text-[#006699] hover:text-[#005588] px-2 py-1 text-sm font-medium"
+              >
+                Contact Us
+              </a>
+            </nav>
           </div>
         </div>
-
-        {/* Mobile Menu */}
+        {/* Mobile Menu Button and Drawer (unchanged) */}
         {isMobileMenuOpen && (
           <div className="md:hidden bg-white absolute top-20 left-0 w-full shadow-md max-h-[80vh] overflow-y-auto">
             <nav className="flex flex-col p-4">
-              <div className="py-2 px-4 text-[#006699] font-medium">
-                Shop Categories
-              </div>
-              {shopCategories.map((category, index) => (
-                <div key={index} className="ml-4">
-                  <div className="py-1 px-4 text-[#006699] font-medium">
-                    {category.name}
-                  </div>
-                  <div className="ml-4">
-                    {category.subcategories.map((subcat, idx) => (
-                      <a
-                        key={idx}
-                        href={`./products/${category.name.toLowerCase().replace(/\s+/g, "-")}/${subcat.toLowerCase().replace(/\s+/g, "-")}`}
-                        className="block py-1 px-4 text-sm text-gray-600 hover:text-[#006699]"
-                      >
-                        {subcat}
-                      </a>
-                    ))}
-                  </div>
-                </div>
-              ))}
-
-              <div className="py-2 px-4 text-[#006699] font-medium mt-2">
+              <a
+                href="https://parishmart.com/collections/all-products"
+                className="py-2 px-4 text-[#006699] hover:bg-gray-100 rounded-md"
+              >
+                Shop
+              </a>
+              <a
+                href="https://parishmart.com/collections/localbusinesses"
+                className="py-2 px-4 text-[#006699] hover:bg-gray-100 rounded-md"
+              >
                 Marketplace
-              </div>
-              {marketplaceCategories.map((category, index) => (
-                <div key={index} className="ml-4">
-                  <div className="py-1 px-4 text-[#006699] font-medium">
-                    {category.name}
-                  </div>
-                  <div className="ml-4">
-                    {category.subcategories.map((subcat, idx) => (
-                      <a
-                        key={idx}
-                        href={`/marketplace/vendor/${subcat.toLowerCase().replace(/\s+/g, "-")}`}
-                        className="block py-1 px-4 text-sm text-gray-600 hover:text-[#006699]"
-                      >
-                        {subcat}
-                      </a>
-                    ))}
-                  </div>
-                </div>
-              ))}
+              </a>
 
               <div className="border-t border-gray-200 my-2"></div>
 
               <a
-                href="./about"
+                href="https://parishmart.com/pages/about-us"
                 className="py-2 px-4 text-[#006699] hover:bg-gray-100 rounded-md"
               >
                 About
               </a>
               <a
-                href="./contact"
+                href="https://parishmart.com/pages/contact"
                 className="py-2 px-4 text-[#006699] hover:bg-gray-100 rounded-md"
               >
                 Contact Us
               </a>
-              {user ? (
+              {/* mobile user login and logout */}
+              {/* {user ? (
                 <button
                   onClick={async () => {
                     await signOut();
@@ -411,7 +256,7 @@ const Header = ({
                     Sign Up
                   </button>
                 </>
-              )}
+              )} */}
             </nav>
           </div>
         )}
