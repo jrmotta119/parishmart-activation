@@ -40,7 +40,9 @@ interface FormData {
   email: string;
   phone: string;
   parishAffiliation: string;
-  communityContribution: string;
+  ownerDescription: string;
+  businessUnique: string;
+  communityEfforts: string;
   businessName: string;
   businessType: "product" | "service" | "both";
   businessDescription: string;
@@ -64,6 +66,8 @@ interface FormData {
   }[];
   participateInCampaigns: boolean;
   receiveUpdates: boolean;
+  reach: "local" | "regional" | "national" | "global" | "";
+  contactForOpportunities: boolean | null;
 }
 
 const VendorRegistrationForm = () => {
@@ -72,7 +76,9 @@ const VendorRegistrationForm = () => {
     email: "",
     phone: "",
     parishAffiliation: "",
-    communityContribution: "",
+    ownerDescription: "",
+    businessUnique: "",
+    communityEfforts: "",
     businessName: "",
     businessType: "product",
     businessDescription: "",
@@ -89,6 +95,8 @@ const VendorRegistrationForm = () => {
     products: [],
     participateInCampaigns: true,
     receiveUpdates: true,
+    reach: "",
+    contactForOpportunities: null,
   });
 
   const [logoPreview, setLogoPreview] = useState<string>("");
@@ -100,6 +108,9 @@ const VendorRegistrationForm = () => {
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [attemptedSteps, setAttemptedSteps] = useState<number[]>([]);
+  const [parishSearch, setParishSearch] = useState("");
+  const [customParish, setCustomParish] = useState("");
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const parishes = [
     "St. Mary's Parish",
@@ -112,6 +123,7 @@ const VendorRegistrationForm = () => {
     "Christ the King Parish",
     "Immaculate Conception Church",
     "St. Thomas Aquinas Parish",
+    "Other",
   ];
 
   const productCategories = [
@@ -303,7 +315,7 @@ const VendorRegistrationForm = () => {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Mark all steps as attempted for validation
@@ -344,18 +356,38 @@ const VendorRegistrationForm = () => {
 
     setIsSubmitting(true);
 
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      // Send form data to API endpoint
+      const response = await fetch('/api/registration', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          registrationType: 'vendor',
+          ...formData,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to submit registration');
+      }
+
       console.log("Form submitted:", formData);
-      setIsSubmitting(false);
       alert("Registration successful! Your vendor account is being set up.");
       // Redirect to home or dashboard
       window.location.href = "/";
-    }, 2000);
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      setToastMessage(error instanceof Error ? error.message : "There was an error submitting your registration. Please try again.");
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
-
-  // We don't need this useEffect anymore as the logic is handled in handleSubscriptionChange
-  // This was causing issues with the subscription type not updating properly
 
   const nextStep = () => {
     // Mark this step as attempted
@@ -383,21 +415,18 @@ const VendorRegistrationForm = () => {
         return;
       }
     } else if (step === 4) {
-      if (!formData.contactEmail || !formData.contactPhone) {
-        setToastMessage("Please provide contact information");
+      // Check if contact for opportunities question is answered
+      if (formData.contactForOpportunities === null) {
+        setToastMessage("Please indicate if you would like to be contacted for opportunities");
         setShowToast(true);
         setTimeout(() => setShowToast(false), 3000);
         return;
       }
 
-      // Validate products if not basic subscription
-      if (
-        formData.subscriptionType !== "basic" &&
-        formData.products.length > 0
-      ) {
+      // Only validate products if they exist and subscription is not basic
+      if (formData.subscriptionType !== "basic" && formData.products.length > 0) {
         const invalidProducts = formData.products.filter(
-          (product) =>
-            !product.name || !product.category || !product.description,
+          (product) => !product.name || !product.category || !product.description,
         );
 
         if (invalidProducts.length > 0) {
@@ -601,65 +630,121 @@ const VendorRegistrationForm = () => {
 
                   <div className="mb-6">
                     <div className="flex items-center mb-1">
-                      <Label
-                        htmlFor="parishAffiliation"
-                        className="block text-sm font-medium text-gray-700"
-                      >
-                        Select a Mission to Support
-                      </Label>
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <div className="ml-2 cursor-help">
-                              <Info className="h-4 w-4 text-gray-400" />
-                            </div>
-                          </TooltipTrigger>
-                          <TooltipContent className="max-w-xs">
-                            <p>
-                              Selecting a parish helps donate a percentage of
-                              your sales to support their mission.
-                            </p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
+                      
                     </div>
-                    <Select
-                      onValueChange={(value) =>
-                        setFormData({ ...formData, parishAffiliation: value })
-                      }
-                      value={formData.parishAffiliation}
+                    <Label
+                      htmlFor="parishAffiliation"
+                      className="block text-sm font-medium text-gray-700 mb-1"
                     >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select a parish or non-profit (optional)" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {parishes.map((parish) => (
-                          <SelectItem key={parish} value={parish}>
-                            {parish}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                      Select a Mission to Support
+                    </Label>
+                    <div className="relative">
+                      <button
+                        type="button"
+                        className="w-full border border-gray-300 rounded-md py-2 px-3 text-left"
+                        onClick={() => setDropdownOpen((open) => !open)}
+                      >
+                        {formData.parishAffiliation || "Select a parish or non-profit (optional)"}
+                      </button>
+                      {dropdownOpen && (
+                        <div className="absolute z-10 w-full bg-white border border-gray-300 rounded-md mt-1 shadow-lg">
+                          <input
+                            type="text"
+                            className="w-full px-3 py-2 border-b border-gray-200"
+                            placeholder="Type to filter..."
+                            value={parishSearch}
+                            onChange={e => setParishSearch(e.target.value)}
+                            autoFocus
+                          />
+                          <div className="max-h-48 overflow-y-auto">
+                            {parishes
+                              .filter(parish => parish.toLowerCase().includes(parishSearch.toLowerCase()))
+                              .map(parish => (
+                                <div
+                                  key={parish}
+                                  className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                                  onClick={() => {
+                                    setFormData({ ...formData, parishAffiliation: parish });
+                                    setDropdownOpen(false);
+                                    setParishSearch("");
+                                  }}
+                                >
+                                  {parish}
+                                </div>
+                              ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                     <p className="mt-1 text-sm text-gray-500">
                       A percentage of your sales will be donated to your
                       selected mission (Parish, Church, or Cause)
                     </p>
+                    {formData.parishAffiliation === "Other" && (
+                      <div className="mt-2">
+                        <Label htmlFor="customParish" className="block text-sm font-medium text-gray-700 mb-1">
+                          Please specify the mission or non-profit
+                        </Label>
+                        <Input
+                          id="customParish"
+                          name="customParish"
+                          value={customParish}
+                          onChange={e => setCustomParish(e.target.value)}
+                          className="w-full"
+                          placeholder="Type the mission or non-profit name"
+                        />
+                      </div>
+                    )}
                   </div>
 
                   <div className="mb-6">
                     <Label
-                      htmlFor="communityContribution"
+                      htmlFor="ownerDescription"
                       className="block text-sm font-medium text-gray-700 mb-1"
                     >
-                      Please provide a description of your community involvement or who you are and what you do.
+                      About you as a business owner
                     </Label>
                     <Textarea
-                      id="communityContribution"
-                      name="communityContribution"
-                      value={formData.communityContribution}
+                      id="ownerDescription"
+                      name="ownerDescription"
+                      value={formData.ownerDescription}
                       onChange={handleInputChange}
-                      className="w-full h-32"
-                      placeholder="Tell us about your community involvement (optional)"
+                      className="w-full mb-3"
+                      placeholder="Tell us about yourself as a business owner..."
+                    />
+                  </div>
+
+                  <div className="mb-6">
+                    <Label
+                      htmlFor="businessUnique"
+                      className="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      What makes your business unique?
+                    </Label>
+                    <Textarea
+                      id="businessUnique"
+                      name="businessUnique"
+                      value={formData.businessUnique}
+                      onChange={handleInputChange}
+                      className="w-full mb-3"
+                      placeholder="What makes your business unique?"
+                    />
+                  </div>
+
+                  <div className="mb-6">
+                    <Label
+                      htmlFor="communityEfforts"
+                      className="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      Community efforts or causes you'd like to highlight
+                    </Label>
+                    <Textarea
+                      id="communityEfforts"
+                      name="communityEfforts"
+                      value={formData.communityEfforts}
+                      onChange={handleInputChange}
+                      className="w-full"
+                      placeholder="Share any community efforts or causes..."
                     />
                   </div>
 
@@ -707,7 +792,7 @@ const VendorRegistrationForm = () => {
 
                   <div className="mb-6">
                     <Label className="block text-sm font-medium text-gray-700 mb-2">
-                      Business Type *
+                      What does your business offer? *
                     </Label>
                     <RadioGroup
                       value={formData.businessType}
@@ -734,6 +819,50 @@ const VendorRegistrationForm = () => {
                         <Label htmlFor="both" className="cursor-pointer">
                           Both – (Sells products and provides services)
                         </Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
+
+                  {/* Where do you offer your products or services? */}
+                  <div className="mb-6">
+                    <Label className="block text-sm font-medium text-gray-700 mb-2">
+                      Where do you offer your products or services? <span className="text-red-500">*</span>
+                    </Label>
+                    <p className="text-xs text-gray-600 mb-2 italic">
+                      Select the option that best describes your current reach:
+                    </p>
+                    <RadioGroup
+                      value={formData.reach}
+                      onValueChange={(value) => setFormData({ ...formData, reach: value as FormData['reach'] })}
+                      className="flex flex-col space-y-2"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="local" id="reach-local" />
+                        <Label htmlFor="reach-local" className="cursor-pointer font-semibold">
+                          Local
+                        </Label>
+                        <span className="text-xs text-gray-600 ml-2">You serve a specific town or city.</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="regional" id="reach-regional" />
+                        <Label htmlFor="reach-regional" className="cursor-pointer font-semibold">
+                          Regional
+                        </Label>
+                        <span className="text-xs text-gray-600 ml-2">You operate across a broader area within your neighboring areas or state.</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="national" id="reach-national" />
+                        <Label htmlFor="reach-national" className="cursor-pointer font-semibold">
+                          National
+                        </Label>
+                        <span className="text-xs text-gray-600 ml-2">You serve customers across the United States.</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="global" id="reach-global" />
+                        <Label htmlFor="reach-global" className="cursor-pointer font-semibold">
+                          Global
+                        </Label>
+                        <span className="text-xs text-gray-600 ml-2">You offer your products or services internationally.</span>
                       </div>
                     </RadioGroup>
                   </div>
@@ -924,26 +1053,7 @@ const VendorRegistrationForm = () => {
                     </div>
                   </div>
 
-                  <div className="mb-6">
-                    <Label
-                      htmlFor="websiteLinks"
-                      className="block text-sm font-medium text-gray-700 mb-1"
-                    >
-                      Website or Social Media Links
-                    </Label>
-                    <Input
-                      id="websiteLinks"
-                      name="websiteLinks"
-                      value={formData.websiteLinks}
-                      onChange={handleInputChange}
-                      className="w-full"
-                      placeholder="https://yourwebsite.com, instagram.com/yourbusiness"
-                    />
-                    <p className="mt-1 text-sm text-gray-500">
-                      Optional: Add your website or social media links separated
-                      by commas
-                    </p>
-                  </div>
+                  
 
                   <div className="flex justify-between">
                     <Button
@@ -973,172 +1083,83 @@ const VendorRegistrationForm = () => {
                     Choose Your Subscription Plan
                   </h2>
 
-                  <div className="mb-4">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      <Card
-                        className={`cursor-pointer transition-all ${formData.subscriptionType === "basic" ? "border-2 border-[#006699] shadow-md" : "border border-gray-200"}`}
-                        onClick={() => handleSubscriptionChange("basic")}
-                      >
-                        <CardHeader>
-                          <CardTitle className="flex items-center">
-                            <div className="flex items-center">
-                              <input
-                                type="radio"
-                                id="basic"
-                                name="subscriptionType"
-                                value="basic"
-                                checked={formData.subscriptionType === "basic"}
-                                onChange={() =>
-                                  handleSubscriptionChange("basic")
-                                }
-                                className="h-4 w-4 text-[#006699] focus:ring-[#006699]"
-                              />
-                            </div>
-                            <Label
-                              htmlFor="basic"
-                              className="cursor-pointer ml-2"
-                            >
-                              Basic
-                            </Label>
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <p className="text-2xl font-bold mb-2">
-                            $49.99
-                            <span className="text-sm font-normal">/month</span>
-                          </p>
-                          <ul className="space-y-2 text-sm">
-                            <li className="flex items-center">
-                              <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                              Business listing
-                            </li>
-                            <li className="flex items-center">
-                              <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                              Contact information
-                            </li>
-                            <li className="flex items-center text-gray-400">
-                              <XCircle className="h-4 w-4 text-gray-400 mr-2" />
-                              Product listings
-                            </li>
-                          </ul>
-                        </CardContent>
-                      </Card>
-
-                      <Card
-                        className={`cursor-pointer transition-all ${formData.subscriptionType === "premium" ? "border-2 border-[#006699] shadow-md" : "border border-gray-200"}`}
-                        onClick={() => handleSubscriptionChange("premium")}
-                      >
-                        <CardHeader>
-                          <CardTitle className="flex items-center">
-                            <div className="flex items-center">
-                              <input
-                                type="radio"
-                                id="premium"
-                                name="subscriptionType"
-                                value="premium"
-                                checked={
-                                  formData.subscriptionType === "premium"
-                                }
-                                onChange={() =>
-                                  handleSubscriptionChange("premium")
-                                }
-                                className="h-4 w-4 text-[#006699] focus:ring-[#006699]"
-                              />
-                            </div>
-                            <Label
-                              htmlFor="premium"
-                              className="cursor-pointer ml-2"
-                            >
-                              Premium
-                            </Label>
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <p className="text-2xl font-bold mb-2">
-                            $69.99
-                            <span className="text-sm font-normal">/month</span>
-                          </p>
-                          <ul className="space-y-2 text-sm">
-                            <li className="flex items-center">
-                              <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                              Business listing
-                            </li>
-                            <li className="flex items-center">
-                              <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                              Contact information
-                            </li>
-                            <li className="flex items-center">
-                              <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                              Up to 3 product listings *
-                            </li>
-                          </ul>
-                        </CardContent>
-                      </Card>
-
-                      <Card
-                        className={`cursor-pointer transition-all ${formData.subscriptionType === "elite" ? "border-2 border-[#006699] shadow-md" : "border border-gray-200"}`}
-                        onClick={() => handleSubscriptionChange("elite")}
-                      >
-                        <CardHeader>
-                          <CardTitle className="flex items-center">
-                            <div className="flex items-center">
-                              <input
-                                type="radio"
-                                id="elite"
-                                name="subscriptionType"
-                                value="elite"
-                                checked={formData.subscriptionType === "elite"}
-                                onChange={() =>
-                                  handleSubscriptionChange("elite")
-                                }
-                                className="h-4 w-4 text-[#006699] focus:ring-[#006699]"
-                              />
-                            </div>
-                            <Label
-                              htmlFor="elite"
-                              className="cursor-pointer ml-2"
-                            >
-                              Elite
-                            </Label>
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <p className="text-2xl font-bold mb-2">
-                            $99.99
-                            <span className="text-sm font-normal">/month</span>
-                          </p>
-                          <ul className="space-y-2 text-sm">
-                            <li className="flex items-center">
-                              <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                              Business listing
-                            </li>
-                            <li className="flex items-center">
-                              <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                              Contact information
-                            </li>
-                            <li className="flex items-center">
-                              <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                              Unlimited product listings*
-                            </li>
-                            <li className="flex items-center">
-                              <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                              Featured placement
-                            </li>
-                            <li className="flex items-center">
-                              <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                              API integration available**
-                            </li>
-                          </ul>
-                        </CardContent>
-                      </Card>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    {/* Basic Tier */}
+                    <div
+                      className={`border-2 rounded-lg p-6 cursor-pointer transition-all ${formData.subscriptionType === "basic" ? "border-[#006699] shadow-md" : "border-gray-200"}`}
+                      onClick={() => handleSubscriptionChange("basic")}
+                    >
+                      <h3 className="text-lg font-semibold">Basic</h3>
+                      <p className="text-2xl font-bold mb-2">$49.99<span className="text-sm font-normal">/month</span></p>
+                      <ul className="space-y-2 text-sm">
+                        <li className="flex items-center">
+                          <span className="text-[#006699] font-bold mr-2">✓</span> Promotional listing
+                        </li>
+                        
+                        <li className="flex items-center text-gray-400">
+                          <span className="mr-2">✗</span> Product listings
+                        </li>
+                        <li className="flex items-center text-gray-400">
+                          <span className="mr-2">✗</span> Featured Placement
+                        </li>
+                        <li className="flex items-center text-gray-400">
+                          <span className="mr-2">✗</span> API integration available **
+                        </li>
+                      </ul>
                     </div>
-                    <div className="mt-4 text-sm text-gray-600">
-                      <p>
-                        * Transactional fees apply. Please review our full
-                        policy for details.
-                      </p>
-                      <p>** One-time set-up fee may apply.</p>
+                    {/* Premium Tier */}
+                    <div
+                      className={`border-2 rounded-lg p-6 cursor-pointer transition-all ${formData.subscriptionType === "premium" ? "border-[#006699] shadow-md" : "border-gray-200"}`}
+                      onClick={() => handleSubscriptionChange("premium")}
+                    >
+                      <h3 className="text-lg font-semibold">Premium</h3>
+                      <p className="text-2xl font-bold mb-2">$69.99<span className="text-sm font-normal">/month</span></p>
+                      <ul className="space-y-2 text-sm">
+                        <li className="flex items-center">
+                          <span className="text-[#006699] font-bold mr-2">✓</span> Promotional listing
+                        </li>
+                
+                        <li className="flex items-center">
+                          <span className="text-[#006699] font-bold mr-2">✓</span> Up to 3 product listings *
+                        </li>
+                        <li className="flex items-center text-gray-400">
+                          <span className="mr-2">✗</span> Featured Placement
+                        </li>
+                        <li className="flex items-center text-gray-400">
+                          <span className="mr-2">✗</span> API integration available **
+                        </li>
+                      </ul>
                     </div>
+                    {/* Elite Tier */}
+                    <div
+                      className={`border-2 rounded-lg p-6 cursor-pointer transition-all ${formData.subscriptionType === "elite" ? "border-[#006699] shadow-md" : "border-gray-200"}`}
+                      onClick={() => handleSubscriptionChange("elite")}
+                    >
+                      <h3 className="text-lg font-semibold">Elite</h3>
+                      <p className="text-2xl font-bold mb-2">$99.99<span className="text-sm font-normal">/month</span></p>
+                      <ul className="space-y-2 text-sm">
+                        <li className="flex items-center">
+                          <span className="text-[#006699] font-bold mr-2">✓</span> Promotional listing
+                        </li>
+                    
+                        <li className="flex items-center">
+                          <span className="text-[#006699] font-bold mr-2">✓</span> Unlimited product listings *
+                        </li>
+                        <li className="flex items-center">
+                          <span className="text-[#006699] font-bold mr-2">✓</span> Featured placement
+                        </li>
+                        <li className="flex items-center">
+                          <span className="text-[#006699] font-bold mr-2">✓</span> API integration available **
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                  <div className="mt-4 text-sm text-gray-600">
+                    <p>
+                      * Transactional fees apply. Please review our full
+                      policy for details.
+                    </p>
+                    <p>** One-time set-up fee may apply.</p>
                   </div>
 
                   <div className="flex justify-between">
@@ -1166,62 +1187,29 @@ const VendorRegistrationForm = () => {
               {step === 4 && (
                 <div className="bg-white p-6 rounded-lg shadow-md mb-8">
                   <h2 className="text-xl font-semibold text-gray-900 mb-6">
-                    Contact Information & Products
+                    Products & Services
                   </h2>
 
+                  {/* Contact for Opportunities Question */}
                   <div className="mb-6">
-                    <h3 className="text-lg font-medium text-gray-800 mb-4">
-                      Please provide your contact information for your customer service.
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                      <div>
-                        <Label
-                          htmlFor="contactEmail"
-                          className="block text-sm font-medium text-gray-700 mb-1"
-                        >
-                          Contact Email *
-                        </Label>
-                        <Input
-                          id="contactEmail"
-                          name="contactEmail"
-                          type="email"
-                          value={formData.contactEmail}
-                          onChange={handleInputChange}
-                          required
-                          className={`w-full ${!formData.contactEmail && attemptedSteps.includes(4) && "border-red-300"}`}
-                          placeholder="customer-service@yourbusiness.com"
-                        />
-                        {!formData.contactEmail &&
-                          attemptedSteps.includes(4) && (
-                            <p className="mt-1 text-sm text-red-600">
-                              Contact email is required
-                            </p>
-                          )}
-                      </div>
-                      <div>
-                        <Label
-                          htmlFor="contactPhone"
-                          className="block text-sm font-medium text-gray-700 mb-1"
-                        >
-                          Contact Phone *
-                        </Label>
-                        <Input
-                          id="contactPhone"
-                          name="contactPhone"
-                          type="tel"
-                          value={formData.contactPhone}
-                          onChange={handleInputChange}
-                          required
-                          className={`w-full ${!formData.contactPhone && attemptedSteps.includes(4) && "border-red-300"}`}
-                          placeholder="(555) 123-4567"
-                        />
-                        {!formData.contactPhone &&
-                          attemptedSteps.includes(4) && (
-                            <p className="mt-1 text-sm text-red-600">
-                              Contact phone is required
-                            </p>
-                          )}
-                      </div>
+                    <Label className="block text-sm font-medium text-gray-700 mb-2">
+                      Would you like to be contacted to explore more opportunities to grow with Parishmart?
+                    </Label>
+                    <div className="flex space-x-4">
+                      <Button
+                        type="button"
+                        className={`px-4 py-2 rounded ${formData.contactForOpportunities === true ? 'bg-[#006699] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                        onClick={() => setFormData({ ...formData, contactForOpportunities: true })}
+                      >
+                        Yes
+                      </Button>
+                      <Button
+                        type="button"
+                        className={`px-4 py-2 rounded ${formData.contactForOpportunities === false ? 'bg-[#006699] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                        onClick={() => setFormData({ ...formData, contactForOpportunities: false })}
+                      >
+                        No
+                      </Button>
                     </div>
                   </div>
 
@@ -1593,8 +1581,12 @@ const VendorRegistrationForm = () => {
 
                     <div className="space-y-4">
                       <div>
-                        <h4 className="font-medium text-gray-700">
+                        <h4 
+                          className="font-medium text-gray-700 cursor-pointer hover:text-[#006699] transition-colors flex items-center"
+                          onClick={() => setStep(1)}
+                        >
                           Personal Information
+                          <ArrowRight className="ml-2 h-4 w-4 rotate-180" />
                         </h4>
                         <p className="text-gray-600">
                           Name: {formData.fullName}
@@ -1606,11 +1598,20 @@ const VendorRegistrationForm = () => {
                             Parish Affiliation: {formData.parishAffiliation}
                           </p>
                         )}
+                        {formData.contactForOpportunities !== null && (
+                          <p className="text-gray-600">
+                            Would like to be contacted for more opportunities: {formData.contactForOpportunities ? 'Yes' : 'No'}
+                          </p>
+                        )}
                       </div>
 
                       <div>
-                        <h4 className="font-medium text-gray-700">
+                        <h4 
+                          className="font-medium text-gray-700 cursor-pointer hover:text-[#006699] transition-colors flex items-center"
+                          onClick={() => setStep(2)}
+                        >
                           Business Information
+                          <ArrowRight className="ml-2 h-4 w-4 rotate-180" />
                         </h4>
                         <p className="text-gray-600">
                           Business Name: {formData.businessName}
@@ -1626,8 +1627,12 @@ const VendorRegistrationForm = () => {
                       </div>
 
                       <div>
-                        <h4 className="font-medium text-gray-700">
-                          Subscription & Contact Information
+                        <h4 
+                          className="font-medium text-gray-700 cursor-pointer hover:text-[#006699] transition-colors flex items-center"
+                          onClick={() => setStep(3)}
+                        >
+                          Subscription
+                          <ArrowRight className="ml-2 h-4 w-4 rotate-180" />
                         </h4>
                         <p className="text-gray-600">
                           Subscription:{" "}
@@ -1637,18 +1642,16 @@ const VendorRegistrationForm = () => {
                               ? "Premium"
                               : "Elite"}
                         </p>
-                        <p className="text-gray-600">
-                          Contact Email: {formData.contactEmail}
-                        </p>
-                        <p className="text-gray-600">
-                          Contact Phone: {formData.contactPhone}
-                        </p>
                       </div>
 
                       {formData.products.length > 0 && (
                         <div>
-                          <h4 className="font-medium text-gray-700 mt-4">
+                          <h4 
+                            className="font-medium text-gray-700 cursor-pointer hover:text-[#006699] transition-colors flex items-center"
+                            onClick={() => setStep(4)}
+                          >
                             Products/Services Information
+                            <ArrowRight className="ml-2 h-4 w-4 rotate-180" />
                           </h4>
                           <p className="text-gray-600">
                             Number of Products: {formData.products.length}

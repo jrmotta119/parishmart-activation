@@ -20,7 +20,7 @@ interface FormData {
   photos: File[];
   primaryColor: string;
   secondaryColor: string;
-  subscriptionTier: "basic" | "elite";
+  subscriptionTier: "basic" | "premium" | "elite";
   needsConsultation: boolean;
   taxExemptionForm: File | null;
 }
@@ -54,6 +54,8 @@ const StoreRegistrationForm = () => {
   });
 
   const [logoPreview, setLogoPreview] = useState<string>("");
+  const [banner, setBanner] = useState<File | null>(null);
+  const [bannerPreview, setBannerPreview] = useState<string>("");
   const [photosPreviews, setPhotosPreviews] = useState<string[]>([]);
   const [showPreview, setShowPreview] = useState(false);
   const [step, setStep] = useState(1);
@@ -74,6 +76,11 @@ const StoreRegistrationForm = () => {
     { name: "Teal", primary: "#00796b", secondary: "#e0f2f1" },
   ];
 
+  const [products, setProducts] = useState([
+    // { name: '', category: '', description: '', images: [], promotionalHook: '', pricingInfo: '' }
+  ]);
+  const [productImagePreviews, setProductImagePreviews] = useState({});
+
   const handleInputChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
@@ -88,6 +95,14 @@ const StoreRegistrationForm = () => {
       const file = e.target.files[0];
       setFormData({ ...formData, logo: file });
       setLogoPreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleBannerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setBanner(file);
+      setBannerPreview(URL.createObjectURL(file));
     }
   };
 
@@ -122,7 +137,7 @@ const StoreRegistrationForm = () => {
     setPhotosPreviews(updatedPreviews);
   };
 
-  const handleSubscriptionChange = (tier: "basic" | "elite") => {
+  const handleSubscriptionChange = (tier: "basic" | "premium" | "elite") => {
     setFormData({ ...formData, subscriptionTier: tier });
   };
 
@@ -142,7 +157,7 @@ const StoreRegistrationForm = () => {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Mark all steps as attempted for validation
@@ -172,14 +187,37 @@ const StoreRegistrationForm = () => {
 
     setIsSubmitting(true);
 
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      // Send form data to API endpoint
+      const response = await fetch('/api/registration', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          registrationType: 'store',
+          ...formData,
+          hasTaxExemptStatus,
+          products,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to submit registration');
+      }
+
       console.log("Form submitted:", formData);
-      setIsSubmitting(false);
       alert("Registration successful! Your store is being set up.");
       // Redirect to home or dashboard
       window.location.href = "/";
-    }, 2000);
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      alert(error instanceof Error ? error.message : "There was an error submitting your registration. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const nextStep = () => {
@@ -215,6 +253,84 @@ const StoreRegistrationForm = () => {
   const togglePreview = () => {
     setShowPreview(!showPreview);
   };
+
+  const addProduct = () => {
+    if (products.length >= 10) return;
+    setProducts([
+      ...products,
+      { name: '', category: '', description: '', images: [], promotionalHook: '', pricingInfo: '' },
+    ]);
+  };
+  const removeProduct = (index) => {
+    const updated = [...products];
+    updated.splice(index, 1);
+    setProducts(updated);
+    setProductImagePreviews((prev) => {
+      const updatedPreviews = { ...prev };
+      delete updatedPreviews[index];
+      return updatedPreviews;
+    });
+  };
+  const updateProduct = (index, field, value) => {
+    const updated = [...products];
+    updated[index] = { ...updated[index], [field]: value };
+    setProducts(updated);
+  };
+  const handleProductImagesChange = (e: React.ChangeEvent<HTMLInputElement>, productIndex: number) => {
+    if (e.target.files) {
+      const filesArray = Array.from(e.target.files).slice(0, 5);
+      const updated = [...products];
+      updated[productIndex].images = [
+        ...(updated[productIndex].images || []),
+        ...filesArray,
+      ].slice(0, 5);
+      setProducts(updated);
+      const newPreviews = filesArray.map((file) => URL.createObjectURL(file));
+      setProductImagePreviews((prev) => {
+        const currentPreviews = prev[productIndex] || [];
+        return {
+          ...prev,
+          [productIndex]: [...currentPreviews, ...newPreviews].slice(0, 5),
+        };
+      });
+    }
+  };
+  const removeProductImage = (productIndex, imageIndex) => {
+    const updated = [...products];
+    updated[productIndex].images.splice(imageIndex, 1);
+    setProducts(updated);
+    setProductImagePreviews((prev) => {
+      const updatedPreviews = { ...prev };
+      if (updatedPreviews[productIndex]) {
+        const previewsArray = [...updatedPreviews[productIndex]];
+        previewsArray.splice(imageIndex, 1);
+        updatedPreviews[productIndex] = previewsArray;
+      }
+      return updatedPreviews;
+    });
+  };
+  const handleBulkUpload = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      // CSV parsing logic placeholder
+      alert(`CSV file received: ${e.target.files[0].name}`);
+    }
+  };
+  const productCategories = [
+    "Clothing & Apparel",
+    "Food & Beverages",
+    "Educational Resources",
+    "Home & Living",
+    "Religious Items",
+    "Services",
+    "Technology & Electronics",
+    "Beauty & Personal Care",
+    "Sports, Fun & Travel",
+    "Health & Wellness",
+    "Pet Supplies",
+    "Gifts & Seasonal Items",
+    "Custom Merchandise",
+    "Other (Please specify)",
+  ];
 
   return (
     <div className="min-h-screen bg-white">
@@ -390,109 +506,88 @@ Cause: A non-profit or charitable organization focused on a specific mission or 
                   Choose Your Subscription
                 </h2>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                   {/* Basic Tier */}
                   <div
                     className={`border-2 rounded-lg p-6 cursor-pointer transition-all ${formData.subscriptionTier === "basic" ? "border-[#006699] shadow-md" : "border-gray-200"}`}
                     onClick={() => handleSubscriptionChange("basic")}
                   >
-                    <div className="flex justify-between items-start mb-4">
-                      <div>
-                        <h3 className="text-lg font-semibold flex items-center">
-                          <Globe className="h-5 w-5 mr-2 text-[#006699]" />
-                          Basic
-                        </h3>
-                        <p className="text-2xl font-bold mt-1">
-                          $0
-                          <span className="text-sm font-normal text-gray-500">
-                            /month
-                          </span>
-                        </p>
-                      </div>
-                      {formData.subscriptionTier === "basic" && (
-                        <div className="bg-[#006699] text-white rounded-full p-1">
-                          <Check className="h-5 w-5" />
-                        </div>
-                      )}
-                    </div>
-
-                    <ul className="space-y-2 mb-4">
-                      <li className="flex items-start">
-                        <Check className="h-4 w-4 text-[#006699] mt-1 mr-2 flex-shrink-0" />
-                        <span>Direct connection to Parishmart Marketplace</span>
+                    <h3 className="text-lg font-semibold">Basic</h3>
+                    <p className="text-2xl font-bold mb-2">$9.99<span className="text-sm font-normal">/month</span></p>
+                    <ul className="space-y-2 text-sm">
+                      <li className="flex items-center">
+                        <span className="text-[#006699] font-bold mr-2">✓</span> Access to ParishMart marketplace community
                       </li>
-                      <li className="flex items-start text-gray-500">
-                        <span className="h-4 w-4 mt-1 mr-2 flex-shrink-0">
-                          ✕
-                        </span>
-                        <span>Personalized storefront</span>
+                      <li className="flex items-center">
+                        <span className="text-[#006699] font-bold mr-2">✓</span> Branded storefront
                       </li>
-                      <li className="flex items-start text-gray-500">
-                        <span className="h-4 w-4 mt-1 mr-2 flex-shrink-0">
-                          ✕
-                        </span>
-                        <span>Curated products and services</span>
+                      <li className="flex items-center">
+                        <span className="text-[#006699] font-bold mr-2">✓</span> Engagement tracking dashboard
                       </li>
-                      <li className="flex items-start text-gray-500">
-                        <span className="h-4 w-4 mt-1 mr-2 flex-shrink-0">
-                          ✕
-                        </span>
-                        <span>Donations as a product</span>
+                      <li className="flex items-center text-gray-400">
+                        <span className="mr-2">✗</span> Donations as a product
                       </li>
-                      <li className="flex items-start text-gray-500">
-                        <span className="h-4 w-4 mt-1 mr-2 flex-shrink-0">
-                          ✕
-                        </span>
-                        <span>Access the marketplace community</span>
+                      <li className="flex items-center text-gray-400">
+                        <span className="mr-2">✗</span> Customizable products with your branding
+                      </li>
+                      <li className="flex items-center text-gray-400">
+                        <span className="mr-2">✗</span> Upload your exclusive products
                       </li>
                     </ul>
                   </div>
-
+                  {/* Premium Tier */}
+                  <div
+                    className={`border-2 rounded-lg p-6 cursor-pointer transition-all ${formData.subscriptionTier === "premium" ? "border-[#006699] shadow-md" : "border-gray-200"}`}
+                    onClick={() => handleSubscriptionChange("premium")}
+                  >
+                    <h3 className="text-lg font-semibold">Premium</h3>
+                    <p className="text-2xl font-bold mb-2">$39.99<span className="text-sm font-normal">/month</span></p>
+                    <ul className="space-y-2 text-sm">
+                      <li className="flex items-center">
+                        <span className="text-[#006699] font-bold mr-2">✓</span> Access to ParishMart marketplace community
+                      </li>
+                      <li className="flex items-center">
+                        <span className="text-[#006699] font-bold mr-2">✓</span> Branded storefront
+                      </li>
+                      <li className="flex items-center">
+                        <span className="text-[#006699] font-bold mr-2">✓</span> Engagement tracking dashboard
+                      </li>
+                      <li className="flex items-center">
+                        <span className="text-[#006699] font-bold mr-2">✓</span> Donations as a product
+                      </li>
+                      <li className="flex items-center">
+                        <span className="text-[#006699] font-bold mr-2">✓</span> Customizable products with your branding
+                      </li>
+                      <li className="flex items-center text-gray-400">
+                        <span className="mr-2">✗</span> Upload your exclusive products
+                      </li>
+                    </ul>
+                  </div>
                   {/* Elite Tier */}
                   <div
                     className={`border-2 rounded-lg p-6 cursor-pointer transition-all ${formData.subscriptionTier === "elite" ? "border-[#006699] shadow-md" : "border-gray-200"}`}
                     onClick={() => handleSubscriptionChange("elite")}
                   >
-                    <div className="flex justify-between items-start mb-4">
-                      <div>
-                        <h3 className="text-lg font-semibold flex items-center">
-                          <Crown className="h-5 w-5 mr-2 text-[#006699]" />
-                          Elite
-                        </h3>
-                        <p className="text-2xl font-bold mt-1">
-                          $200
-                          <span className="text-sm font-normal text-gray-500">
-                            /month
-                          </span>
-                        </p>
-                      </div>
-                      {formData.subscriptionTier === "elite" && (
-                        <div className="bg-[#006699] text-white rounded-full p-1">
-                          <Check className="h-5 w-5" />
-                        </div>
-                      )}
-                    </div>
-
-                    <ul className="space-y-2 mb-4">
-                      <li className="flex items-start">
-                        <Check className="h-4 w-4 text-[#006699] mt-1 mr-2 flex-shrink-0" />
-                        <span>Direct connection to Parishmart Marketplace</span>
+                    <h3 className="text-lg font-semibold">Elite</h3>
+                    <p className="text-2xl font-bold mb-2">$49.99<span className="text-sm font-normal">/month</span></p>
+                    <ul className="space-y-2 text-sm">
+                      <li className="flex items-center">
+                        <span className="text-[#006699] font-bold mr-2">✓</span> Access to ParishMart marketplace community
                       </li>
-                      <li className="flex items-start">
-                        <Check className="h-4 w-4 text-[#006699] mt-1 mr-2 flex-shrink-0" />
-                        <span>Personalized Storefront</span>
+                      <li className="flex items-center">
+                        <span className="text-[#006699] font-bold mr-2">✓</span> Branded storefront
                       </li>
-                      <li className="flex items-start">
-                        <Check className="h-4 w-4 text-[#006699] mt-1 mr-2 flex-shrink-0" />
-                        <span>Curated products and services</span>
+                      <li className="flex items-center">
+                        <span className="text-[#006699] font-bold mr-2">✓</span> Engagement tracking dashboard
                       </li>
-                      <li className="flex items-start">
-                        <Check className="h-4 w-4 text-[#006699] mt-1 mr-2 flex-shrink-0" />
-                        <span>Donations as a product</span>
+                      <li className="flex items-center">
+                        <span className="text-[#006699] font-bold mr-2">✓</span> Donations as a product
                       </li>
-                      <li className="flex items-start">
-                        <Check className="h-4 w-4 text-[#006699] mt-1 mr-2 flex-shrink-0" />
-                        <span>Access the marketplace community</span>
+                      <li className="flex items-center">
+                        <span className="text-[#006699] font-bold mr-2">✓</span> Customizable products with your branding
+                      </li>
+                      <li className="flex items-center">
+                        <span className="text-[#006699] font-bold mr-2">✓</span> Upload your exclusive products
                       </li>
                     </ul>
                   </div>
@@ -526,441 +621,269 @@ Cause: A non-profit or charitable organization focused on a specific mission or 
                   Store Customization
                 </h2>
 
-                {formData.subscriptionTier === "basic" ? (
-                  <div className="mb-8 bg-white p-6 rounded-lg border-2 border-gray-200">
-                    <h3 className="text-lg font-medium text-gray-900 mb-4">
-                      Add a ParishMart callout to your website and encourage
-                      your community members to support your cause. Would you
-                      like our team to contact you for a free consultation on
-                      our solutions?
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <Button
-                        type="button"
-                        onClick={() => handleConsultationChange(true)}
-                        className={`flex items-center justify-center h-16 ${formData.needsConsultation ? "bg-[#006699] text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
-                      >
-                        <div className="flex items-center">
-                          {formData.needsConsultation && (
-                            <Check className="mr-2 h-5 w-5" />
-                          )}
-                          <span className="font-medium">
-                            Yes, please contact me
-                          </span>
-                        </div>
-                      </Button>
-                      <Button
-                        type="button"
-                        onClick={() => handleConsultationChange(false)}
-                        className={`flex items-center justify-center h-16 ${!formData.needsConsultation ? "bg-[#006699] text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
-                      >
-                        <div className="flex items-center">
-                          {!formData.needsConsultation && (
-                            <Check className="mr-2 h-5 w-5" />
-                          )}
-                          <span className="font-medium">No, thank you</span>
-                        </div>
-                      </Button>
-                    </div>
-                    <p className="mt-4 text-sm text-gray-500">
-                      Our team can guide you on effectively leveraging the
-                      ParishMart community to help your organization thrive.
-                    </p>
-                  </div>
-                ) : (
-                  <>
-                    {/* Logo Upload */}
-                    <div className="mb-8">
-                      <Label className="block text-sm font-medium text-gray-700 mb-2">
-                        Organization Logo *
-                      </Label>
-                      <div className="flex items-start space-x-4">
-                        <div className="flex-1">
-                          <div
-                            className={`border-2 border-dashed ${!formData.logo && attemptedSteps.includes(4) ? "border-red-500" : "border-gray-300"} rounded-lg p-4 text-center cursor-pointer hover:bg-gray-50 transition-colors`}
-                          >
-                            <input
-                              type="file"
-                              id="logo"
-                              accept="image/*"
-                              onChange={handleLogoChange}
-                              className="hidden"
-                            />
-                            <label
-                              htmlFor="logo"
-                              className="cursor-pointer flex flex-col items-center"
-                            >
-                              <Upload className="h-8 w-8 text-gray-400 mb-2" />
-                              <span className="text-sm text-gray-500">
-                                Click to upload your logo
-                              </span>
-                              <span className="text-xs text-gray-400 mt-1">
-                                PNG, JPG, GIF up to 5MB
-                              </span>
-                            </label>
-                          </div>
-                          {!formData.logo && attemptedSteps.includes(4) && (
-                            <p className="mt-1 text-sm text-red-500">
-                              Logo is required for Elite subscription
-                            </p>
-                          )}
-                        </div>
-                        {logoPreview && (
-                          <div className="w-24 h-24 relative border rounded-lg overflow-hidden">
-                            <img
-                              src={logoPreview}
-                              alt="Logo preview"
-                              className="w-full h-full object-contain"
-                            />
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Photos Upload */}
-                    <div className="mb-8">
-                      <Label className="block text-sm font-medium text-gray-700 mb-2">
-                        Store Photos (Up to 5)
-                      </Label>
-                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:bg-gray-50 transition-colors mb-4">
+                {/* Logo Upload Section */}
+                <div className="mb-8">
+                  <Label className="block text-sm font-medium text-gray-700 mb-2">
+                    Upload Store Logo *
+                  </Label>
+                  <div className="flex items-start space-x-4">
+                    <div className="flex-1">
+                      <div className={`border-2 border-dashed ${!formData.logo && attemptedSteps.includes(4) ? "border-red-500" : "border-gray-300"} rounded-lg p-4 text-center cursor-pointer hover:bg-gray-50 transition-colors`}>
                         <input
                           type="file"
-                          id="photos"
+                          id="logo"
                           accept="image/*"
-                          multiple
-                          onChange={handlePhotosChange}
+                          onChange={handleLogoChange}
                           className="hidden"
-                          disabled={formData.photos.length >= 5}
                         />
-                        <label
-                          htmlFor="photos"
-                          className={`cursor-pointer flex flex-col items-center ${formData.photos.length >= 5 ? "opacity-50" : ""}`}
-                        >
+                        <label htmlFor="logo" className="cursor-pointer flex flex-col items-center">
                           <Upload className="h-8 w-8 text-gray-400 mb-2" />
-                          <span className="text-sm text-gray-500">
-                            Click to upload store photos
-                          </span>
-                          <span className="text-xs text-gray-400 mt-1">
-                            PNG, JPG, GIF up to 5MB each
-                          </span>
+                          <span className="text-sm text-gray-500">Click to upload your logo</span>
+                          <span className="text-xs text-gray-400 mt-1">PNG, JPG, GIF up to 5MB</span>
                         </label>
                       </div>
-
-                      {photosPreviews.length > 0 && (
-                        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                          {photosPreviews.map((preview, index) => (
-                            <div key={index} className="relative group">
-                              <div className="w-full h-24 border rounded-lg overflow-hidden">
-                                <img
-                                  src={preview}
-                                  alt={`Photo ${index + 1}`}
-                                  className="w-full h-full object-cover"
-                                />
-                              </div>
-                              <button
-                                type="button"
-                                onClick={() => removePhoto(index)}
-                                className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                              >
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  className="h-4 w-4"
-                                  fill="none"
-                                  viewBox="0 0 24 24"
-                                  stroke="currentColor"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M6 18L18 6M6 6l12 12"
-                                  />
-                                </svg>
-                              </button>
-                            </div>
-                          ))}
-                        </div>
+                      {!formData.logo && attemptedSteps.includes(4) && (
+                        <p className="mt-1 text-sm text-red-500">Logo is required</p>
                       )}
                     </div>
+                    {logoPreview && (
+                      <div className="w-24 h-24 relative border rounded-lg overflow-hidden">
+                        <img src={logoPreview} alt="Logo preview" className="w-full h-full object-contain" />
+                      </div>
+                    )}
+                  </div>
+                </div>
 
-                    {/* Color Selection */}
-                    <div className="mb-8">
-                      <Label className="block text-sm font-medium text-gray-700 mb-2">
-                        Store Colors
-                      </Label>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                        {colorOptions.map((color, index) => (
-                          <div
-                            key={index}
-                            onClick={() =>
-                              handleColorChange(color.primary, color.secondary)
-                            }
-                            className={`cursor-pointer p-4 rounded-lg border-2 transition-all ${formData.primaryColor === color.primary ? "border-[#006699] shadow-md" : "border-gray-200"}`}
-                          >
-                            <div className="flex items-center justify-between mb-2">
-                              <span className="text-sm font-medium">
-                                {color.name}
-                              </span>
-                              {formData.primaryColor === color.primary && (
-                                <Check className="h-4 w-4 text-[#006699]" />
+                {/* Banner Upload Section */}
+                <div className="mb-8">
+                  <Label className="block text-sm font-medium text-gray-700 mb-2">
+                    Upload Store Banner
+                  </Label>
+                  <div className="flex items-start space-x-4">
+                    <div className="flex-1">
+                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:bg-gray-50 transition-colors">
+                        <input
+                          type="file"
+                          id="banner"
+                          accept="image/*"
+                          onChange={handleBannerChange}
+                          className="hidden"
+                        />
+                        <label htmlFor="banner" className="cursor-pointer flex flex-col items-center">
+                          <Upload className="h-8 w-8 text-gray-400 mb-2" />
+                          <span className="text-sm text-gray-500">Click to upload your banner</span>
+                          <span className="text-xs text-gray-400 mt-1">PNG, JPG, GIF up to 5MB</span>
+                        </label>
+                      </div>
+                    </div>
+                    {bannerPreview && (
+                      <div className="w-48 h-24 relative border rounded-lg overflow-hidden">
+                        <img src={bannerPreview} alt="Banner preview" className="w-full h-full object-cover" />
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Elite tier: Upload Products Section */}
+                {formData.subscriptionTier === "elite" && (
+                  <div className="mb-8">
+                    <h3 className="text-lg font-medium text-gray-800 mb-4">Upload Products</h3>
+                    <div className="flex space-x-2 mb-4">
+                      <label className="relative cursor-pointer">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="border-[#006699] text-[#006699] flex items-center"
+                        >
+                          <Upload className="h-4 w-4 mr-1" />
+                          Upload in bulk (CSV file)
+                        </Button>
+                        <input
+                          type="file"
+                          accept=".csv"
+                          onChange={handleBulkUpload}
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        />
+                      </label>
+                      <Button
+                        type="button"
+                        onClick={addProduct}
+                        size="sm"
+                        className="bg-[#006699] hover:bg-[#005588] text-white"
+                        disabled={products.length >= 10}
+                      >
+                        Add Product
+                      </Button>
+                    </div>
+                    {products.length === 0 ? (
+                      <div className="bg-gray-50 p-4 rounded-lg mb-6 text-center">
+                        <p className="text-gray-500">
+                          No products added yet. Click "Add Product" to get started.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-8">
+                        {products.map((product, productIndex) => (
+                          <div key={productIndex} className="border border-gray-200 rounded-lg p-4">
+                            <div className="flex justify-between items-center mb-4">
+                              <h4 className="font-medium">Listing {productIndex + 1}</h4>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeProduct(productIndex)}
+                                className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                              >
+                                Remove
+                              </Button>
+                            </div>
+                            <div className="mb-4">
+                              <Label htmlFor={`product-name-${productIndex}`} className="block text-sm font-medium text-gray-700 mb-1">
+                                Product/Service Name *
+                              </Label>
+                              <Input
+                                id={`product-name-${productIndex}`}
+                                value={product.name}
+                                onChange={(e) => updateProduct(productIndex, "name", e.target.value)}
+                                required
+                                className="w-full"
+                              />
+                            </div>
+                            <div className="mb-4">
+                              <Label htmlFor={`product-category-${productIndex}`} className="block text-sm font-medium text-gray-700 mb-1">
+                                Category of Your Product/Service *
+                              </Label>
+                              <select
+                                id={`product-category-${productIndex}`}
+                                value={product.category}
+                                onChange={(e) => updateProduct(productIndex, "category", e.target.value)}
+                                className="w-full rounded-md border border-gray-300 py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#006699] focus:border-transparent"
+                              >
+                                <option value="">Select a category</option>
+                                {productCategories.map((category) => (
+                                  <option key={category} value={category}>{category}</option>
+                                ))}
+                              </select>
+                            </div>
+                            <div className="mb-4">
+                              <Label htmlFor={`product-description-${productIndex}`} className="block text-sm font-medium text-gray-700 mb-1">
+                                Description of Product/Service *
+                              </Label>
+                              <Textarea
+                                id={`product-description-${productIndex}`}
+                                value={product.description}
+                                onChange={(e) => updateProduct(productIndex, "description", e.target.value)}
+                                required
+                                className="w-full h-32"
+                                placeholder="Describe your product or service in detail..."
+                              />
+                            </div>
+                            {/* Product Images Upload */}
+                            <div className="mb-4">
+                              <Label className="block text-sm font-medium text-gray-700 mb-2">
+                                Upload Product/Service Image(s) *
+                              </Label>
+                              <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:bg-gray-50 transition-colors mb-4">
+                                <input
+                                  type="file"
+                                  id={`product-images-${productIndex}`}
+                                  accept="image/*"
+                                  multiple
+                                  onChange={(e) => handleProductImagesChange(e, productIndex)}
+                                  className="hidden"
+                                />
+                                <label
+                                  htmlFor={`product-images-${productIndex}`}
+                                  className="cursor-pointer flex flex-col items-center"
+                                >
+                                  <Upload className="h-8 w-8 text-gray-400 mb-2" />
+                                  <span className="text-sm text-gray-500">
+                                    Click to upload product/service images
+                                  </span>
+                                  <span className="text-xs text-gray-400 mt-1">
+                                    PNG, JPG, GIF up to 5MB each (multiple files allowed)
+                                  </span>
+                                </label>
+                              </div>
+                              {productImagePreviews[productIndex] && productImagePreviews[productIndex].length > 0 && (
+                                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                                  {productImagePreviews[productIndex].map((preview, imageIndex) => (
+                                    <div key={imageIndex} className="relative group">
+                                      <div className="w-full h-24 border rounded-lg overflow-hidden">
+                                        <img
+                                          src={preview}
+                                          alt={`Listing ${productIndex + 1} Image ${imageIndex + 1}`}
+                                          className="w-full h-full object-cover"
+                                        />
+                                      </div>
+                                      <button
+                                        type="button"
+                                        onClick={() => removeProductImage(productIndex, imageIndex)}
+                                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                      >
+                                        <svg
+                                          xmlns="http://www.w3.org/2000/svg"
+                                          className="h-4 w-4"
+                                          fill="none"
+                                          viewBox="0 0 24 24"
+                                          stroke="currentColor"
+                                        >
+                                          <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M6 18L18 6M6 6l12 12"
+                                          />
+                                        </svg>
+                                      </button>
+                                    </div>
+                                  ))}
+                                </div>
                               )}
                             </div>
-                            <div className="flex space-x-2">
-                              <div
-                                className="w-8 h-8 rounded-full"
-                                style={{ backgroundColor: color.primary }}
-                              ></div>
-                              <div
-                                className="w-8 h-8 rounded-full border border-gray-200"
-                                style={{ backgroundColor: color.secondary }}
-                              ></div>
+                            <div className="mb-4">
+                              <Label htmlFor={`promotional-hook-${productIndex}`} className="block text-sm font-medium text-gray-700 mb-1">
+                                Promotional Hook Offer
+                              </Label>
+                              <Input
+                                id={`promotional-hook-${productIndex}`}
+                                value={product.promotionalHook}
+                                onChange={(e) => updateProduct(productIndex, "promotionalHook", e.target.value)}
+                                className="w-full"
+                                placeholder="e.g., 10% off first purchase, Free shipping on orders over $50"
+                              />
+                              <p className="mt-1 text-sm text-gray-500">
+                                Optional: Add a special offer to attract customers
+                              </p>
+                            </div>
+                            <div className="mb-4">
+                              <Label htmlFor={`pricing-info-${productIndex}`} className="block text-sm font-medium text-gray-700 mb-1">
+                                Pricing Information
+                              </Label>
+                              <Input
+                                id={`pricing-info-${productIndex}`}
+                                value={product.pricingInfo}
+                                onChange={(e) => updateProduct(productIndex, "pricingInfo", e.target.value)}
+                                className="w-full"
+                                placeholder="e.g., $19.99 per item, $50-100 per service, Starting at $29.99"
+                              />
+                              <p className="mt-1 text-sm text-gray-500">
+                                Provide general pricing information for your products/services
+                              </p>
                             </div>
                           </div>
                         ))}
                       </div>
-                    </div>
-
-                    {/* Custom Color Selection */}
-                    <div className="mb-8">
-                      <Label className="block text-sm font-medium text-gray-700 mb-2">
-                        Custom Colors
-                      </Label>
-                      <div className="bg-white p-4 rounded-lg border-2 border-gray-200">
-                        <div className="mb-4">
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-sm font-medium">
-                              Primary Color
-                            </span>
-                            <div className="flex items-center space-x-2">
-                              <div
-                                className="w-8 h-8 rounded-full border border-gray-200"
-                                style={{ backgroundColor: customPrimaryColor }}
-                              ></div>
-                              <span className="text-sm font-mono">
-                                {customPrimaryColor}
-                              </span>
-                            </div>
-                          </div>
-                          <input
-                            type="color"
-                            value={customPrimaryColor}
-                            onChange={(e) => {
-                              setCustomPrimaryColor(e.target.value);
-                              handleColorChange(
-                                e.target.value,
-                                customSecondaryColor,
-                              );
-                            }}
-                            className="w-full h-10 cursor-pointer rounded"
-                          />
-                          <div className="mt-2">
-                            <Label
-                              htmlFor="primaryHex"
-                              className="text-xs text-gray-500"
-                            >
-                              Hex Value
-                            </Label>
-                            <div className="flex items-center mt-1">
-                              <Input
-                                id="primaryHex"
-                                value={customPrimaryColor}
-                                onChange={(e) => {
-                                  setCustomPrimaryColor(e.target.value);
-                                  handleColorChange(
-                                    e.target.value,
-                                    customSecondaryColor,
-                                  );
-                                }}
-                                className="font-mono text-sm"
-                              />
-                            </div>
-                          </div>
-                        </div>
-
-                        <div>
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-sm font-medium">
-                              Secondary Color
-                            </span>
-                            <div className="flex items-center space-x-2">
-                              <div
-                                className="w-8 h-8 rounded-full border border-gray-200"
-                                style={{
-                                  backgroundColor: customSecondaryColor,
-                                }}
-                              ></div>
-                              <span className="text-sm font-mono">
-                                {customSecondaryColor}
-                              </span>
-                            </div>
-                          </div>
-                          <input
-                            type="color"
-                            value={customSecondaryColor}
-                            onChange={(e) => {
-                              setCustomSecondaryColor(e.target.value);
-                              handleColorChange(
-                                customPrimaryColor,
-                                e.target.value,
-                              );
-                            }}
-                            className="w-full h-10 cursor-pointer rounded"
-                          />
-                          <div className="mt-2">
-                            <Label
-                              htmlFor="secondaryHex"
-                              className="text-xs text-gray-500"
-                            >
-                              Hex Value
-                            </Label>
-                            <div className="flex items-center mt-1">
-                              <Input
-                                id="secondaryHex"
-                                value={customSecondaryColor}
-                                onChange={(e) => {
-                                  setCustomSecondaryColor(e.target.value);
-                                  handleColorChange(
-                                    customPrimaryColor,
-                                    e.target.value,
-                                  );
-                                }}
-                                className="font-mono text-sm"
-                              />
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="mt-4">
-                          <Button
-                            type="button"
-                            onClick={() =>
-                              handleColorChange(
-                                customPrimaryColor,
-                                customSecondaryColor,
-                              )
-                            }
-                            className="w-full bg-[#006699] hover:bg-[#005588] text-white"
-                          >
-                            Apply Custom Colors
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Preview Button */}
-                    <div className="mb-8">
-                      <Button
-                        type="button"
-                        onClick={togglePreview}
-                        variant="outline"
-                        className="w-full border-[#006699] text-[#006699] flex items-center justify-center"
-                        disabled={!formData.logo || !formData.organizationName}
-                      >
-                        <Eye className="mr-2 h-4 w-4" />
-                        {showPreview ? "Hide Preview" : "Preview Your Store"}
-                      </Button>
-                    </div>
-
-                    {/* Store Preview */}
-                    {showPreview && formData.logo && (
-                      <div className="mb-8 border rounded-lg overflow-hidden">
-                        <div className="p-4 text-center bg-gray-50 border-b">
-                          <h3 className="font-medium">Store Preview</h3>
-                        </div>
-                        <div className="p-4">
-                          {/* Header Preview */}
-                          <div
-                            className="bg-white shadow-sm p-4 flex items-center justify-between rounded-t-lg"
-                            style={{ backgroundColor: formData.secondaryColor }}
-                          >
-                            <div className="flex items-center">
-                              <img
-                                src={logoPreview}
-                                alt="Logo"
-                                className="h-10 w-auto mr-2"
-                              />
-                              <span
-                                className="font-bold"
-                                style={{ color: formData.primaryColor }}
-                              >
-                                {formData.organizationName}
-                              </span>
-                            </div>
-                            <div className="flex space-x-2">
-                              <div className="w-6 h-6 rounded-full bg-gray-200"></div>
-                              <div className="w-6 h-6 rounded-full bg-gray-200"></div>
-                            </div>
-                          </div>
-
-                          {/* Hero Preview */}
-                          <div
-                            className="h-32 relative overflow-hidden rounded-b-lg"
-                            style={{ backgroundColor: formData.primaryColor }}
-                          >
-                            {photosPreviews.length > 0 && (
-                              <div className="absolute inset-0">
-                                <img
-                                  src={photosPreviews[0]}
-                                  alt="Hero background"
-                                  className="w-full h-full object-cover opacity-50"
-                                />
-                              </div>
-                            )}
-                            <div className="absolute inset-0 flex items-center justify-center text-white">
-                              <div className="text-center">
-                                <h2 className="text-xl font-bold mb-2">
-                                  {formData.organizationName}
-                                </h2>
-                                <p className="text-sm">
-                                  {formData.description ||
-                                    "Shop with purpose, serve with love"}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Content Preview */}
-                          <div className="mt-4 grid grid-cols-2 gap-2">
-                            {photosPreviews.length > 1 ? (
-                              photosPreviews
-                                .slice(1, 5)
-                                .map((preview, index) => {
-                                  const pageLabels = [
-                                    "Store",
-                                    "About",
-                                    "Contact",
-                                    "FAQ",
-                                  ];
-                                  return (
-                                    <div
-                                      key={index}
-                                      className="h-20 rounded-lg overflow-hidden relative"
-                                    >
-                                      <img
-                                        src={preview}
-                                        alt={`Preview ${index}`}
-                                        className="w-full h-full object-cover"
-                                      />
-                                      <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-                                        <span className="text-white font-medium">
-                                          {pageLabels[index]}
-                                        </span>
-                                      </div>
-                                    </div>
-                                  );
-                                })
-                            ) : (
-                              <div className="col-span-2 h-20 bg-gray-100 rounded-lg flex items-center justify-center">
-                                <span className="text-sm text-gray-400">
-                                  Add photos to see them in the preview
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
+                    )}
+                    {products.length >= 10 && (
+                      <div className="bg-amber-50 border-l-4 border-amber-500 p-4 mt-4">
+                        <p className="text-amber-700">
+                          You have reached the maximum of 10 products allowed. Use bulk upload for more.
+                        </p>
                       </div>
                     )}
-                  </>
+                  </div>
                 )}
 
                 <div className="flex justify-between">
