@@ -138,7 +138,7 @@ const Header = ({
 
   return (
     <>
-      <header className="w-full bg-white shadow-sm fixed top-0 left-0 z-50">
+      <header className="w-full bg-white shadow-sm left-0 z-50">
         {/* Top Row: Logo and Search Bar */}
         <div className="container mx-auto px-4 flex items-center justify-between h-20">
           {/* Logo */}
@@ -165,36 +165,31 @@ const Header = ({
           <div className="container mx-auto px-4">
             <nav className="flex justify-center space-x-8 h-12 items-center">
               <a
-                href="https://parishmart.com/collections/all-products"
+                href="/why-register"
                 className="text-[#006699] hover:text-[#005588] px-2 py-1 text-sm font-medium"
               >
-                Shop
+                Partner with us
               </a>
               <a
-                href="https://parishmart.com/collections/localbusinesses"
+                href="/sell-with-us"
+                className="text-[#006699] hover:text-[#005588] px-2 py-1 text-sm font-medium"
+              >
+                Sell with us
+              </a>
+              <a
+                href="https://parishmart.com/"
                 className="text-[#006699] hover:text-[#005588] px-2 py-1 text-sm font-medium"
               >
                 Marketplace
-              </a>
-              <a
-                href="https://parishmart.com/pages/e-store"
-                className="text-[#006699] hover:text-[#005588] px-2 py-1 text-sm font-medium"
-              >
-                E-Stores
               </a>
               
               <a
                 href="https://parishmart.com/pages/about-us"
                 className="text-[#006699] hover:text-[#005588] px-2 py-1 text-sm font-medium"
               >
-                About
+                About us
               </a>
-              <a
-                href="https://parishmart.com/pages/contact"
-                className="text-[#006699] hover:text-[#005588] px-2 py-1 text-sm font-medium"
-              >
-                Contact Us
-              </a>
+              
             </nav>
           </div>
         </div>

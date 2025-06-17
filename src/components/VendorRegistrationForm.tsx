@@ -63,6 +63,7 @@ interface FormData {
     images: File[];
     promotionalHook: string;
     pricingInfo: string;
+    otherCategory?: string;
   }[];
   participateInCampaigns: boolean;
   receiveUpdates: boolean;
@@ -140,7 +141,7 @@ const VendorRegistrationForm = () => {
     "Pet Supplies",
     "Gifts & Seasonal Items",
     "Custom Merchandise",
-    "Other (Please specify)",
+    "Other",
   ];
 
   const handleInputChange = (
@@ -341,7 +342,7 @@ const VendorRegistrationForm = () => {
     // Validate products if not basic subscription
     if (formData.subscriptionType !== "basic" && formData.products.length > 0) {
       const invalidProducts = formData.products.filter(
-        (product) => !product.name || !product.category || !product.description,
+        (product) => !product.name || !product.category || (product.category === 'Other' && !product.otherCategory) || !product.description || !product.pricingInfo
       );
 
       if (invalidProducts.length > 0) {
@@ -415,8 +416,7 @@ const VendorRegistrationForm = () => {
         return;
       }
     } else if (step === 4) {
-      // Check if contact for opportunities question is answered
-      if (formData.contactForOpportunities === null) {
+      if (formData.subscriptionType === "basic" && formData.contactForOpportunities === null) {
         setToastMessage("Please indicate if you would like to be contacted for opportunities");
         setShowToast(true);
         setTimeout(() => setShowToast(false), 3000);
@@ -426,7 +426,7 @@ const VendorRegistrationForm = () => {
       // Only validate products if they exist and subscription is not basic
       if (formData.subscriptionType !== "basic" && formData.products.length > 0) {
         const invalidProducts = formData.products.filter(
-          (product) => !product.name || !product.category || !product.description,
+          (product) => !product.name || !product.category || (product.category === 'Other' && !product.otherCategory) || !product.description || !product.pricingInfo
         );
 
         if (invalidProducts.length > 0) {
@@ -463,10 +463,10 @@ const VendorRegistrationForm = () => {
       )}
       <div className="min-h-screen bg-white">
         <Header />
-        <div className="pt-20 pb-16">
+        <div className="pt-36 pb-16 relative z-10">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-10">
-              <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              <h1 className="text-3xl md:text-4xl font-bold text-[#006699]">
                 Vendor Registration
               </h1>
               <p className="text-lg text-gray-600">
@@ -572,9 +572,9 @@ const VendorRegistrationForm = () => {
                       value={formData.fullName}
                       onChange={handleInputChange}
                       required
-                      className={`w-full ${!formData.fullName && attemptedSteps.includes(1) && "border-red-300"}`}
+                      className={`w-full ${!formData.fullName && attemptedSteps.includes(step) && "border-red-300"}`}
                     />
-                    {!formData.fullName && attemptedSteps.includes(1) && (
+                    {!formData.fullName && attemptedSteps.includes(step) && (
                       <p className="mt-1 text-sm text-red-600">
                         Full name is required
                       </p>
@@ -596,9 +596,9 @@ const VendorRegistrationForm = () => {
                         value={formData.email}
                         onChange={handleInputChange}
                         required
-                        className={`w-full ${!formData.email && attemptedSteps.includes(1) && "border-red-300"}`}
+                        className={`w-full ${!formData.email && attemptedSteps.includes(step) && "border-red-300"}`}
                       />
-                      {!formData.email && attemptedSteps.includes(1) && (
+                      {!formData.email && attemptedSteps.includes(step) && (
                         <p className="mt-1 text-sm text-red-600">
                           Email is required
                         </p>
@@ -618,9 +618,9 @@ const VendorRegistrationForm = () => {
                         value={formData.phone}
                         onChange={handleInputChange}
                         required
-                        className={`w-full ${!formData.phone && attemptedSteps.includes(1) && "border-red-300"}`}
+                        className={`w-full ${!formData.phone && attemptedSteps.includes(step) && "border-red-300"}`}
                       />
-                      {!formData.phone && attemptedSteps.includes(1) && (
+                      {!formData.phone && attemptedSteps.includes(step) && (
                         <p className="mt-1 text-sm text-red-600">
                           Phone number is required
                         </p>
@@ -781,9 +781,9 @@ const VendorRegistrationForm = () => {
                       value={formData.businessName}
                       onChange={handleInputChange}
                       required
-                      className={`w-full ${!formData.businessName && attemptedSteps.includes(2) && "border-red-300"}`}
+                      className={`w-full ${!formData.businessName && attemptedSteps.includes(step) && "border-red-300"}`}
                     />
-                    {!formData.businessName && attemptedSteps.includes(2) && (
+                    {!formData.businessName && attemptedSteps.includes(step) && (
                       <p className="mt-1 text-sm text-red-600">
                         Business name is required
                       </p>
@@ -880,11 +880,11 @@ const VendorRegistrationForm = () => {
                       value={formData.businessDescription}
                       onChange={handleInputChange}
                       required
-                      className={`w-full h-32 ${!formData.businessDescription && attemptedSteps.includes(2) && "border-red-300"}`}
+                      className={`w-full h-32 ${!formData.businessDescription && attemptedSteps.includes(step) && "border-red-300"}`}
                       placeholder="Describe your business in detail..."
                     />
                     {!formData.businessDescription &&
-                      attemptedSteps.includes(2) && (
+                      attemptedSteps.includes(step) && (
                         <p className="mt-1 text-sm text-red-600">
                           Business description is required
                         </p>
@@ -921,10 +921,10 @@ const VendorRegistrationForm = () => {
                       value={formData.businessAddress}
                       onChange={handleInputChange}
                       required
-                      className={`w-full ${!formData.businessAddress && attemptedSteps.includes(2) && "border-red-300"}`}
+                      className={`w-full ${!formData.businessAddress && attemptedSteps.includes(step) && "border-red-300"}`}
                       placeholder="Street address, P.O. box"
                     />
-                    {!formData.businessAddress && attemptedSteps.includes(2) && (
+                    {!formData.businessAddress && attemptedSteps.includes(step) && (
                       <p className="mt-1 text-sm text-red-600">
                         Business address is required
                       </p>
@@ -945,10 +945,10 @@ const VendorRegistrationForm = () => {
                         value={formData.businessCity}
                         onChange={handleInputChange}
                         required
-                        className={`w-full ${!formData.businessCity && attemptedSteps.includes(2) && "border-red-300"}`}
+                        className={`w-full ${!formData.businessCity && attemptedSteps.includes(step) && "border-red-300"}`}
                         placeholder="City"
                       />
-                      {!formData.businessCity && attemptedSteps.includes(2) && (
+                      {!formData.businessCity && attemptedSteps.includes(step) && (
                         <p className="mt-1 text-sm text-red-600">
                           City is required
                         </p>
@@ -968,10 +968,10 @@ const VendorRegistrationForm = () => {
                         value={formData.businessCountry}
                         onChange={handleInputChange}
                         required
-                        className={`w-full ${!formData.businessCountry && attemptedSteps.includes(2) && "border-red-300"}`}
+                        className={`w-full ${!formData.businessCountry && attemptedSteps.includes(step) && "border-red-300"}`}
                         placeholder="Country"
                       />
-                      {!formData.businessCountry && attemptedSteps.includes(2) && (
+                      {!formData.businessCountry && attemptedSteps.includes(step) && (
                         <p className="mt-1 text-sm text-red-600">
                           Country is required
                         </p>
@@ -992,12 +992,12 @@ const VendorRegistrationForm = () => {
                       value={formData.businessZipCode}
                       onChange={handleInputChange}
                       required
-                      className={`w-full ${!formData.businessZipCode && attemptedSteps.includes(2) && "border-red-300"}`}
+                      className={`w-full ${!formData.businessZipCode && attemptedSteps.includes(step) && "border-red-300"}`}
                       placeholder="ZIP/Postal code"
                       pattern="[0-9]*"
                       title="Please enter a valid ZIP/Postal code"
                     />
-                    {!formData.businessZipCode && attemptedSteps.includes(2) && (
+                    {!formData.businessZipCode && attemptedSteps.includes(step) && (
                       <p className="mt-1 text-sm text-red-600">
                         ZIP/Postal code is required
                       </p>
@@ -1012,7 +1012,7 @@ const VendorRegistrationForm = () => {
                     <div className="flex items-start space-x-4">
                       <div className="flex-1">
                         <div
-                          className={`border-2 border-dashed ${!formData.logo && attemptedSteps.includes(2) ? "border-red-300" : "border-gray-300"} rounded-lg p-4 text-center cursor-pointer hover:bg-gray-50 transition-colors`}
+                          className={`border-2 border-dashed ${!formData.logo && attemptedSteps.includes(step) ? "border-red-300" : "border-gray-300"} rounded-lg p-4 text-center cursor-pointer hover:bg-gray-50 transition-colors`}
                         >
                           <input
                             type="file"
@@ -1035,7 +1035,7 @@ const VendorRegistrationForm = () => {
                             </span>
                           </label>
                         </div>
-                        {!formData.logo && attemptedSteps.includes(2) && (
+                        {!formData.logo && attemptedSteps.includes(step) && (
                           <p className="mt-1 text-sm text-red-600">
                             Logo is required
                           </p>
@@ -1143,7 +1143,7 @@ const VendorRegistrationForm = () => {
                         </li>
                     
                         <li className="flex items-center">
-                          <span className="text-[#006699] font-bold mr-2">✓</span> Unlimited product listings *
+                          <span className="text-[#006699] font-bold mr-2">✓</span> Unlimited product listings*
                         </li>
                         <li className="flex items-center">
                           <span className="text-[#006699] font-bold mr-2">✓</span> Featured placement
@@ -1191,27 +1191,29 @@ const VendorRegistrationForm = () => {
                   </h2>
 
                   {/* Contact for Opportunities Question */}
-                  <div className="mb-6">
-                    <Label className="block text-sm font-medium text-gray-700 mb-2">
-                      Would you like to be contacted to explore more opportunities to grow with Parishmart?
-                    </Label>
-                    <div className="flex space-x-4">
-                      <Button
-                        type="button"
-                        className={`px-4 py-2 rounded ${formData.contactForOpportunities === true ? 'bg-[#006699] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
-                        onClick={() => setFormData({ ...formData, contactForOpportunities: true })}
-                      >
-                        Yes
-                      </Button>
-                      <Button
-                        type="button"
-                        className={`px-4 py-2 rounded ${formData.contactForOpportunities === false ? 'bg-[#006699] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
-                        onClick={() => setFormData({ ...formData, contactForOpportunities: false })}
-                      >
-                        No
-                      </Button>
+                  {formData.subscriptionType === "basic" && (
+                    <div className="mb-6">
+                      <Label className="block text-sm font-medium text-gray-700 mb-2">
+                        Would you like to be contacted to explore more opportunities to grow with Parishmart?
+                      </Label>
+                      <div className="flex space-x-4">
+                        <Button
+                          type="button"
+                          className={`px-4 py-2 rounded ${formData.contactForOpportunities === true ? 'bg-[#006699] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                          onClick={() => setFormData({ ...formData, contactForOpportunities: true })}
+                        >
+                          Yes
+                        </Button>
+                        <Button
+                          type="button"
+                          className={`px-4 py-2 rounded ${formData.contactForOpportunities === false ? 'bg-[#006699] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                          onClick={() => setFormData({ ...formData, contactForOpportunities: false })}
+                        >
+                          No
+                        </Button>
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   {formData.subscriptionType === "basic" ? (
                     <div className="bg-gray-50 p-4 rounded-lg mb-6">
@@ -1224,9 +1226,7 @@ const VendorRegistrationForm = () => {
                   ) : (
                     <div className="mb-6">
                       <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-lg font-medium text-gray-800">
-                          Products & Services
-                        </h3>
+                        
                         <div className="flex space-x-2">
                           {formData.subscriptionType === "elite" && (
                             <label className="relative cursor-pointer">
@@ -1305,10 +1305,10 @@ const VendorRegistrationForm = () => {
                                     )
                                   }
                                   required
-                                  className={`w-full ${!product.name && attemptedSteps.includes(4) && "border-red-300"}`}
+                                  className={`w-full ${!product.name && attemptedSteps.includes(step) && "border-red-300"}`}
                                 />
                                 {!product.name &&
-                                  attemptedSteps.includes(4) && (
+                                  attemptedSteps.includes(step) && (
                                     <p className="mt-1 text-sm text-red-600">
                                       Product name is required
                                     </p>
@@ -1333,7 +1333,7 @@ const VendorRegistrationForm = () => {
                                   value={product.category}
                                 >
                                   <SelectTrigger
-                                    className={`w-full ${!product.category && attemptedSteps.includes(4) && "border-red-300"}`}
+                                    className={`w-full ${!product.category && attemptedSteps.includes(step) && "border-red-300"}`}
                                   >
                                     <SelectValue placeholder="Select a category" />
                                   </SelectTrigger>
@@ -1349,11 +1349,29 @@ const VendorRegistrationForm = () => {
                                   </SelectContent>
                                 </Select>
                                 {!product.category &&
-                                  attemptedSteps.includes(4) && (
+                                  attemptedSteps.includes(step) && (
                                     <p className="mt-1 text-sm text-red-600">
                                       Category is required
                                     </p>
                                   )}
+                                {product.category === "Other" && (
+                                  <div className="mt-2">
+                                    <Label htmlFor={`other-category-${productIndex}`} className="block text-sm font-medium text-gray-700 mb-1">
+                                      Please specify the category
+                                    </Label>
+                                    <Input
+                                      id={`other-category-${productIndex}`}
+                                      value={product.otherCategory || ""}
+                                      onChange={e => updateProduct(productIndex, "otherCategory", e.target.value)}
+                                      className={`w-full${!product.otherCategory && attemptedSteps.includes(step) ? " border-red-300" : ""}`}
+                                      placeholder="Enter the category"
+                                      required
+                                    />
+                                    {!product.otherCategory && attemptedSteps.includes(step) && (
+                                      <p className="mt-1 text-sm text-red-600">Category is required</p>
+                                    )}
+                                  </div>
+                                )}
                               </div>
 
                               <div className="mb-4">
@@ -1374,11 +1392,11 @@ const VendorRegistrationForm = () => {
                                     )
                                   }
                                   required
-                                  className={`w-full h-32 ${!product.description && attemptedSteps.includes(4) && "border-red-300"}`}
+                                  className={`w-full h-32 ${!product.description && attemptedSteps.includes(step) && "border-red-300"}`}
                                   placeholder="Describe your product or service in detail..."
                                 />
                                 {!product.description &&
-                                  attemptedSteps.includes(4) && (
+                                  attemptedSteps.includes(step) && (
                                     <p className="mt-1 text-sm text-red-600">
                                       Description is required
                                     </p>
@@ -1508,13 +1526,13 @@ const VendorRegistrationForm = () => {
                                       e.target.value,
                                     )
                                   }
-                                  className="w-full"
+                                  className={`w-full${!product.pricingInfo && attemptedSteps.includes(step) ? " border-red-300" : ""}`}
                                   placeholder="e.g., $19.99 per item, $50-100 per service, Starting at $29.99"
+                                  required
                                 />
-                                <p className="mt-1 text-sm text-gray-500">
-                                  Provide general pricing information for your
-                                  products/services
-                                </p>
+                                {!product.pricingInfo && attemptedSteps.includes(step) && (
+                                  <p className="mt-1 text-sm text-red-600">Pricing information is required</p>
+                                )}
                               </div>
                             </div>
                           ))}

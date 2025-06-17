@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Header from "./Header";
 import HeroSection from "./HeroSection";
 import GrowWithUs from "./GrowWithUs";
@@ -26,6 +26,19 @@ const HomePage = ({
   });
 
   const [cartItemCount, setCartItemCount] = useState(0);
+  const [showAnnouncement, setShowAnnouncement] = useState(true);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY === 0) {
+        setShowAnnouncement(true);
+      } else {
+        setShowAnnouncement(false);
+      }
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const handleCloseNotification = () => {
     setNotification((prev) => ({ ...prev, visible: false }));
@@ -45,12 +58,23 @@ const HomePage = ({
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Header */}
-      <Header cartItemCount={cartItemCount} />
+      {/* Announcement Strip (above header, only at top, slides up on scroll) */}
+      <div
+        className={`fixed top-0 left-0 w-full z-50 transition-transform duration-500 ${showAnnouncement ? "translate-y-0" : "-translate-y-full"}`}
+        style={{ willChange: "transform 0.3s" }}
+      >
+        <AnnouncementStrip />
+      </div>
+      {/* Header (sticky/locked, below announcement strip when visible) */}
+      <div
+        className="sticky top-10 left-0 w-full z-40 bg-white transition-all duration-300 ease-in-out"
+        style={{ top: showAnnouncement ? 40 : 0 }}
+      >
+        <Header cartItemCount={cartItemCount} />
+      </div>
 
       {/* Main Content with top padding to account for fixed header */}
-      <main className="pt-20">
-        <AnnouncementStrip />
+      <main className="pt-10">
         {/* Hero Section */}
         <HeroSection/>
 
@@ -70,7 +94,7 @@ const HomePage = ({
         </div> */}
 
         {/* Value Proposition */}
-        <ValueProposition />
+        {/* <ValueProposition /> */}
 
         {/* Footer */}
         <Footer />

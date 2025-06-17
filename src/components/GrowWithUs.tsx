@@ -70,24 +70,24 @@ const GrowWithUs = ({
   subtitle = "Join our community and make a difference",
   cards = [
     {
-      title: "Open a Store for Your Parish or Non-Profit",
-      description: "Empower Your Mission with an Online Store",
+      title: "Open a Store for your Parish, Church, or Mission",
+      description: "Amplify your reach with an Online Store",
       buttonText: "Start Your Store",
       imageSrc:
         "https://images.unsplash.com/photo-1556740738-b6a63e27c4df?w=800&q=80",
       onClick: () => (window.location.href = "./why-register"),
     },
     {
-      title: "Sell & Support Your Community",
-      description: "Boost Your Business while Supporting Your Community",
+      title: "Sell & Support your Community",
+      description: "Boost your business while supporting your community",
       buttonText: "Start Selling",
       imageSrc:
         "https://images.unsplash.com/photo-1556740772-1a741367b93e?w=800&q=80",
       onClick: () => (window.location.href = "./sell-with-us"),
     },
     {
-      title: "Set Up Donations for Your Cause",
-      description: "Raise Funds, Inspire Giving",
+      title: "Set up donations for your Cause",
+      description: "Raise funds, inspire giving",
       buttonText: "Start a Donation Cause",
       imageSrc:
         "https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?w=800&q=80",

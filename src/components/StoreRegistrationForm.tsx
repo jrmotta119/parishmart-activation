@@ -23,6 +23,9 @@ interface FormData {
   subscriptionTier: "basic" | "premium" | "elite";
   needsConsultation: boolean;
   taxExemptionForm: File | null;
+  collectsDonations: boolean | null;
+  donationPlatform: string;
+  otherDonationPlatform: string;
 }
 
 // Tooltip component
@@ -51,6 +54,9 @@ const StoreRegistrationForm = () => {
     subscriptionTier: "basic",
     needsConsultation: false,
     taxExemptionForm: null,
+    collectsDonations: null,
+    donationPlatform: "",
+    otherDonationPlatform: "",
   });
 
   const [logoPreview, setLogoPreview] = useState<string>("");
@@ -185,6 +191,15 @@ const StoreRegistrationForm = () => {
       return;
     }
 
+    const invalidProducts = products.filter(
+      (product) => !product.name || !product.category || (product.category === 'Other' && !product.otherCategory) || !product.description || !product.pricingInfo
+    );
+
+    if (invalidProducts.length > 0) {
+      alert("Please fill in all required fields for each product");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -235,8 +250,8 @@ const StoreRegistrationForm = () => {
       if (!formData.organizationName) {
         return;
       }
-    } else if (step === 4 && formData.subscriptionTier === "elite") {
-      if (!formData.logo) {
+    } else if (step === 3) {
+      if (!formData.logo || !banner) {
         return;
       }
     }
@@ -329,16 +344,16 @@ const StoreRegistrationForm = () => {
     "Pet Supplies",
     "Gifts & Seasonal Items",
     "Custom Merchandise",
-    "Other (Please specify)",
+    "Other",
   ];
 
   return (
     <div className="min-h-screen bg-white">
       <Header />
-      <div className="pt-20 pb-16">
+      <div className="pt-36 pb-16 relative z-10">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-10">
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            <h1 className="text-3xl md:text-4xl font-bold text-[#006699] mb-4">
               Register Your Store
             </h1>
             <p className="text-lg text-gray-600">
@@ -471,6 +486,75 @@ Cause: A non-profit or charitable organization focused on a specific mission or 
                         </div>
                         {formData.taxExemptionForm && (<p className="mt-2 text-sm text-green-600">✓ Tax exemption form uploaded</p>)}
                       </>
+                    )}
+
+                    {/* Donation Collection Question */}
+                    <Label className="block text-sm font-medium text-gray-700 mb-1 mt-4">Do you currently collect online donations? *</Label>
+                    <div className="flex items-center gap-6 mb-2">
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="radio"
+                          name="collectsDonations"
+                          value="yes"
+                          checked={formData.collectsDonations === true}
+                          onChange={() => setFormData({ ...formData, collectsDonations: true })}
+                          required
+                        />
+                        <span>Yes</span>
+                      </label>
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="radio"
+                          name="collectsDonations"
+                          value="no"
+                          checked={formData.collectsDonations === false}
+                          onChange={() => setFormData({ ...formData, collectsDonations: false, donationPlatform: "", otherDonationPlatform: "" })}
+                          required
+                        />
+                        <span>No</span>
+                      </label>
+                    </div>
+                    {formData.collectsDonations === null && attemptedSteps.includes(1) && (
+                      <p className="text-sm text-red-500 mb-2">This field is required</p>
+                    )}
+
+                    {/* Donation Platform Dropdown (conditional) */}
+                    {formData.collectsDonations === true && (
+                      <div className="mt-4">
+                        <Label htmlFor="donationPlatform" className="block text-sm font-medium text-gray-700 mb-1">
+                          Which platform do you use to manage or collect donations? *
+                        </Label>
+                        <select
+                          id="donationPlatform"
+                          value={formData.donationPlatform}
+                          onChange={(e) => setFormData({ ...formData, donationPlatform: e.target.value, otherDonationPlatform: e.target.value === "other" ? formData.otherDonationPlatform : "" })}
+                          className="w-full rounded-md border border-gray-300 py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#006699] focus:border-transparent"
+                          required
+                        >
+                          <option value="">Select a platform</option>
+                          <option value="ParishSoft">ParishSoft</option>
+                          <option value="Pushpay">Pushpay</option>
+                          <option value="Tithe.ly">Tithe.ly</option>
+                          <option value="Faith Direct">Faith Direct</option>
+                          <option value="GiveCentral">GiveCentral</option>
+                          <option value="other">Other</option>
+                        </select>
+                        {formData.donationPlatform === "other" && (
+                          <div className="mt-2">
+                            <Label htmlFor="otherDonationPlatform" className="block text-sm font-medium text-gray-700 mb-1">
+                              Please specify
+                            </Label>
+                            <Input
+                              id="otherDonationPlatform"
+                              value={formData.otherDonationPlatform}
+                              onChange={(e) => setFormData({ ...formData, otherDonationPlatform: e.target.value })}
+                              className="w-full"
+                              placeholder="Enter the name of your donation platform"
+                              required
+                            />
+                          </div>
+                        )}
+                      </div>
                     )}
                   </div>
                   {/* Right: Administrator Info */}
@@ -621,65 +705,64 @@ Cause: A non-profit or charitable organization focused on a specific mission or 
                   Store Customization
                 </h2>
 
-                {/* Logo Upload Section */}
-                <div className="mb-8">
-                  <Label className="block text-sm font-medium text-gray-700 mb-2">
-                    Upload Store Logo *
-                  </Label>
-                  <div className="flex items-start space-x-4">
-                    <div className="flex-1">
-                      <div className={`border-2 border-dashed ${!formData.logo && attemptedSteps.includes(4) ? "border-red-500" : "border-gray-300"} rounded-lg p-4 text-center cursor-pointer hover:bg-gray-50 transition-colors`}>
-                        <input
-                          type="file"
-                          id="logo"
-                          accept="image/*"
-                          onChange={handleLogoChange}
-                          className="hidden"
-                        />
-                        <label htmlFor="logo" className="cursor-pointer flex flex-col items-center">
-                          <Upload className="h-8 w-8 text-gray-400 mb-2" />
-                          <span className="text-sm text-gray-500">Click to upload your logo</span>
-                          <span className="text-xs text-gray-400 mt-1">PNG, JPG, GIF up to 5MB</span>
-                        </label>
-                      </div>
-                      {!formData.logo && attemptedSteps.includes(4) && (
-                        <p className="mt-1 text-sm text-red-500">Logo is required</p>
-                      )}
+                {/* Logo and Banner Upload Section (side by side) */}
+                <div className="mb-8 flex flex-row gap-4 items-end justify-center">
+                  {/* Logo Upload (Square) */}
+                  <div className="flex flex-col items-center">
+                    <Label className="block text-sm font-medium text-gray-700 mb-2">
+                      Upload Store Logo *
+                    </Label>
+                    <div className={`w-32 h-32 border-2 border-dashed ${!formData.logo && attemptedSteps.includes(4) ? "border-red-500" : "border-gray-300"} rounded-lg flex items-center justify-center text-center cursor-pointer hover:bg-gray-50 transition-colors mb-2`}>
+                      <input
+                        type="file"
+                        id="logo"
+                        accept="image/*"
+                        onChange={handleLogoChange}
+                        className="hidden"
+                      />
+                      <label htmlFor="logo" className="cursor-pointer flex flex-col items-center w-full h-full justify-center">
+                        {logoPreview ? (
+                          <img src={logoPreview} alt="Logo preview" className="w-full h-full object-contain" />
+                        ) : (
+                          <>
+                            <Upload className="h-8 w-8 text-gray-400 mb-2 mx-auto" />
+                            <span className="text-xs text-gray-500">Click to upload your logo</span>
+                            <span className="text-xs text-gray-400 mt-1">PNG, JPG, GIF up to 5MB</span>
+                          </>
+                        )}
+                      </label>
                     </div>
-                    {logoPreview && (
-                      <div className="w-24 h-24 relative border rounded-lg overflow-hidden">
-                        <img src={logoPreview} alt="Logo preview" className="w-full h-full object-contain" />
-                      </div>
+                    {!formData.logo && attemptedSteps.includes(4) && (
+                      <p className="mt-1 text-xs text-red-500">Logo is required</p>
                     )}
                   </div>
-                </div>
-
-                {/* Banner Upload Section */}
-                <div className="mb-8">
-                  <Label className="block text-sm font-medium text-gray-700 mb-2">
-                    Upload Store Banner
-                  </Label>
-                  <div className="flex items-start space-x-4">
-                    <div className="flex-1">
-                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:bg-gray-50 transition-colors">
-                        <input
-                          type="file"
-                          id="banner"
-                          accept="image/*"
-                          onChange={handleBannerChange}
-                          className="hidden"
-                        />
-                        <label htmlFor="banner" className="cursor-pointer flex flex-col items-center">
-                          <Upload className="h-8 w-8 text-gray-400 mb-2" />
-                          <span className="text-sm text-gray-500">Click to upload your banner</span>
-                          <span className="text-xs text-gray-400 mt-1">PNG, JPG, GIF up to 5MB</span>
-                        </label>
-                      </div>
+                  {/* Banner Upload (Rectangle) */}
+                  <div className="flex flex-col items-center flex-1">
+                    <Label className="block text-sm font-medium text-gray-700 mb-2">
+                      Upload Store Banner *
+                    </Label>
+                    <div className={`w-[28rem] h-32 border-2 border-dashed ${!banner && attemptedSteps.includes(4) ? "border-red-500" : "border-gray-300"} rounded-lg flex items-center justify-center text-center cursor-pointer hover:bg-gray-50 transition-colors mb-2`}>
+                      <input
+                        type="file"
+                        id="banner"
+                        accept="image/*"
+                        onChange={handleBannerChange}
+                        className="hidden"
+                      />
+                      <label htmlFor="banner" className="cursor-pointer flex flex-col items-center w-full h-full justify-center">
+                        {bannerPreview ? (
+                          <img src={bannerPreview} alt="Banner preview" className="w-full h-full object-cover" />
+                        ) : (
+                          <>
+                            <Upload className="h-8 w-8 text-gray-400 mb-2 mx-auto" />
+                            <span className="text-xs text-gray-500">Click to upload your banner</span>
+                            <span className="text-xs text-gray-400 mt-1">PNG, JPG, GIF up to 5MB</span>
+                          </>
+                        )}
+                      </label>
                     </div>
-                    {bannerPreview && (
-                      <div className="w-48 h-24 relative border rounded-lg overflow-hidden">
-                        <img src={bannerPreview} alt="Banner preview" className="w-full h-full object-cover" />
-                      </div>
+                    {!banner && attemptedSteps.includes(4) && (
+                      <p className="mt-1 text-xs text-red-500">Banner is required</p>
                     )}
                   </div>
                 </div>
@@ -765,6 +848,24 @@ Cause: A non-profit or charitable organization focused on a specific mission or 
                                   <option key={category} value={category}>{category}</option>
                                 ))}
                               </select>
+                              {product.category === "Other" && (
+                                <div className="mt-2">
+                                  <Label htmlFor={`other-category-${productIndex}`} className="block text-sm font-medium text-gray-700 mb-1">
+                                    Please specify the category
+                                  </Label>
+                                  <Input
+                                    id={`other-category-${productIndex}`}
+                                    value={product.otherCategory || ""}
+                                    onChange={e => updateProduct(productIndex, "otherCategory", e.target.value)}
+                                    className={`w-full${!product.otherCategory && attemptedSteps.includes(4) ? " border-red-300" : ""}`}
+                                    placeholder="Enter the category"
+                                    required
+                                  />
+                                  {!product.otherCategory && attemptedSteps.includes(4) && (
+                                    <p className="mt-1 text-sm text-red-500">Category is required</p>
+                                  )}
+                                </div>
+                              )}
                             </div>
                             <div className="mb-4">
                               <Label htmlFor={`product-description-${productIndex}`} className="block text-sm font-medium text-gray-700 mb-1">
@@ -859,18 +960,19 @@ Cause: A non-profit or charitable organization focused on a specific mission or 
                             </div>
                             <div className="mb-4">
                               <Label htmlFor={`pricing-info-${productIndex}`} className="block text-sm font-medium text-gray-700 mb-1">
-                                Pricing Information
+                                Pricing Information *
                               </Label>
                               <Input
                                 id={`pricing-info-${productIndex}`}
                                 value={product.pricingInfo}
                                 onChange={(e) => updateProduct(productIndex, "pricingInfo", e.target.value)}
-                                className="w-full"
+                                className={`w-full${!product.pricingInfo && attemptedSteps.includes(4) ? " border-red-300" : ""}`}
                                 placeholder="e.g., $19.99 per item, $50-100 per service, Starting at $29.99"
+                                required
                               />
-                              <p className="mt-1 text-sm text-gray-500">
-                                Provide general pricing information for your products/services
-                              </p>
+                              {!product.pricingInfo && attemptedSteps.includes(4) && (
+                                <p className="mt-1 text-sm text-red-500">Pricing information is required</p>
+                              )}
                             </div>
                           </div>
                         ))}

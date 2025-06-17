@@ -8,48 +8,22 @@ const SellWithUs = () => {
   return (
     <div className="min-h-screen bg-white">
       <Header />
-      <div className="pt-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <div className="pt-0">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           {/* Banner Section */}
           <div className="text-center mb-16">
             <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
               Sell With Us
             </h1>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Grow your business while giving back to your community
-            </p>
           </div>
-
-          {/* Hero Image */}
-          <div className="mb-16">
-            <img
-              src="https://images.unsplash.com/photo-1556740772-1a741367b93e?w=1512&q=80"
-              alt="Sell With ParishMart"
-              className="w-full h-auto rounded-xl shadow-lg mb-8 max-h-[500px] object-cover"
-            />
-          </div>
-
           {/* Why Sell With Us Section */}
           <div className="mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">
-              Why Sell With Us
-            </h2>
-            <div className="bg-gray-50 rounded-xl p-8 mb-12">
+            <div className=" rounded-xl p-0 mb-12">
               <p className="text-lg text-gray-700 mb-6">
-                ParishMart, powered by Gurupia, is the first dedicated
-                marketplace connecting parishes, churches, and non-profits with
-                trusted vendors, services providers, and community artisans. By
-                selling on ParishMart you gain access to a unique audience
-                passionate about purpose-driven shopping. Our platform helps
-                expand your reach while also contributing a portion of your sale
-                to a meaningful cause of your choosing. With easy onboarding,
-                secure transactions, and a supportive network, ParishMart offers
-                a powerful channel to grow your business while making a positive
-                impact.
+                By selling on ParishMart, you gain access to a unique audience passionate about purpose-driven shopping. Our platform helps expand your reach while contributing a portion of each sale to a meaningful cause of your choosing. With easy onboarding, secure transactions, and a supportive network, ParishMart offers a powerful way to grow your business while making a positive impact.
               </p>
               <p className="text-lg text-gray-700 font-medium">
-                Join us and become a part of a purpose-driven marketplace that
-                turns commerce into community support.
+                Join us today and become part of a marketplace where commerce turns into community support.
               </p>
             </div>
           </div>
@@ -96,13 +70,36 @@ const SellWithUs = () => {
               </div>
             </div>
           </div>
-
+          {/* CTA Section */}
+          <div className="text-center mb-16">
+            <p className="text-xl text-gray-700 mb-8">
+              Ready to grow your business and support meaningful missions?
+            </p>
+            <Button
+              className="bg-[#006699] hover:bg-[#005588] text-white font-semibold text-lg px-8 py-6 h-auto rounded-full transition-all duration-300 transform hover:scale-105"
+              onClick={() =>
+                (window.location.href = "./vendor-registration-form")
+              }
+            >
+              Join Now
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+          </div>
           {/* Benefits Section */}
           <div className="mb-16">
             <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">
-              Benefits for Sellers
+              Why Sell on Parishmart?
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100">
+                <h3 className="text-xl font-semibold text-[#006699] mb-2">
+                  Growth Opportunity
+                </h3>
+                <p className="text-gray-700">
+                  Expand your business reach to new customers across multiple
+                  communities.
+                </p>
+              </div>
               <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100">
                 <h3 className="text-xl font-semibold text-[#006699] mb-2">
                   Targeted Audience
@@ -110,14 +107,6 @@ const SellWithUs = () => {
                 <p className="text-gray-700">
                   Connect with customers who are specifically looking for
                   purpose-driven products and services.
-                </p>
-              </div>
-              <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100">
-                <h3 className="text-xl font-semibold text-[#006699] mb-2">
-                  Community Support
-                </h3>
-                <p className="text-gray-700">
-                  Be part of a marketplace that supports community initiatives.
                 </p>
               </div>
               <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100">
@@ -131,15 +120,6 @@ const SellWithUs = () => {
               </div>
               <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100">
                 <h3 className="text-xl font-semibold text-[#006699] mb-2">
-                  Secure Transactions
-                </h3>
-                <p className="text-gray-700">
-                  Reliable payment processing and order management for peace of
-                  mind.
-                </p>
-              </div>
-              <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100">
-                <h3 className="text-xl font-semibold text-[#006699] mb-2">
                   Marketing Support
                 </h3>
                 <p className="text-gray-700">
@@ -149,31 +129,27 @@ const SellWithUs = () => {
               </div>
               <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100">
                 <h3 className="text-xl font-semibold text-[#006699] mb-2">
-                  Growth Opportunity
+                  Community Support
                 </h3>
                 <p className="text-gray-700">
-                  Expand your business reach to new customers across multiple
-                  communities.
+                  Be part of a marketplace that supports community initiatives.
                 </p>
               </div>
+              <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100">
+                <h3 className="text-xl font-semibold text-[#006699] mb-2">
+                  Secure Transactions
+                </h3>
+                <p className="text-gray-700">
+                  Reliable payment processing and order management for peace of
+                  mind.
+                </p>
+              </div>
+              
+              
             </div>
           </div>
 
-          {/* CTA Section */}
-          <div className="text-center">
-            <p className="text-xl text-gray-700 mb-8">
-              Ready to grow your business while supporting your community?
-            </p>
-            <Button
-              className="bg-[#006699] hover:bg-[#005588] text-white font-semibold text-lg px-8 py-6 h-auto rounded-full transition-all duration-300 transform hover:scale-105"
-              onClick={() =>
-                (window.location.href = "./vendor-registration-form")
-              }
-            >
-              Register Now
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
-          </div>
+          
         </div>
       </div>
       <Footer />
