@@ -26,6 +26,7 @@ interface FormData {
   collectsDonations: boolean | null;
   donationPlatform: string;
   otherDonationPlatform: string;
+  otherOrganizationType?: string;
 }
 
 // Tooltip component
@@ -243,7 +244,8 @@ const StoreRegistrationForm = () => {
 
     // Validate current step before proceeding
     if (step === 1) {
-      if (!formData.adminFullName || !formData.email) {
+      if (!formData.adminFullName || !formData.email || !formData.organizationName || !formData.description || 
+          (formData.organizationType === "other" && !formData.otherOrganizationType)) {
         return;
       }
     } else if (step === 2) {
@@ -440,8 +442,38 @@ Cause: A non-profit or charitable organization focused on a specific mission or 
                       <option value="cause">Cause</option>
                       <option value="other">Other</option>
                     </select>
-                    <Label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1 mt-4">Organization Description</Label>
-                    <Textarea id="description" name="description" value={formData.description} onChange={handleInputChange} className="w-full h-32" placeholder="Tell us about your organization and mission..." />
+                    {formData.organizationType === "other" && (
+                      <div className="mt-2">
+                        <Label htmlFor="otherOrganizationType" className="block text-sm font-medium text-gray-700 mb-1">
+                          Please specify
+                        </Label>
+                        <Input
+                          id="otherOrganizationType"
+                          name="otherOrganizationType"
+                          value={formData.otherOrganizationType || ""}
+                          onChange={handleInputChange}
+                          className={`w-full ${!formData.otherOrganizationType && attemptedSteps.includes(1) ? "border-red-500" : ""}`}
+                          placeholder="Enter your organization type"
+                          required
+                        />
+                        {!formData.otherOrganizationType && attemptedSteps.includes(1) && (
+                          <p className="mt-1 text-sm text-red-500">Please specify your organization type</p>
+                        )}
+                      </div>
+                    )}
+                    <Label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1 mt-4">Organization Description *</Label>
+                    <Textarea 
+                      id="description" 
+                      name="description" 
+                      value={formData.description} 
+                      onChange={handleInputChange} 
+                      required 
+                      className={`w-full h-32 ${!formData.description && attemptedSteps.includes(1) ? "border-red-500" : ""}`} 
+                      placeholder="Tell us about your organization and mission..." 
+                    />
+                    {!formData.description && attemptedSteps.includes(1) && (
+                      <p className="mt-1 text-sm text-red-500">Organization description is required</p>
+                    )}
                     {/* Tax Exemption Status Question */}
                     <Label className="block text-sm font-medium text-gray-700 mb-1 mt-4">Does your organization qualify for tax-exempt status as defined by the IRS? *</Label>
                     <div className="flex items-center gap-6 mb-2">
@@ -597,7 +629,7 @@ Cause: A non-profit or charitable organization focused on a specific mission or 
                     onClick={() => handleSubscriptionChange("basic")}
                   >
                     <h3 className="text-lg font-semibold">Basic</h3>
-                    <p className="text-2xl font-bold mb-2">$9.99<span className="text-sm font-normal">/month</span></p>
+                    <p className="text-2xl font-bold mb-2">$19.99<span className="text-sm font-normal">/month</span></p>
                     <ul className="space-y-2 text-sm">
                       <li className="flex items-center">
                         <span className="text-[#006699] font-bold mr-2">✓</span> Access to ParishMart marketplace community
@@ -625,7 +657,7 @@ Cause: A non-profit or charitable organization focused on a specific mission or 
                     onClick={() => handleSubscriptionChange("premium")}
                   >
                     <h3 className="text-lg font-semibold">Premium</h3>
-                    <p className="text-2xl font-bold mb-2">$39.99<span className="text-sm font-normal">/month</span></p>
+                    <p className="text-2xl font-bold mb-2">$59.99<span className="text-sm font-normal">/month</span></p>
                     <ul className="space-y-2 text-sm">
                       <li className="flex items-center">
                         <span className="text-[#006699] font-bold mr-2">✓</span> Access to ParishMart marketplace community
@@ -653,7 +685,7 @@ Cause: A non-profit or charitable organization focused on a specific mission or 
                     onClick={() => handleSubscriptionChange("elite")}
                   >
                     <h3 className="text-lg font-semibold">Elite</h3>
-                    <p className="text-2xl font-bold mb-2">$49.99<span className="text-sm font-normal">/month</span></p>
+                    <p className="text-2xl font-bold mb-2">$79.99<span className="text-sm font-normal">/month</span></p>
                     <ul className="space-y-2 text-sm">
                       <li className="flex items-center">
                         <span className="text-[#006699] font-bold mr-2">✓</span> Access to ParishMart marketplace community

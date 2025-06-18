@@ -810,8 +810,7 @@ const VendorRegistrationForm = () => {
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="service" id="service" />
                         <Label htmlFor="service" className="cursor-pointer">
-                          Service Provider – (Offers services like teaching,
-                          repairs, etc.)
+                          Service Provider – (Offers services from handymen realtors,lawyers, etc.)
                         </Label>
                       </div>
                       <div className="flex items-center space-x-2">
@@ -1113,7 +1112,7 @@ const VendorRegistrationForm = () => {
                       onClick={() => handleSubscriptionChange("premium")}
                     >
                       <h3 className="text-lg font-semibold">Premium</h3>
-                      <p className="text-2xl font-bold mb-2">$69.99<span className="text-sm font-normal">/month</span></p>
+                      <p className="text-2xl font-bold mb-2">$79.99<span className="text-sm font-normal">/month</span></p>
                       <ul className="space-y-2 text-sm">
                         <li className="flex items-center">
                           <span className="text-[#006699] font-bold mr-2">✓</span> Promotional listing
@@ -1501,7 +1500,7 @@ const VendorRegistrationForm = () => {
                                     )
                                   }
                                   className="w-full"
-                                  placeholder="e.g., 10% off first purchase, Free shipping on orders over $50"
+                                  placeholder="e.g., 10% off first purchase"
                                 />
                                 <p className="mt-1 text-sm text-gray-500">
                                   Optional: Add a special offer to attract
@@ -1514,7 +1513,7 @@ const VendorRegistrationForm = () => {
                                   htmlFor={`pricing-info-${productIndex}`}
                                   className="block text-sm font-medium text-gray-700 mb-1"
                                 >
-                                  Pricing Information
+                                  Pricing Information *
                                 </Label>
                                 <Input
                                   id={`pricing-info-${productIndex}`}
@@ -1603,7 +1602,7 @@ const VendorRegistrationForm = () => {
                           className="font-medium text-gray-700 cursor-pointer hover:text-[#006699] transition-colors flex items-center"
                           onClick={() => setStep(1)}
                         >
-                          Personal Information
+                          Personal Information (Edit)
                           <ArrowRight className="ml-2 h-4 w-4 rotate-180" />
                         </h4>
                         <p className="text-gray-600">
@@ -1628,7 +1627,7 @@ const VendorRegistrationForm = () => {
                           className="font-medium text-gray-700 cursor-pointer hover:text-[#006699] transition-colors flex items-center"
                           onClick={() => setStep(2)}
                         >
-                          Business Information
+                          Business Information (Edit)
                           <ArrowRight className="ml-2 h-4 w-4 rotate-180" />
                         </h4>
                         <p className="text-gray-600">
@@ -1649,7 +1648,7 @@ const VendorRegistrationForm = () => {
                           className="font-medium text-gray-700 cursor-pointer hover:text-[#006699] transition-colors flex items-center"
                           onClick={() => setStep(3)}
                         >
-                          Subscription
+                          Subscription (Edit)
                           <ArrowRight className="ml-2 h-4 w-4 rotate-180" />
                         </h4>
                         <p className="text-gray-600">
@@ -1668,7 +1667,7 @@ const VendorRegistrationForm = () => {
                             className="font-medium text-gray-700 cursor-pointer hover:text-[#006699] transition-colors flex items-center"
                             onClick={() => setStep(4)}
                           >
-                            Products/Services Information
+                            Products/Services Information (Edit)
                             <ArrowRight className="ml-2 h-4 w-4 rotate-180" />
                           </h4>
                           <p className="text-gray-600">

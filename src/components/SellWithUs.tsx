@@ -19,11 +19,12 @@ const SellWithUs = () => {
           {/* Why Sell With Us Section */}
           <div className="mb-16">
             <div className=" rounded-xl p-0 mb-12">
-              <p className="text-lg text-gray-700 mb-6">
-                By selling on ParishMart, you gain access to a unique audience passionate about purpose-driven shopping. Our platform helps expand your reach while contributing a portion of each sale to a meaningful cause of your choosing. With easy onboarding, secure transactions, and a supportive network, ParishMart offers a powerful way to grow your business while making a positive impact.
+              <p className="text-lg text-center text-gray-700 mb-6">
+                By selling on ParishMart, you gain access to a unique audience passionate about purpose-driven shopping. Our platform helps expand your reach while contributing a portion of each sale to a meaningful cause. With easy onboarding, secure transactions, and a supportive network, ParishMart offers a powerful way to grow your business while making a positive impact.
               </p>
-              <p className="text-lg text-gray-700 font-medium">
-                Join us today and become part of a marketplace where commerce turns into community support.
+              <p className="text-lg text-center text-gray-700 font-medium">
+                Ready to grow your business and support meaningful missions?
+                
               </p>
             </div>
           </div>
@@ -73,7 +74,7 @@ const SellWithUs = () => {
           {/* CTA Section */}
           <div className="text-center mb-16">
             <p className="text-xl text-gray-700 mb-8">
-              Ready to grow your business and support meaningful missions?
+              Join us today and become part of a marketplace where commerce turns into community support.
             </p>
             <Button
               className="bg-[#006699] hover:bg-[#005588] text-white font-semibold text-lg px-8 py-6 h-auto rounded-full transition-all duration-300 transform hover:scale-105"

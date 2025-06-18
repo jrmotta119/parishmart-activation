@@ -14,8 +14,11 @@ const StoreRegistration = () => {
             <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
               Build your Store
             </h1>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Expand your outreach and empower your mission with your own ParishMart storefront. Whether you're a parish, church, or mission, we make it easy to showcase products, collect donations, and engage and grow your community. Get started today and make an even greater impact!
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-6">
+              Expand your outreach and empower your mission with your own ParishMart storefront. Whether you're a parish, church, or mission, we make it easy to showcase products, collect donations, and engage and grow your community. 
+            </p>
+            <p className="text-lg text-center text-gray-700 font-medium">
+              Get started today and make an even greater impact! 
             </p>
           </div>
 
@@ -62,7 +65,7 @@ const StoreRegistration = () => {
                     Promote & Earn
                   </h3>
                   <p className="text-gray-700">
-                  Share your ParishMart link with your community and start raising funds through every purchase from your storefront.
+                    Share your ParishMart link with your community and start raising funds through every purchase from your storefront.
                   </p>
                 </div>
               </div>
@@ -85,7 +88,7 @@ const StoreRegistration = () => {
               <h2 className="text-3xl text-center font-bold text-gray-900 mb-8">
                 Why Partner with ParishMart?
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100">
                   <h3 className="text-xl font-semibold text-[#006699] mb-2">
                     Your Cause, Your Storefront
@@ -99,7 +102,7 @@ const StoreRegistration = () => {
                     Generate Passive Income
                   </h3>
                   <p className="text-gray-700">
-                    Earn referral fees up to 10% on every transaction from your storefront
+                    Earn referral fees on every transaction from your storefront.
                   </p>
                 </div>
                 <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100">
@@ -137,7 +140,7 @@ const StoreRegistration = () => {
                   </h3>
                   <p className="text-gray-700">
                     ParishMart manages product sourcing, fulfillment, and
-                    customer services
+                    customer services.
                   </p>
                 </div>
                 
