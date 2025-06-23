@@ -120,6 +120,8 @@ const VendorRegistrationForm = () => {
 
   const [showAnnouncement, setShowAnnouncement] = useState(true);
 
+  const [businessImagePreviews, setBusinessImagePreviews] = useState([null, null, null]);
+
   useEffect(() => {
     const handleScroll = () => {
       if (window.scrollY === 0) {
@@ -1090,13 +1092,10 @@ const VendorRegistrationForm = () => {
 
                   {/* Logo Upload */}
                   <div className="mb-6">
-                    <Label className="block text-sm font-medium text-gray-700 mb-2">
-                      Upload Your Business Logo *
-                    </Label>
-                    <div className="flex items-start space-x-4">
-                      {/* Logo Upload (Square) */}
+                    <div className="flex flex-row items-start gap-10 w-full">
                       <div className="flex flex-col items-center">
-                        <div className={`w-32 h-32 border-2 border-dashed ${!formData.logo && attemptedSteps.includes(step) ? "border-red-300" : "border-gray-300"} rounded-lg flex items-center justify-center text-center cursor-pointer hover:bg-gray-50 transition-colors mb-2`}>
+                        <div className="text-center font-medium mb-2">Upload Logo *</div>
+                        <div className={`w-32 h-32 border-2 border-dashed ${!formData.logo && attemptedSteps.includes(step) ? "border-red-500" : "border-gray-300"} rounded-lg flex items-center justify-center text-center cursor-pointer hover:bg-gray-50 transition-colors mb-2`}>
                           <input
                             type="file"
                             id="logo"
@@ -1124,13 +1123,11 @@ const VendorRegistrationForm = () => {
                       
                       {/* Business Images Upload (3 Rectangular) */}
                       <div className="flex flex-col items-center flex-1">
-                        <Label className="block text-sm font-medium text-gray-700 mb-2">
-                          Upload Business Images (for banner creation)
-                        </Label>
+                        <div className="text-center font-medium mb-2">Upload Business Images (for banner creation)</div>
                         <div className="flex space-x-2">
                           {[0, 1, 2].map((index) => (
                             <div key={index} className="flex flex-col items-center">
-                              <div className={`w-32 h-24 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center text-center cursor-pointer hover:bg-gray-50 transition-colors mb-2`}>
+                              <div className={`w-48 h-32 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center text-center cursor-pointer hover:bg-gray-50 transition-colors mb-2`}>
                                 <input
                                   type="file"
                                   id={`business-image-${index}`}
@@ -1138,16 +1135,26 @@ const VendorRegistrationForm = () => {
                                   onChange={(e) => {
                                     if (e.target.files && e.target.files[0]) {
                                       const file = e.target.files[0];
-                                      // Handle business image upload - you'll need to add state for this
-                                      console.log(`Business image ${index + 1} uploaded:`, file);
+                                      // Create a preview URL and update state
+                                      const newPreviews = [...businessImagePreviews];
+                                      newPreviews[index] = URL.createObjectURL(file);
+                                      setBusinessImagePreviews(newPreviews);
+                                      // You may also want to update the actual file in your formData if needed
+                                      // Example: setFormData({ ...formData, businessImages: ... })
                                     }
                                   }}
                                   className="hidden"
                                 />
                                 <label htmlFor={`business-image-${index}`} className="cursor-pointer flex flex-col items-center w-full h-full justify-center">
-                                  <Upload className="h-6 w-6 text-gray-400 mb-1 mx-auto" />
-                                  <span className="text-xs text-gray-500">Image {index + 1}</span>
-                                  <span className="text-xs text-gray-400">PNG, JPG, GIF</span>
+                                  {businessImagePreviews[index] ? (
+                                    <img src={businessImagePreviews[index]} alt={`Business preview ${index + 1}`} className="w-full h-full object-cover rounded-lg" />
+                                  ) : (
+                                    <>
+                                      <Upload className="h-6 w-6 text-gray-400 mb-1 mx-auto" />
+                                      <span className="text-xs text-gray-500">Image {index + 1}</span>
+                                      <span className="text-xs text-gray-400">PNG, JPG, GIF</span>
+                                    </>
+                                  )}
                                 </label>
                               </div>
                             </div>
