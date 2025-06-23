@@ -7,6 +7,7 @@ import { Card, CardContent } from "./ui/card";
 import { Upload, Check, Eye, ArrowRight, Crown, Globe, Info } from "lucide-react";
 import Header from "./Header";
 import Footer from "./Footer";
+import AnnouncementStrip from "./AnnouncementStrip";
 
 interface FormData {
   adminFullName: string;
@@ -74,6 +75,8 @@ const StoreRegistrationForm = () => {
 
   const [hasTaxExemptStatus, setHasTaxExemptStatus] = useState<string>("");
 
+  const [showAnnouncement, setShowAnnouncement] = useState(true);
+
   const colorOptions = [
     { name: "Blue", primary: "#006699", secondary: "#e6f7ff" },
     { name: "Green", primary: "#2e7d32", secondary: "#e8f5e9" },
@@ -84,9 +87,10 @@ const StoreRegistrationForm = () => {
   ];
 
   const [products, setProducts] = useState([
-    // { name: '', category: '', description: '', images: [], promotionalHook: '', pricingInfo: '' }
+    // { name: '', category: '', description: '', images: [], videos: [], promotionalHook: '', pricingInfo: '' }
   ]);
   const [productImagePreviews, setProductImagePreviews] = useState({});
+  const [productVideoPreviews, setProductVideoPreviews] = useState({});
 
   const handleInputChange = (
     e: React.ChangeEvent<
@@ -275,7 +279,7 @@ const StoreRegistrationForm = () => {
     if (products.length >= 10) return;
     setProducts([
       ...products,
-      { name: '', category: '', description: '', images: [], promotionalHook: '', pricingInfo: '' },
+      { name: '', category: '', description: '', images: [], videos: [], promotionalHook: '', pricingInfo: '' },
     ]);
   };
   const removeProduct = (index) => {
@@ -312,6 +316,35 @@ const StoreRegistrationForm = () => {
       });
     }
   };
+  const handleProductVideoChange = (e: React.ChangeEvent<HTMLInputElement>, productIndex: number) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      
+      // Check file size (50MB limit)
+      if (file.size > 50 * 1024 * 1024) {
+        alert('Video file size must be less than 50MB');
+        e.target.value = '';
+        return;
+      }
+      
+      // Check file type
+      if (!file.type.startsWith('video/')) {
+        alert('Please upload a valid video file');
+        e.target.value = '';
+        return;
+      }
+
+      const updated = [...products];
+      updated[productIndex].videos = [file]; // Only allow one video
+      setProducts(updated);
+      
+      const videoPreview = URL.createObjectURL(file);
+      setProductVideoPreviews((prev) => ({
+        ...prev,
+        [productIndex]: videoPreview,
+      }));
+    }
+  };
   const removeProductImage = (productIndex, imageIndex) => {
     const updated = [...products];
     updated[productIndex].images.splice(imageIndex, 1);
@@ -323,6 +356,16 @@ const StoreRegistrationForm = () => {
         previewsArray.splice(imageIndex, 1);
         updatedPreviews[productIndex] = previewsArray;
       }
+      return updatedPreviews;
+    });
+  };
+  const removeProductVideo = (productIndex) => {
+    const updated = [...products];
+    updated[productIndex].videos = [];
+    setProducts(updated);
+    setProductVideoPreviews((prev) => {
+      const updatedPreviews = { ...prev };
+      delete updatedPreviews[productIndex];
       return updatedPreviews;
     });
   };
@@ -349,9 +392,34 @@ const StoreRegistrationForm = () => {
     "Other",
   ];
 
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY === 0) {
+        setShowAnnouncement(true);
+      } else {
+        setShowAnnouncement(false);
+      }
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
     <div className="min-h-screen bg-white">
-      <Header />
+      {/* Announcement Strip (above header, only at top, slides up on scroll) */}
+      <div
+        className={`fixed top-0 left-0 w-full z-50 transition-transform duration-500 ${showAnnouncement ? "translate-y-0" : "-translate-y-full"}`}
+        style={{ willChange: "transform 0.3s" }}
+      >
+        <AnnouncementStrip />
+      </div>
+      {/* Header (sticky/locked, below announcement strip when visible) */}
+      <div
+        className="sticky top-10 left-0 w-full z-40 bg-white transition-all duration-300 ease-in-out"
+        style={{ top: showAnnouncement ? 40 : 0 }}
+      >
+        <Header />
+      </div>
       <div className="pt-36 pb-16 relative z-10">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-10">
@@ -768,33 +836,41 @@ Cause: A non-profit or charitable organization focused on a specific mission or 
                       <p className="mt-1 text-xs text-red-500">Logo is required</p>
                     )}
                   </div>
-                  {/* Banner Upload (Rectangle) */}
+                  
+                  {/* Store Images Upload (3 Rectangular) */}
                   <div className="flex flex-col items-center flex-1">
                     <Label className="block text-sm font-medium text-gray-700 mb-2">
-                      Upload Store Banner *
+                      Upload Store Images (for banner creation) *
                     </Label>
-                    <div className={`w-[28rem] h-32 border-2 border-dashed ${!banner && attemptedSteps.includes(4) ? "border-red-500" : "border-gray-300"} rounded-lg flex items-center justify-center text-center cursor-pointer hover:bg-gray-50 transition-colors mb-2`}>
-                      <input
-                        type="file"
-                        id="banner"
-                        accept="image/*"
-                        onChange={handleBannerChange}
-                        className="hidden"
-                      />
-                      <label htmlFor="banner" className="cursor-pointer flex flex-col items-center w-full h-full justify-center">
-                        {bannerPreview ? (
-                          <img src={bannerPreview} alt="Banner preview" className="w-full h-full object-cover" />
-                        ) : (
-                          <>
-                            <Upload className="h-8 w-8 text-gray-400 mb-2 mx-auto" />
-                            <span className="text-xs text-gray-500">Click to upload your banner</span>
-                            <span className="text-xs text-gray-400 mt-1">PNG, JPG, GIF up to 5MB</span>
-                          </>
-                        )}
-                      </label>
+                    <div className="flex space-x-2">
+                      {[0, 1, 2].map((index) => (
+                        <div key={index} className="flex flex-col items-center">
+                          <div className={`w-32 h-24 border-2 border-dashed ${!banner && attemptedSteps.includes(4) ? "border-red-500" : "border-gray-300"} rounded-lg flex items-center justify-center text-center cursor-pointer hover:bg-gray-50 transition-colors mb-2`}>
+                            <input
+                              type="file"
+                              id={`store-image-${index}`}
+                              accept="image/*"
+                              onChange={(e) => {
+                                if (e.target.files && e.target.files[0]) {
+                                  const file = e.target.files[0];
+                                  // Handle store image upload - you'll need to add state for this
+                                  console.log(`Store image ${index + 1} uploaded:`, file);
+                                }
+                              }}
+                              className="hidden"
+                            />
+                            <label htmlFor={`store-image-${index}`} className="cursor-pointer flex flex-col items-center w-full h-full justify-center">
+                              <Upload className="h-6 w-6 text-gray-400 mb-1 mx-auto" />
+                              <span className="text-xs text-gray-500">Image {index + 1}</span>
+                              <span className="text-xs text-gray-400">PNG, JPG, GIF</span>
+                            </label>
+                          </div>
+                        </div>
+                      ))}
                     </div>
+                    <p className="text-xs text-gray-500 mt-1">These images will be used to create your store banner</p>
                     {!banner && attemptedSteps.includes(4) && (
-                      <p className="mt-1 text-xs text-red-500">Banner is required</p>
+                      <p className="mt-1 text-xs text-red-500">At least one store image is required</p>
                     )}
                   </div>
                 </div>
@@ -912,47 +988,63 @@ Cause: A non-profit or charitable organization focused on a specific mission or 
                                 placeholder="Describe your product or service in detail..."
                               />
                             </div>
-                            {/* Product Images Upload */}
+                            {/* Product Media Upload */}
                             <div className="mb-4">
                               <Label className="block text-sm font-medium text-gray-700 mb-2">
-                                Upload Product/Service Image(s) *
+                                Upload Product/Service Media *
                               </Label>
-                              <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:bg-gray-50 transition-colors mb-4">
-                                <input
-                                  type="file"
-                                  id={`product-images-${productIndex}`}
-                                  accept="image/*"
-                                  multiple
-                                  onChange={(e) => handleProductImagesChange(e, productIndex)}
-                                  className="hidden"
-                                />
-                                <label
-                                  htmlFor={`product-images-${productIndex}`}
-                                  className="cursor-pointer flex flex-col items-center"
-                                >
-                                  <Upload className="h-8 w-8 text-gray-400 mb-2" />
-                                  <span className="text-sm text-gray-500">
-                                    Click to upload product/service images
-                                  </span>
-                                  <span className="text-xs text-gray-400 mt-1">
-                                    PNG, JPG, GIF up to 5MB each (multiple files allowed)
-                                  </span>
-                                </label>
-                              </div>
-                              {productImagePreviews[productIndex] && productImagePreviews[productIndex].length > 0 && (
-                                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                                  {productImagePreviews[productIndex].map((preview, imageIndex) => (
-                                    <div key={imageIndex} className="relative group">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {/* Video Upload - Left Side */}
+                                <div>
+                                  <Label className="block text-sm font-medium text-gray-600 mb-2">
+                                    Video (Optional)
+                                  </Label>
+                                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:bg-gray-50 transition-colors mb-4">
+                                    <input
+                                      type="file"
+                                      id={`product-video-${productIndex}`}
+                                      accept="video/*"
+                                      onChange={(e) => handleProductVideoChange(e, productIndex)}
+                                      className="hidden"
+                                    />
+                                    <label
+                                      htmlFor={`product-video-${productIndex}`}
+                                      className="cursor-pointer flex flex-col items-center"
+                                    >
+                                      <svg
+                                        className="h-8 w-8 text-gray-400 mb-2"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                      >
+                                        <path
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          strokeWidth={2}
+                                          d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                                        />
+                                      </svg>
+                                      <span className="text-sm text-gray-500">
+                                        Click to upload video
+                                      </span>
+                                      <span className="text-xs text-gray-400 mt-1">
+                                        MP4, MOV, AVI up to 50MB (1 video only)
+                                      </span>
+                                    </label>
+                                  </div>
+                                  {productVideoPreviews[productIndex] && (
+                                    <div className="relative group">
                                       <div className="w-full h-24 border rounded-lg overflow-hidden">
-                                        <img
-                                          src={preview}
-                                          alt={`Listing ${productIndex + 1} Image ${imageIndex + 1}`}
+                                        <video
+                                          src={productVideoPreviews[productIndex]}
                                           className="w-full h-full object-cover"
+                                          controls
                                         />
                                       </div>
                                       <button
                                         type="button"
-                                        onClick={() => removeProductImage(productIndex, imageIndex)}
+                                        onClick={() => removeProductVideo(productIndex)}
                                         className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
                                       >
                                         <svg
@@ -971,9 +1063,73 @@ Cause: A non-profit or charitable organization focused on a specific mission or 
                                         </svg>
                                       </button>
                                     </div>
-                                  ))}
+                                  )}
                                 </div>
-                              )}
+
+                                {/* Image Upload - Right Side */}
+                                <div>
+                                  <Label className="block text-sm font-medium text-gray-600 mb-2">
+                                    Images (Required)
+                                  </Label>
+                                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:bg-gray-50 transition-colors mb-4">
+                                    <input
+                                      type="file"
+                                      id={`product-images-${productIndex}`}
+                                      accept="image/*"
+                                      multiple
+                                      onChange={(e) => handleProductImagesChange(e, productIndex)}
+                                      className="hidden"
+                                    />
+                                    <label
+                                      htmlFor={`product-images-${productIndex}`}
+                                      className="cursor-pointer flex flex-col items-center"
+                                    >
+                                      <Upload className="h-8 w-8 text-gray-400 mb-2" />
+                                      <span className="text-sm text-gray-500">
+                                        Click to upload images
+                                      </span>
+                                      <span className="text-xs text-gray-400 mt-1">
+                                        PNG, JPG, GIF up to 5MB each (max 5 images)
+                                      </span>
+                                    </label>
+                                  </div>
+                                  {productImagePreviews[productIndex] && productImagePreviews[productIndex].length > 0 && (
+                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                                      {productImagePreviews[productIndex].map((preview, imageIndex) => (
+                                        <div key={imageIndex} className="relative group">
+                                          <div className="w-full h-20 border rounded-lg overflow-hidden">
+                                            <img
+                                              src={preview}
+                                              alt={`Listing ${productIndex + 1} Image ${imageIndex + 1}`}
+                                              className="w-full h-full object-cover"
+                                            />
+                                          </div>
+                                          <button
+                                            type="button"
+                                            onClick={() => removeProductImage(productIndex, imageIndex)}
+                                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                          >
+                                            <svg
+                                              xmlns="http://www.w3.org/2000/svg"
+                                              className="h-3 w-3"
+                                              fill="none"
+                                              viewBox="0 0 24 24"
+                                              stroke="currentColor"
+                                            >
+                                              <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth={2}
+                                                d="M6 18L18 6M6 6l12 12"
+                                              />
+                                            </svg>
+                                          </button>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
                             </div>
                             <div className="mb-4">
                               <Label htmlFor={`promotional-hook-${productIndex}`} className="block text-sm font-medium text-gray-700 mb-1">

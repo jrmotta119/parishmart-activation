@@ -1,14 +1,42 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { ArrowRight } from "lucide-react";
 import Header from "./Header";
 import Footer from "./Footer";
+import AnnouncementStrip from "./AnnouncementStrip";
 
 const StoreRegistration = () => {
+  const [showAnnouncement, setShowAnnouncement] = useState(true);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY === 0) {
+        setShowAnnouncement(true);
+      } else {
+        setShowAnnouncement(false);
+      }
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
     <div className="min-h-screen bg-white">
-      <Header />
-      <div className="pt-0">
+      {/* Announcement Strip (above header, only at top, slides up on scroll) */}
+      <div
+        className={`fixed top-0 left-0 w-full z-50 transition-transform duration-500 ${showAnnouncement ? "translate-y-0" : "-translate-y-full"}`}
+        style={{ willChange: "transform 0.3s" }}
+      >
+        <AnnouncementStrip />
+      </div>
+      {/* Header (sticky/locked, below announcement strip when visible) */}
+      <div
+        className="sticky top-10 left-0 w-full z-40 bg-white transition-all duration-300 ease-in-out"
+        style={{ top: showAnnouncement ? 40 : 0 }}
+      >
+        <Header />
+      </div>
+      <div className="pt-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="text-center mb-12">
             <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
@@ -43,7 +71,7 @@ const StoreRegistration = () => {
                     Register
                   </h3>
                   <p className="text-gray-700">
-                  Provide your organization’s basic information to get started.
+                  Provide your organization's basic information to get started.
                   </p>
                 </div>
                 <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100 text-center">
