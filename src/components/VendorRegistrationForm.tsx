@@ -1116,6 +1116,7 @@ const VendorRegistrationForm = () => {
                             )}
                           </label>
                         </div>
+                        <div className="text-xs text-gray-500 mt-1">Ideal size: 230x340 px</div>
                         {!formData.logo && attemptedSteps.includes(step) && (
                           <p className="mt-1 text-xs text-red-600">Logo is required</p>
                         )}
@@ -1160,6 +1161,7 @@ const VendorRegistrationForm = () => {
                             </div>
                           ))}
                         </div>
+                        <div className="text-xs text-gray-500 mt-1">Ideal size: 300x225 px</div>
                         <p className="text-xs text-gray-500 mt-1">These images will be used to create your business banner</p>
                       </div>
                     </div>
