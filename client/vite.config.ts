@@ -28,12 +28,18 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    outDir: 'dist',
+    assetsDir: 'assets',
+  },
   server: {
     // @ts-ignore
     allowedHosts: true,
     proxy: {
       '/api': {
-        target: 'http://localhost:3001',
+        target: process.env.NODE_ENV === 'production' 
+          ? 'http://localhost:3001' 
+          : 'http://localhost:3001',
         changeOrigin: true,
         secure: false,
       },

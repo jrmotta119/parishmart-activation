@@ -8,6 +8,9 @@ import rateLimit from 'express-rate-limit';
 import path from 'path';
 import dotenv from 'dotenv';
 
+// Import database connection
+import { testConnection } from './db/connection';
+
 // Import routes
 import authRoutes from './routes/auth';
 import userRoutes from './routes/users';
@@ -26,12 +29,16 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Security middleware
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: false, // Disable for development, configure properly for production
+}));
 
 // CORS configuration
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
-  credentials: true,
+  origin: process.env.NODE_ENV === 'production' 
+    ? process.env.CORS_ORIGINS?.split(',') || ['*']
+    : ['http://localhost:5173', 'http://localhost:3000'],
+  credentials: true
 }));
 
 // Rate limiting
@@ -51,8 +58,8 @@ if (process.env.NODE_ENV !== 'test') {
 app.use(compression());
 
 // Body parsing middleware
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Static file serving
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
@@ -74,17 +81,40 @@ app.use('/api/products', productRoutes);
 app.use('/api/vendors', vendorRoutes);
 app.use('/api/uploads', uploadRoutes);
 
-// 404 handler
-app.use(notFound);
+// Serve static files from React build in production
+if (process.env.NODE_ENV === 'production') {
+  // Serve static files from the React app build directory
+  app.use(express.static(path.join(__dirname, '../../client/dist')));
+  
+  // Handle React routing, return all requests to React app
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../../client/dist/index.html'));
+  });
+} else {
+  // Development route
+  app.get('/', (req, res) => {
+    res.json({ message: 'API is running in development mode' });
+  });
+}
+
+// 404 handler for API routes
+app.use('/api/*', notFound);
 
 // Error handling middleware
 app.use(errorHandler);
 
 // Start server
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+  
+  // Test database connection
+  if (process.env.DATABASE_URL) {
+    await testConnection();
+  } else {
+    console.log('⚠️  No DATABASE_URL provided, skipping database connection test');
+  }
 });
 
 export default app; 
