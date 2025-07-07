@@ -4,8 +4,15 @@ import App from "./App.tsx";
 import "./index.css";
 import { BrowserRouter } from "react-router-dom";
 
-import { TempoDevtools } from "tempo-devtools";
-TempoDevtools.init();
+// Conditional import for tempo devtools
+if (import.meta.env.VITE_TEMPO === "true") {
+  try {
+    const { TempoDevtools } = require("tempo-devtools");
+    TempoDevtools.init();
+  } catch (error) {
+    console.warn("Tempo devtools not available");
+  }
+}
 
 const basename = "/";
 

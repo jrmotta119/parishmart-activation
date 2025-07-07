@@ -11,9 +11,18 @@ import MarketplacePage from "./components/MarketplacePage";
 import DonationsPage from "./components/DonationsPage";
 import Login from "./components/auth/Login";
 import Signup from "./components/auth/Signup";
-import routes from "tempo-routes";
 import { AuthProvider } from "./components/auth/AuthContext";
 import VendorProfilePage from "./components/VendorProfilePage";
+
+// Conditional import for tempo routes
+let routes: any = [];
+if (import.meta.env.VITE_TEMPO === "true") {
+  try {
+    routes = require("tempo-routes");
+  } catch (error) {
+    console.warn("Tempo routes not available");
+  }
+}
 
 function App() {
   return (
@@ -21,7 +30,7 @@ function App() {
       <Suspense fallback={<p>Loading...</p>}>
         <>
           {/* For the tempo routes */}
-          {import.meta.env.VITE_TEMPO === "true" && useRoutes(routes)}
+          {import.meta.env.VITE_TEMPO === "true" && routes.length > 0 && useRoutes(routes)}
 
           <Routes>
             <Route path="/" element={<Home />} />
