@@ -9,7 +9,7 @@ import path from 'path';
 import dotenv from 'dotenv';
 
 // Import database connection
-import { testConnection } from './db/connection';
+import { testConnection, healthCheck } from './db/connection';
 
 // Import routes
 import authRoutes from './routes/auth';
@@ -74,6 +74,25 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Database health check endpoint
+app.get('/api/health/db', async (req, res) => {
+  try {
+    const dbHealth = await healthCheck();
+    res.status(200).json({
+      success: true,
+      database: dbHealth,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Database health check failed',
+      details: error instanceof Error ? error.message : 'Unknown error',
+      timestamp: new Date().toISOString(),
+    });
+  }
+});
+
 // API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
@@ -107,13 +126,16 @@ app.use(errorHandler);
 app.listen(PORT, async () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
+  console.log(`🗄️  Database health: http://localhost:${PORT}/api/health/db`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
   
-  // Test database connection
-  if (process.env.DATABASE_URL) {
+  // Test database connection only if DATABASE_URL is provided
+  if (process.env.DATABASE_URL && process.env.DATABASE_URL !== 'your_actual_heroku_postgres_url_here') {
+    console.log('🔌 Testing database connection...');
     await testConnection();
   } else {
-    console.log('⚠️  No DATABASE_URL provided, skipping database connection test');
+    console.log('⚠️  No valid DATABASE_URL provided, skipping database connection test');
+    console.log('💡 To test database connection, set DATABASE_URL in server/.env file');
   }
 });
 
