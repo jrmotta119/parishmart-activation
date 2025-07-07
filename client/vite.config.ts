@@ -9,7 +9,6 @@ export default defineConfig({
     react(),
   ],
   resolve: {
-    preserveSymlinks: true,
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
@@ -19,11 +18,15 @@ export default defineConfig({
     assetsDir: 'assets',
     rollupOptions: {
       external: ['tempo-routes', 'tempo-devtools'],
+      output: {
+        manualChunks: undefined,
+      },
     },
   },
+  optimizeDeps: {
+    exclude: ['tempo-routes', 'tempo-devtools'],
+  },
   server: {
-    // @ts-ignore
-    allowedHosts: true,
     proxy: {
       '/api': {
         target: process.env.NODE_ENV === 'production' 
