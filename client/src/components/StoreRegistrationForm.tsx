@@ -806,72 +806,72 @@ Cause: A non-profit or charitable organization focused on a specific mission or 
                 </h2>
 
                 {/* Logo and Banner Upload Section (side by side) */}
-                <div className="mb-8 flex flex-row gap-4 items-end justify-center">
-                  {/* Logo Upload (Square) */}
-                  <div className="flex flex-col items-center">
-                    <Label className="block text-sm font-medium text-gray-700 mb-2">
-                      Upload Store Logo *
-                    </Label>
-                    <div className={`w-32 h-32 border-2 border-dashed ${!formData.logo && attemptedSteps.includes(4) ? "border-red-500" : "border-gray-300"} rounded-lg flex items-center justify-center text-center cursor-pointer hover:bg-gray-50 transition-colors mb-2`}>
-                      <input
-                        type="file"
-                        id="logo"
-                        accept="image/*"
-                        onChange={handleLogoChange}
-                        className="hidden"
-                      />
-                      <label htmlFor="logo" className="cursor-pointer flex flex-col items-center w-full h-full justify-center">
-                        {logoPreview ? (
-                          <img src={logoPreview} alt="Logo preview" className="w-full h-full object-contain" />
-                        ) : (
-                          <>
-                            <Upload className="h-8 w-8 text-gray-400 mb-2 mx-auto" />
-                            <span className="text-xs text-gray-500">Click to upload your logo</span>
-                            <span className="text-xs text-gray-400 mt-1">PNG, JPG, GIF up to 5MB</span>
-                          </>
-                        )}
-                      </label>
+                <div className="mb-8">
+                  {/* Titles Row */}
+                  <div className="flex flex-row gap-8 justify-center items-end mb-2">
+                    <div className="w-44 flex justify-center">
+                      <span className="block text-sm font-medium text-gray-700 text-center">Upload Store Logo *</span>
                     </div>
-                    {!formData.logo && attemptedSteps.includes(4) && (
-                      <p className="mt-1 text-xs text-red-500">Logo is required</p>
-                    )}
+                    <div className="flex-1 flex justify-center">
+                      <span className="block text-sm font-medium text-gray-700 text-center">Upload Store Image (for banner creation) *</span>
+                    </div>
                   </div>
-                  
-                  {/* Store Images Upload (3 Rectangular) */}
-                  <div className="flex flex-col items-center flex-1">
-                    <Label className="block text-sm font-medium text-gray-700 mb-2">
-                      Upload Store Images (for banner creation) *
-                    </Label>
-                    <div className="flex space-x-2">
-                      {[0, 1, 2].map((index) => (
-                        <div key={index} className="flex flex-col items-center">
-                          <div className={`w-32 h-24 border-2 border-dashed ${!banner && attemptedSteps.includes(4) ? "border-red-500" : "border-gray-300"} rounded-lg flex items-center justify-center text-center cursor-pointer hover:bg-gray-50 transition-colors mb-2`}>
-                            <input
-                              type="file"
-                              id={`store-image-${index}`}
-                              accept="image/*"
-                              onChange={(e) => {
-                                if (e.target.files && e.target.files[0]) {
-                                  const file = e.target.files[0];
-                                  // Handle store image upload - you'll need to add state for this
-                                  console.log(`Store image ${index + 1} uploaded:`, file);
-                                }
-                              }}
-                              className="hidden"
-                            />
-                            <label htmlFor={`store-image-${index}`} className="cursor-pointer flex flex-col items-center w-full h-full justify-center">
-                              <Upload className="h-6 w-6 text-gray-400 mb-1 mx-auto" />
-                              <span className="text-xs text-gray-500">Image {index + 1}</span>
-                              <span className="text-xs text-gray-400">PNG, JPG, GIF</span>
-                            </label>
-                          </div>
-                        </div>
-                      ))}
+                  {/* Upload Boxes Row */}
+                  <div className="flex flex-row gap-8 justify-center items-end">
+                    {/* Logo Upload (Square) */}
+                    <div className="flex flex-col items-center w-44">
+                      <div className={`w-44 h-44 border-2 border-dashed ${!formData.logo && attemptedSteps.includes(4) ? "border-red-500" : "border-gray-300"} rounded-lg flex items-center justify-center text-center cursor-pointer hover:bg-gray-50 transition-colors mb-2`}>
+                        <input
+                          type="file"
+                          id="logo"
+                          accept="image/*"
+                          onChange={handleLogoChange}
+                          className="hidden"
+                        />
+                        <label htmlFor="logo" className="cursor-pointer flex flex-col items-center w-full h-full justify-center">
+                          {logoPreview ? (
+                            <img src={logoPreview} alt="Logo preview" className="w-full h-full object-contain" />
+                          ) : (
+                            <>
+                              <Upload className="h-8 w-8 text-gray-400 mb-2 mx-auto" />
+                              <span className="text-xs text-gray-500">Click to upload your logo</span>
+                              <span className="text-xs text-gray-400 mt-1">PNG, JPG, GIF up to 5MB</span>
+                            </>
+                          )}
+                        </label>
+                      </div>
+                      <div className="text-xs text-gray-500 mt-1">Ideal size: 230x340 px</div>
+                      {!formData.logo && attemptedSteps.includes(4) && (
+                        <p className="mt-1 text-xs text-red-500">Logo is required</p>
+                      )}
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">These images will be used to create your store banner</p>
-                    {!banner && attemptedSteps.includes(4) && (
-                      <p className="mt-1 text-xs text-red-500">At least one store image is required</p>
-                    )}
+                    {/* Store Images Upload (Banner) */}
+                    <div className="flex flex-col items-center flex-1">
+                      <div className={`w-[500px] h-44 border-2 border-dashed ${!banner && attemptedSteps.includes(4) ? "border-red-500" : "border-gray-300"} rounded-lg flex items-center justify-center text-center cursor-pointer hover:bg-gray-50 transition-colors mb-2`}>
+                        <input
+                          type="file"
+                          id="store-banner-image"
+                          accept="image/*"
+                          onChange={handleBannerChange}
+                          className="hidden"
+                        />
+                        <label htmlFor="store-banner-image" className="cursor-pointer flex flex-col items-center w-full h-full justify-center">
+                          {bannerPreview ? (
+                            <img src={bannerPreview} alt="Banner preview" className="w-full h-full object-cover rounded-lg" />
+                          ) : (
+                            <>
+                              <Upload className="h-5 w-20 text-gray-400 mb-2 mx-auto" />
+                              <span className="text-xs text-gray-500">Banner Image</span>
+                              <span className="text-xs text-gray-400">PNG, JPG, GIF</span>
+                            </>
+                          )}
+                        </label>
+                      </div>
+                      <div className="text-xs text-gray-500 mt-1">Ideal size: 900x225 px</div>
+                      {!banner && attemptedSteps.includes(4) && (
+                        <p className="mt-1 text-xs text-red-500">At least one store image is required</p>
+                      )}
+                    </div>
                   </div>
                 </div>
 
