@@ -3,7 +3,7 @@
 interface ImportMetaEnv {
   readonly VITE_SUPABASE_URL: string
   readonly VITE_SUPABASE_ANON_KEY: string
-  readonly TEMPO: string
+  readonly VITE_TEMPO: string
   // more env variables...
 }
 
