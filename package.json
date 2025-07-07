@@ -10,7 +10,7 @@
   ],
   "scripts": {
     "heroku-postbuild": "npm run build:client && npm run build:server",
-    "build:client": "cd client && npm run build:heroku",
+    "build:client": "cd client && npm run build:simple",
     "build:server": "cd server && npm install",
     "start": "cd server && npm start",
     "dev": "concurrently \"npm run dev:client\" \"npm run dev:server\"",
@@ -33,7 +33,7 @@
     "concurrently": "^8.2.2"
   },
   "engines": {
-    "node": ">=18.0.0",
-    "npm": ">=9.0.0"
+    "node": "18.x",
+    "npm": "9.x"
   }
 } 
