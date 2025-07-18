@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ParishMart Store Application Update</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333333;
+            background-color: #f8f9fa;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header {
+            background-color: #6c757d;
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 40px 30px;
+        }
+        
+        .greeting {
+            font-size: 18px;
+            color: #6c757d;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        
+        .message {
+            font-size: 16px;
+            line-height: 1.8;
+            margin-bottom: 25px;
+            color: #555555;
+        }
+        
+        .feedback-box {
+            background-color: #f8f9fa;
+            border-left: 4px solid #6c757d;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 4px;
+        }
+        
+        .feedback-box h3 {
+            color: #6c757d;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+        
+        .next-steps {
+            background-color: #e2e3e5;
+            border: 1px solid #d6d8db;
+            border-radius: 6px;
+            padding: 20px;
+            margin: 25px 0;
+        }
+        
+        .next-steps h3 {
+            color: #495057;
+            margin-bottom: 12px;
+            font-size: 16px;
+        }
+        
+        .next-steps ul {
+            padding-left: 20px;
+            margin: 0;
+        }
+        
+        .next-steps li {
+            margin-bottom: 8px;
+            color: #555555;
+            font-size: 14px;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            background-color: #006699;
+            color: white;
+            padding: 12px 25px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: 600;
+            font-size: 16px;
+            margin: 20px 0;
+            transition: background-color 0.3s ease;
+        }
+        
+        .cta-button:hover {
+            background-color: #005588;
+        }
+        
+        .footer {
+            background-color: #f8f9fa;
+            padding: 25px 30px;
+            text-align: center;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        .footer p {
+            color: #666666;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        
+        .social-links {
+            margin-top: 15px;
+        }
+        
+        .social-links a {
+            color: #006699;
+            text-decoration: none;
+            margin: 0 10px;
+            font-size: 14px;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                margin: 0;
+                border-radius: 0;
+            }
+            
+            .content {
+                padding: 25px 20px;
+            }
+            
+            .header {
+                padding: 25px 20px;
+            }
+            
+            .header h1 {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>Store Application Update</h1>
+            <p>Regarding {{organizationName}}</p>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="content">
+            <div class="greeting">
+                Hello {{adminFirstName}},
+            </div>
+            
+            <div class="message">
+                Thank you for your interest in creating a store on ParishMart for <strong>{{organizationName}}</strong>. We appreciate the time and effort you invested in completing your application.
+            </div>
+            
+            <div class="message">
+                After careful review of your organization's application, we have determined that we are unable to approve your store registration at this time. This decision was made after thorough consideration of various factors related to our platform's current focus and community alignment.
+            </div>
+            
+            <!-- Feedback Box -->
+            <div class="feedback-box">
+                <h3>Our Review Criteria</h3>
+                <p style="color: #555555; font-size: 14px; margin: 0;">
+                    We evaluate each organization based on mission alignment, community impact, operational readiness, and compatibility with our faith-based marketplace model. While your organization has many admirable qualities, we felt it wasn't the optimal fit for our platform at this time.
+                </p>
+            </div>
+            
+            <div class="message">
+                Please know that this decision doesn't reflect the value or importance of your organization's mission. We recognize the vital work that faith-based organizations do in their communities, and we appreciate your interest in using our platform to further your cause.
+            </div>
+            
+            <!-- Next Steps -->
+            <div class="next-steps">
+                <h3>Looking Ahead</h3>
+                <ul>
+                    <li>You may reapply for a store in the future (we suggest waiting at least 6 months)</li>
+                    <li>Consider strengthening alignment with faith-based marketplace principles</li>
+                    <li>Continue building your organization's digital presence and community engagement</li>
+                    <li>Explore other e-commerce platforms that might better suit your current needs</li>
+                    <li>Stay connected with our community for future opportunities</li>
+                </ul>
+            </div>
+            
+            <div class="message">
+                We genuinely appreciate your interest in ParishMart and wish you continued success in your mission to serve your community. Should you have questions about this decision or wish to discuss future possibilities, please feel free to reach out to our team.
+            </div>
+            
+            <center>
+                <a href="{{contactUrl}}" class="cta-button">Contact Our Team</a>
+            </center>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <p>Thank you for considering ParishMart for your organization</p>
+            <p>Questions? Contact us at {{supportEmail}}</p>
+            
+            <div class="social-links">
+                <a href="{{baseUrl}}/about">About ParishMart</a> |
+                <a href="{{baseUrl}}/contact">Contact Us</a> |
+                <a href="{{baseUrl}}/organizations">For Organizations</a>
+            </div>
+            
+            <p style="margin-top: 20px; font-size: 12px; color: #888888;">
+                © {{year}} {{companyName}}. All rights reserved.<br>
+                You received this email regarding your store application with us.
+            </p>
+        </div>
+    </div>
+</body>
+</html> 

@@ -20,6 +20,7 @@ const users_1 = __importDefault(require("./routes/users"));
 const products_1 = __importDefault(require("./routes/products"));
 const vendors_1 = __importDefault(require("./routes/vendors"));
 const uploads_1 = __importDefault(require("./routes/uploads"));
+const registration_1 = __importDefault(require("./routes/registration"));
 // Import middleware
 const errorHandler_1 = require("./middleware/errorHandler");
 const notFound_1 = require("./middleware/notFound");
@@ -68,10 +69,10 @@ app.get('/api/health', (req, res) => {
 // Database health check endpoint
 app.get('/api/health/db', async (req, res) => {
     try {
-        const dbHealth = await (0, connection_1.healthCheck)();
+        await (0, connection_1.testConnection)();
         res.status(200).json({
             success: true,
-            database: dbHealth,
+            database: { status: 'healthy' },
             timestamp: new Date().toISOString(),
         });
     }
@@ -90,6 +91,7 @@ app.use('/api/users', users_1.default);
 app.use('/api/products', products_1.default);
 app.use('/api/vendors', vendors_1.default);
 app.use('/api/uploads', uploads_1.default);
+app.use('/api/registration', registration_1.default);
 // Serve static files from React build in production
 if (process.env.NODE_ENV === 'production') {
     // Serve static files from the React app build directory

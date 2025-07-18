@@ -1,65 +1,77 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
-const multer_1 = __importDefault(require("multer"));
-const path_1 = __importDefault(require("path"));
+const fileController_1 = __importStar(require("../controllers/fileController"));
 const shared_1 = require("@parishmart/shared");
 const router = (0, express_1.Router)();
-// Configure multer for file uploads
-const storage = multer_1.default.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, path_1.default.join(__dirname, '../../uploads'));
-    },
-    filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, file.fieldname + '-' + uniqueSuffix + path_1.default.extname(file.originalname));
-    }
-});
-const upload = (0, multer_1.default)({
-    storage: storage,
-    limits: {
-        fileSize: 5 * 1024 * 1024, // 5MB limit
-    },
-    fileFilter: (req, file, cb) => {
-        // Allow only images
-        if (file.mimetype.startsWith('image/')) {
-            cb(null, true);
-        }
-        else {
-            cb(new Error('Only image files are allowed'));
-        }
-    }
-});
-// POST /api/uploads/image
-router.post('/image', upload.single('image'), async (req, res) => {
-    try {
-        if (!req.file) {
+// POST /api/upload/media - Upload images/videos to public bucket
+router.post('/media', fileController_1.mediaUpload.single('file'), fileController_1.default.uploadMedia);
+// POST /api/upload/documents - Upload documents to private bucket
+router.post('/documents', fileController_1.documentUpload.single('file'), fileController_1.default.uploadDocument);
+// POST /api/upload/signed-url/:fileKey - Generate signed URL for private files
+router.post('/signed-url/:fileKey', fileController_1.default.generateSignedUrl);
+// GET /api/upload/files/:id - Get file information
+router.get('/files/:id', fileController_1.default.getFileInfo);
+// DELETE /api/upload/files/:id - Delete file
+router.delete('/files/:id', fileController_1.default.deleteFile);
+// GET /api/upload/stats - Get file statistics
+router.get('/stats', fileController_1.default.getFileStats);
+// Error handling middleware for multer errors
+router.use((error, req, res, next) => {
+    if (error instanceof Error) {
+        if (error.message.includes('File too large')) {
             return res.status(shared_1.HTTP_STATUS.BAD_REQUEST).json({
                 success: false,
-                error: 'No file uploaded',
+                error: 'File size exceeds the maximum allowed limit'
             });
         }
-        const fileUrl = `/uploads/${req.file.filename}`;
-        res.status(shared_1.HTTP_STATUS.CREATED).json({
-            success: true,
-            message: 'File uploaded successfully',
-            data: {
-                filename: req.file.filename,
-                originalName: req.file.originalname,
-                size: req.file.size,
-                url: fileUrl,
-            },
-        });
+        if (error.message.includes('Only image files are allowed') ||
+            error.message.includes('Invalid file type') ||
+            error.message.includes('Invalid file content')) {
+            return res.status(shared_1.HTTP_STATUS.BAD_REQUEST).json({
+                success: false,
+                error: error.message
+            });
+        }
     }
-    catch (error) {
-        res.status(shared_1.HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
-            success: false,
-            error: 'File upload failed',
-        });
-    }
+    console.error('Upload route error:', error);
+    res.status(shared_1.HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+        success: false,
+        error: 'File upload failed'
+    });
 });
 exports.default = router;
 //# sourceMappingURL=uploads.js.map

@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to ParishMart - Account Approved!</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333333;
+            background-color: #f8f9fa;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 16px;
+            opacity: 0.95;
+        }
+        
+        .success-banner {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            padding: 20px;
+            margin: 0;
+            text-align: center;
+            color: #155724;
+            font-weight: 600;
+            font-size: 18px;
+        }
+        
+        .content {
+            padding: 40px 30px;
+        }
+        
+        .greeting {
+            font-size: 20px;
+            color: #28a745;
+            margin-bottom: 25px;
+            font-weight: 600;
+        }
+        
+        .message {
+            font-size: 16px;
+            line-height: 1.8;
+            margin-bottom: 25px;
+            color: #555555;
+        }
+        
+        .credentials-box {
+            background-color: #f8f9fa;
+            border: 2px solid #28a745;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 30px 0;
+            text-align: center;
+        }
+        
+        .credentials-box h3 {
+            color: #28a745;
+            margin-bottom: 20px;
+            font-size: 18px;
+        }
+        
+        .credential-item {
+            background-color: #ffffff;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 10px 0;
+            text-align: left;
+        }
+        
+        .credential-label {
+            font-size: 12px;
+            color: #666666;
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .credential-value {
+            font-size: 16px;
+            color: #333333;
+            font-family: 'Courier New', monospace;
+            background-color: #f8f9fa;
+            padding: 8px;
+            border-radius: 4px;
+            word-break: break-all;
+        }
+        
+        .next-steps {
+            background-color: #e8f4f8;
+            border: 1px solid #bee5eb;
+            border-radius: 6px;
+            padding: 25px;
+            margin: 30px 0;
+        }
+        
+        .next-steps h3 {
+            color: #006699;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        
+        .next-steps ol {
+            padding-left: 20px;
+            margin: 0;
+        }
+        
+        .next-steps li {
+            margin-bottom: 12px;
+            color: #555555;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+        
+        .cta-section {
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            background-color: #28a745;
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 16px;
+            margin: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(40, 167, 69, 0.3);
+        }
+        
+        .cta-button:hover {
+            background-color: #218838;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(40, 167, 69, 0.4);
+        }
+        
+        .cta-button.secondary {
+            background-color: #006699;
+            box-shadow: 0 2px 4px rgba(0, 102, 153, 0.3);
+        }
+        
+        .cta-button.secondary:hover {
+            background-color: #005588;
+            box-shadow: 0 4px 8px rgba(0, 102, 153, 0.4);
+        }
+        
+        .support-box {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 6px;
+            padding: 20px;
+            margin: 25px 0;
+            text-align: center;
+        }
+        
+        .support-box h4 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+        
+        .footer {
+            background-color: #f8f9fa;
+            padding: 25px 30px;
+            text-align: center;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        .footer p {
+            color: #666666;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        
+        .social-links {
+            margin-top: 15px;
+        }
+        
+        .social-links a {
+            color: #006699;
+            text-decoration: none;
+            margin: 0 10px;
+            font-size: 14px;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                margin: 0;
+                border-radius: 0;
+            }
+            
+            .content {
+                padding: 25px 20px;
+            }
+            
+            .header {
+                padding: 30px 20px;
+            }
+            
+            .header h1 {
+                font-size: 24px;
+            }
+            
+            .cta-section {
+                text-align: center;
+            }
+            
+            .cta-button {
+                display: block;
+                margin: 10px auto;
+                max-width: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🎉 Congratulations!</h1>
+            <p>Your vendor account has been approved</p>
+        </div>
+        
+        <!-- Success Banner -->
+        <div class="success-banner">
+            ✅ Welcome to the ParishMart Community!
+        </div>
+        
+        <!-- Main Content -->
+        <div class="content">
+            <div class="greeting">
+                Hello {{firstName}},
+            </div>
+            
+            <div class="message">
+                We're thrilled to welcome <strong>{{businessName}}</strong> to the ParishMart marketplace! After carefully reviewing your application, we're excited to have you join our community of faith-based entrepreneurs and businesses.
+            </div>
+            
+            <div class="message">
+                Your vendor account is now active and ready to use. You can access your dashboard to start setting up your business profile, adding products, and connecting with customers in our community.
+            </div>
+            
+            <!-- Login Credentials -->
+            <div class="credentials-box">
+                <h3>🔐 Your Login Information</h3>
+                <p style="margin-bottom: 20px; color: #666666;">Use these credentials to access your vendor dashboard:</p>
+                
+                <div class="credential-item">
+                    <div class="credential-label">Email Address</div>
+                    <div class="credential-value">{{email}}</div>
+                </div>
+                
+                <div class="credential-item">
+                    <div class="credential-label">Login URL</div>
+                    <div class="credential-value">{{loginUrl}}</div>
+                </div>
+                
+                <p style="margin-top: 15px; font-size: 14px; color: #dc3545;">
+                    <strong>Important:</strong> Please check your email for a separate message containing your temporary password. You'll be prompted to change it on your first login.
+                </p>
+            </div>
+            
+            <!-- Next Steps -->
+            <div class="next-steps">
+                <h3>🚀 Getting Started</h3>
+                <ol>
+                    <li><strong>Log into your dashboard</strong> using the credentials above</li>
+                    <li><strong>Complete your business profile</strong> with detailed information and photos</li>
+                    <li><strong>Add your products or services</strong> with compelling descriptions and images</li>
+                    <li><strong>Set up your payment processing</strong> to start accepting orders</li>
+                    <li><strong>Engage with the community</strong> and start building relationships</li>
+                    <li><strong>Monitor your performance</strong> using our analytics tools</li>
+                </ol>
+            </div>
+            
+            <!-- Call to Action -->
+            <div class="cta-section">
+                <a href="{{loginUrl}}" class="cta-button">
+                    🚪 Access Your Dashboard
+                </a>
+                <a href="{{supportUrl}}" class="cta-button secondary">
+                    📚 View Getting Started Guide
+                </a>
+            </div>
+            
+            <div class="message">
+                As a {{subscriptionType}} subscriber, you have access to all the features included in your plan. If you have any questions about maximizing your subscription benefits or need assistance setting up your account, our support team is here to help.
+            </div>
+            
+            <!-- Support Section -->
+            <div class="support-box">
+                <h4>💡 Need Help Getting Started?</h4>
+                <p style="color: #856404; margin: 0;">
+                    Our dedicated support team is ready to help you succeed. Contact us at <strong>{{supportEmail}}</strong> or visit our help center for tutorials and guides.
+                </p>
+            </div>
+            
+            <div class="message">
+                Thank you for choosing ParishMart as your marketplace partner. We're committed to helping you grow your business while serving the faith-based community. Welcome aboard!
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <p><strong>Welcome to ParishMart - Building Faith-Based Communities Through Commerce</strong></p>
+            <p>Questions? Contact us at {{supportEmail}}</p>
+            
+            <div class="social-links">
+                <a href="{{baseUrl}}/about">About Us</a> |
+                <a href="{{baseUrl}}/contact">Contact</a> |
+                <a href="{{baseUrl}}/support">Support Center</a> |
+                <a href="{{baseUrl}}/vendor/help">Vendor Resources</a>
+            </div>
+            
+            <p style="margin-top: 20px; font-size: 12px; color: #888888;">
+                © {{year}} {{companyName}}. All rights reserved.<br>
+                You received this email because your vendor application was approved.
+            </p>
+        </div>
+    </div>
+</body>
+</html> 

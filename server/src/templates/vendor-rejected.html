@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ParishMart Application Update</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333333;
+            background-color: #f8f9fa;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header {
+            background-color: #6c757d;
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 40px 30px;
+        }
+        
+        .greeting {
+            font-size: 18px;
+            color: #6c757d;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        
+        .message {
+            font-size: 16px;
+            line-height: 1.8;
+            margin-bottom: 25px;
+            color: #555555;
+        }
+        
+        .feedback-box {
+            background-color: #f8f9fa;
+            border-left: 4px solid #6c757d;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 4px;
+        }
+        
+        .feedback-box h3 {
+            color: #6c757d;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+        
+        .next-steps {
+            background-color: #e2e3e5;
+            border: 1px solid #d6d8db;
+            border-radius: 6px;
+            padding: 20px;
+            margin: 25px 0;
+        }
+        
+        .next-steps h3 {
+            color: #495057;
+            margin-bottom: 12px;
+            font-size: 16px;
+        }
+        
+        .next-steps ul {
+            padding-left: 20px;
+            margin: 0;
+        }
+        
+        .next-steps li {
+            margin-bottom: 8px;
+            color: #555555;
+            font-size: 14px;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            background-color: #006699;
+            color: white;
+            padding: 12px 25px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: 600;
+            font-size: 16px;
+            margin: 20px 0;
+            transition: background-color 0.3s ease;
+        }
+        
+        .cta-button:hover {
+            background-color: #005588;
+        }
+        
+        .footer {
+            background-color: #f8f9fa;
+            padding: 25px 30px;
+            text-align: center;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        .footer p {
+            color: #666666;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        
+        .social-links {
+            margin-top: 15px;
+        }
+        
+        .social-links a {
+            color: #006699;
+            text-decoration: none;
+            margin: 0 10px;
+            font-size: 14px;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                margin: 0;
+                border-radius: 0;
+            }
+            
+            .content {
+                padding: 25px 20px;
+            }
+            
+            .header {
+                padding: 25px 20px;
+            }
+            
+            .header h1 {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>ParishMart Application Update</h1>
+            <p>Regarding your vendor application</p>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="content">
+            <div class="greeting">
+                Hello {{firstName}},
+            </div>
+            
+            <div class="message">
+                Thank you for your interest in joining the ParishMart marketplace and for taking the time to submit your vendor application for <strong>{{businessName}}</strong>.
+            </div>
+            
+            <div class="message">
+                After careful consideration of your application, we have determined that we are unable to approve your vendor registration at this time. This decision was not made lightly, and we appreciate the effort you put into your application.
+            </div>
+            
+            <!-- Feedback Box -->
+            <div class="feedback-box">
+                <h3>Our Review Process</h3>
+                <p style="color: #555555; font-size: 14px; margin: 0;">
+                    We carefully evaluate each application based on alignment with our community values, business model compatibility, and marketplace fit. While your application had many positive aspects, we felt it wasn't the right match for our platform at this time.
+                </p>
+            </div>
+            
+            <div class="message">
+                Please don't be discouraged by this decision. The marketplace and business landscape are constantly evolving, and what may not be a fit today could be perfect in the future.
+            </div>
+            
+            <!-- Next Steps -->
+            <div class="next-steps">
+                <h3>Moving Forward</h3>
+                <ul>
+                    <li>You're welcome to reapply in the future (we recommend waiting at least 90 days)</li>
+                    <li>Consider how you might better align your business with faith-based community values</li>
+                    <li>Explore other ways to engage with faith-based communities</li>
+                    <li>Continue building your business and refining your value proposition</li>
+                </ul>
+            </div>
+            
+            <div class="message">
+                We sincerely appreciate your interest in ParishMart and wish you success in all your business endeavors. If you have any questions about this decision or would like guidance for future applications, please don't hesitate to reach out.
+            </div>
+            
+            <center>
+                <a href="{{contactUrl}}" class="cta-button">Contact Us</a>
+            </center>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <p>Thank you for your interest in ParishMart</p>
+            <p>Questions? Contact us at {{supportEmail}}</p>
+            
+            <div class="social-links">
+                <a href="{{baseUrl}}/about">About Us</a> |
+                <a href="{{baseUrl}}/contact">Contact</a> |
+                <a href="{{reapplyUrl}}" style="display: none;">Reapply</a>
+            </div>
+            
+            <p style="margin-top: 20px; font-size: 12px; color: #888888;">
+                © {{year}} {{companyName}}. All rights reserved.<br>
+                You received this email regarding your vendor application with us.
+            </p>
+        </div>
+    </div>
+</body>
+</html> 

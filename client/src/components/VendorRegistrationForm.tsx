@@ -37,7 +37,8 @@ import {
 } from "./ui/tooltip";
 
 interface FormData {
-  fullName: string;
+  firstName: string;
+  lastName: string;
   email: string;
   phone: string;
   parishAffiliation: string;
@@ -50,9 +51,11 @@ interface FormData {
   businessPolicy: string;
   businessAddress: string;
   businessCity: string;
+  businessState: string;
   businessCountry: string;
   businessZipCode: string;
   logo: File | null;
+  businessImages: (File | null)[];
   websiteLinks: string;
   subscriptionType: "basic" | "premium" | "elite";
   contactEmail: string;
@@ -68,14 +71,15 @@ interface FormData {
     otherCategory?: string;
   }[];
   participateInCampaigns: boolean;
-  receiveUpdates: boolean;
+  
   reach: "local" | "regional" | "national" | "global" | "";
   contactForOpportunities: boolean | null;
 }
 
 const VendorRegistrationForm = () => {
   const [formData, setFormData] = useState<FormData>({
-    fullName: "",
+    firstName: "",
+    lastName: "",
     email: "",
     phone: "",
     parishAffiliation: "",
@@ -88,16 +92,18 @@ const VendorRegistrationForm = () => {
     businessPolicy: "",
     businessAddress: "",
     businessCity: "",
+    businessState: "",
     businessCountry: "",
     businessZipCode: "",
     logo: null,
+    businessImages: [null, null, null],
     websiteLinks: "",
     subscriptionType: "basic",
     contactEmail: "",
     contactPhone: "",
     products: [],
     participateInCampaigns: true,
-    receiveUpdates: true,
+    
     reach: "",
     contactForOpportunities: null,
   });
@@ -255,7 +261,7 @@ const VendorRegistrationForm = () => {
 
   const handleBulkUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      // Here you would implement the CSV parsing logic
+      // TODO: implement CSV parsing logic
       // For now, just show a message that the file was received
       const file = e.target.files[0];
       setToastMessage(`CSV file received: ${file.name}`);
@@ -399,16 +405,29 @@ const VendorRegistrationForm = () => {
 
     // Validate all required fields before submission
     if (
-      !formData.fullName ||
+      !formData.firstName ||
+      !formData.lastName ||
       !formData.email ||
       !formData.phone ||
       !formData.businessName ||
       !formData.businessDescription ||
       !formData.logo ||
-      !formData.contactEmail ||
-      !formData.contactPhone
+      !formData.reach ||
+      !formData.businessAddress ||
+      !formData.businessCity ||
+      !formData.businessState ||
+      !formData.businessCountry ||
+      !formData.businessZipCode
     ) {
       setToastMessage("Please fill in all required fields before submitting");
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+      return;
+    }
+
+    // Validate basic subscription specific requirements
+    if (formData.subscriptionType === "basic" && formData.contactForOpportunities === null) {
+      setToastMessage("Please indicate if you would like to be contacted for opportunities");
       setShowToast(true);
       setTimeout(() => setShowToast(false), 3000);
       return;
@@ -433,16 +452,64 @@ const VendorRegistrationForm = () => {
     setIsSubmitting(true);
 
     try {
+      // Create FormData for file uploads
+      const submitData = new FormData();
+      
+      // Add registration type
+      submitData.append('registrationType', 'vendor');
+      
+      // Handle parish affiliation with custom parish override
+      const finalParishAffiliation = formData.parishAffiliation === "Other" && customParish.trim()
+        ? customParish.trim()
+        : formData.parishAffiliation || "";
+      
+      submitData.append('parishAffiliation', finalParishAffiliation);
+      
+      // Add all form fields (except parishAffiliation which we handled above)
+      Object.entries(formData).forEach(([key, value]) => {
+        if (key === 'parishAffiliation') {
+          // Skip - already handled above
+          return;
+        } else if (key === 'logo' && value) {
+          submitData.append('logo', value);
+        } else if (key === 'businessImages' && value && Array.isArray(value)) {
+          value.forEach((image, index) => {
+            if (image) {
+              submitData.append('businessImages', image);
+            }
+          });
+        } else if (key === 'products') {
+          // Handle products array
+          submitData.append('products', JSON.stringify(value));
+          
+          // Handle product files
+          if (value && Array.isArray(value)) {
+            value.forEach((product, productIndex) => {
+              if (product.images && product.images.length > 0) {
+                product.images.forEach((image: File, imageIndex: number) => {
+                  submitData.append(`productImages_${productIndex}`, image);
+                });
+              }
+              if (product.videos && product.videos.length > 0) {
+                product.videos.forEach((video: File, videoIndex: number) => {
+                  submitData.append(`productVideos_${productIndex}`, video);
+                });
+              }
+            });
+          }
+        } else if (typeof value === 'boolean' || typeof value === 'string' || typeof value === 'number') {
+          submitData.append(key, value.toString());
+        }
+      });
+      
+      // Add business contact info (use personal info if business contact not provided)
+      submitData.append('contactEmail', formData.contactEmail || formData.email);
+      submitData.append('contactPhone', formData.contactPhone || formData.phone);
+
       // Send form data to API endpoint
       const response = await fetch('/api/registration', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          registrationType: 'vendor',
-          ...formData,
-        }),
+        body: submitData, // Don't set Content-Type header for FormData
       });
 
       const data = await response.json();
@@ -451,8 +518,8 @@ const VendorRegistrationForm = () => {
         throw new Error(data.error || 'Failed to submit registration');
       }
 
-      console.log("Form submitted:", formData);
-      alert("Registration successful! Your vendor account is being set up.");
+      console.log("Form submitted successfully:", data);
+      alert("Registration successful! Your vendor account is being set up. You will receive login credentials via email.");
       // Redirect to home or dashboard
       window.location.href = "/";
     } catch (error) {
@@ -473,7 +540,7 @@ const VendorRegistrationForm = () => {
 
     // Validate current step before proceeding
     if (step === 1) {
-      if (!formData.fullName || !formData.email || !formData.phone) {
+      if (!formData.firstName || !formData.lastName || !formData.email || !formData.phone) {
         setToastMessage("Please fill in all required fields");
         setShowToast(true);
         setTimeout(() => setShowToast(false), 3000);
@@ -483,7 +550,13 @@ const VendorRegistrationForm = () => {
       if (
         !formData.businessName ||
         !formData.businessDescription ||
-        !formData.logo
+        !formData.logo ||
+        !formData.reach ||
+        !formData.businessAddress ||
+        !formData.businessCity ||
+        !formData.businessState ||
+        !formData.businessCountry ||
+        !formData.businessZipCode
       ) {
         setToastMessage("Please fill in all required fields and upload a logo");
         setShowToast(true);
@@ -647,26 +720,49 @@ const VendorRegistrationForm = () => {
                     Personal Information
                   </h2>
 
-                  <div className="mb-6">
-                    <Label
-                      htmlFor="fullName"
-                      className="block text-sm font-medium text-gray-700 mb-1"
-                    >
-                      Full Name *
-                    </Label>
-                    <Input
-                      id="fullName"
-                      name="fullName"
-                      value={formData.fullName}
-                      onChange={handleInputChange}
-                      required
-                      className={`w-full ${!formData.fullName && attemptedSteps.includes(step) && "border-red-300"}`}
-                    />
-                    {!formData.fullName && attemptedSteps.includes(step) && (
-                      <p className="mt-1 text-sm text-red-600">
-                        Full name is required
-                      </p>
-                    )}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                      <Label
+                        htmlFor="firstName"
+                        className="block text-sm font-medium text-gray-700 mb-1"
+                      >
+                        First Name *
+                      </Label>
+                      <Input
+                        id="firstName"
+                        name="firstName"
+                        value={formData.firstName}
+                        onChange={handleInputChange}
+                        required
+                        className={`w-full ${!formData.firstName && attemptedSteps.includes(step) && "border-red-300"}`}
+                      />
+                      {!formData.firstName && attemptedSteps.includes(step) && (
+                        <p className="mt-1 text-sm text-red-600">
+                          First name is required
+                        </p>
+                      )}
+                    </div>
+                    <div>
+                      <Label
+                        htmlFor="lastName"
+                        className="block text-sm font-medium text-gray-700 mb-1"
+                      >
+                        Last Name *
+                      </Label>
+                      <Input
+                        id="lastName"
+                        name="lastName"
+                        value={formData.lastName}
+                        onChange={handleInputChange}
+                        required
+                        className={`w-full ${!formData.lastName && attemptedSteps.includes(step) && "border-red-300"}`}
+                      />
+                      {!formData.lastName && attemptedSteps.includes(step) && (
+                        <p className="mt-1 text-sm text-red-600">
+                          Last name is required
+                        </p>
+                      )}
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -936,6 +1032,11 @@ const VendorRegistrationForm = () => {
                         <span className="text-xs text-gray-600 ml-2">You offer your products or services internationally.</span>
                       </div>
                     </RadioGroup>
+                    {!formData.reach && attemptedSteps.includes(step) && (
+                      <p className="mt-1 text-sm text-red-600">
+                        Please select where you offer your products or services
+                      </p>
+                    )}
                   </div>
 
                   <div className="mb-6">
@@ -1017,7 +1118,7 @@ const VendorRegistrationForm = () => {
                     )}
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                     <div>
                       <Label
                         htmlFor="businessCity"
@@ -1037,6 +1138,29 @@ const VendorRegistrationForm = () => {
                       {!formData.businessCity && attemptedSteps.includes(step) && (
                         <p className="mt-1 text-sm text-red-600">
                           City is required
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <Label
+                        htmlFor="businessState"
+                        className="block text-sm font-medium text-gray-700 mb-1"
+                      >
+                        State *
+                      </Label>
+                      <Input
+                        id="businessState"
+                        name="businessState"
+                        value={formData.businessState}
+                        onChange={handleInputChange}
+                        required
+                        className={`w-full ${!formData.businessState && attemptedSteps.includes(step) && "border-red-300"}`}
+                        placeholder="State"
+                      />
+                      {!formData.businessState && attemptedSteps.includes(step) && (
+                        <p className="mt-1 text-sm text-red-600">
+                          State is required
                         </p>
                       )}
                     </div>
@@ -1140,8 +1264,11 @@ const VendorRegistrationForm = () => {
                                       const newPreviews = [...businessImagePreviews];
                                       newPreviews[index] = URL.createObjectURL(file);
                                       setBusinessImagePreviews(newPreviews);
-                                      // You may also want to update the actual file in your formData if needed
-                                      // Example: setFormData({ ...formData, businessImages: ... })
+                                      
+                                      // Update the actual file in formData
+                                      const newBusinessImages = [...formData.businessImages];
+                                      newBusinessImages[index] = file;
+                                      setFormData({ ...formData, businessImages: newBusinessImages });
                                     }
                                   }}
                                   className="hidden"
@@ -1802,13 +1929,15 @@ const VendorRegistrationForm = () => {
                           <ArrowRight className="ml-2 h-4 w-4 rotate-180" />
                         </h4>
                         <p className="text-gray-600">
-                          Name: {formData.fullName}
+                          Name: {formData.firstName} {formData.lastName}
                         </p>
                         <p className="text-gray-600">Email: {formData.email}</p>
                         <p className="text-gray-600">Phone: {formData.phone}</p>
                         {formData.parishAffiliation && (
                           <p className="text-gray-600">
-                            Parish Affiliation: {formData.parishAffiliation}
+                            Parish Affiliation: {formData.parishAffiliation === "Other" && customParish.trim() 
+                              ? customParish.trim() 
+                              : formData.parishAffiliation}
                           </p>
                         )}
                         {formData.contactForOpportunities !== null && (

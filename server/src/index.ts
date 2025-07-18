@@ -9,7 +9,10 @@ import path from 'path';
 import dotenv from 'dotenv';
 
 // Import database connection
-import { testConnection, healthCheck } from './db/connection';
+import { testConnection } from './db/connection';
+
+// Import email service
+import { EmailService } from './services/emailService';
 
 // Import routes
 import authRoutes from './routes/auth';
@@ -17,6 +20,9 @@ import userRoutes from './routes/users';
 import productRoutes from './routes/products';
 import vendorRoutes from './routes/vendors';
 import uploadRoutes from './routes/uploads';
+import registrationRoutes from './routes/registration';
+import adminRoutes from './routes/admin';
+import emailTestRoutes from './routes/emailTest';
 
 // Import middleware
 import { errorHandler } from './middleware/errorHandler';
@@ -28,17 +34,25 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Trust proxy for Heroku/production deployments
+app.set('trust proxy', 1);
+
 // Security middleware
 app.use(helmet({
-  contentSecurityPolicy: false, // Disable for development, configure properly for production
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'"],
+      imgSrc: ["'self'", "data:", "https:"],
+    },
+  },
 }));
 
-// CORS configuration
+// CORS
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? process.env.CORS_ORIGINS?.split(',') || ['*']
-    : ['http://localhost:5173', 'http://localhost:3000'],
-  credentials: true
+  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+  credentials: true,
 }));
 
 // Rate limiting
@@ -49,49 +63,65 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 
-// Logging middleware
-if (process.env.NODE_ENV !== 'test') {
-  app.use(morgan('combined'));
-}
-
-// Compression middleware
-app.use(compression());
-
 // Body parsing middleware
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// Static file serving
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+// Logging
+app.use(morgan('combined'));
 
-// Health check endpoint
+// Compression
+app.use(compression());
+
+// Health check endpoints
 app.get('/api/health', (req, res) => {
-  res.status(200).json({
-    success: true,
-    message: 'Parishmart API is running',
+  res.json({
+    status: 'OK',
     timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
     environment: process.env.NODE_ENV || 'development',
   });
 });
 
-// Database health check endpoint
 app.get('/api/health/db', async (req, res) => {
   try {
-    const dbHealth = await healthCheck();
-    res.status(200).json({
-      success: true,
-      database: dbHealth,
+    await testConnection();
+    res.json({
+      status: 'OK',
+      database: 'Connected',
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: 'Database health check failed',
-      details: error instanceof Error ? error.message : 'Unknown error',
+    res.status(503).json({
+      status: 'ERROR',
+      database: 'Disconnected',
+      error: error instanceof Error ? error.message : 'Unknown error',
       timestamp: new Date().toISOString(),
     });
   }
 });
+
+// Email health check
+app.get('/api/health/email', async (req, res) => {
+  try {
+    const health = await EmailService.getHealthStatus();
+    res.json({
+      status: 'OK',
+      email: health,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    res.status(503).json({
+      status: 'ERROR',
+      email: 'Service unavailable',
+      error: error instanceof Error ? error.message : 'Unknown error',
+      timestamp: new Date().toISOString(),
+    });
+  }
+});
+
+// Static files
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // API routes
 app.use('/api/auth', authRoutes);
@@ -99,27 +129,23 @@ app.use('/api/users', userRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/vendors', vendorRoutes);
 app.use('/api/uploads', uploadRoutes);
+app.use('/api/registration', registrationRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/email-test', emailTestRoutes);
 
-// Serve static files from React build in production
+// Serve client build files in production
 if (process.env.NODE_ENV === 'production') {
-  // Serve static files from the React app build directory
-  app.use(express.static(path.join(__dirname, '../../client/dist')));
+  const clientBuildPath = path.join(__dirname, '../../client/dist');
+  app.use(express.static(clientBuildPath));
   
-  // Handle React routing, return all requests to React app
+  // Handle client-side routing
   app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../../client/dist/index.html'));
-  });
-} else {
-  // Development route
-  app.get('/', (req, res) => {
-    res.json({ message: 'API is running in development mode' });
+    res.sendFile(path.join(clientBuildPath, 'index.html'));
   });
 }
 
-// 404 handler for API routes
-app.use('/api/*', notFound);
-
-// Error handling middleware
+// Error handling middleware (must be last)
+app.use(notFound);
 app.use(errorHandler);
 
 // Start server
@@ -127,7 +153,15 @@ app.listen(PORT, async () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
   console.log(`🗄️  Database health: http://localhost:${PORT}/api/health/db`);
+  console.log(`📧 Email health: http://localhost:${PORT}/api/health/email`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+  
+  // Initialize email service
+  try {
+    await EmailService.initialize();
+  } catch (error) {
+    console.warn('⚠️  Email service initialization failed, continuing without email functionality');
+  }
   
   // Test database connection only if DATABASE_URL is provided
   if (process.env.DATABASE_URL && process.env.DATABASE_URL !== 'your_actual_heroku_postgres_url_here') {

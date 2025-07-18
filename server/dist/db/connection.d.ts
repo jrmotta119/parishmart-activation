@@ -1,12 +1,7 @@
-import { Pool, PoolClient } from 'pg';
+import { Pool, PoolClient, QueryResult } from 'pg';
 declare const pool: Pool;
-export declare const testConnection: () => Promise<boolean>;
+export declare const query: (text: string, params?: any[]) => Promise<QueryResult>;
 export declare const getClient: () => Promise<PoolClient>;
-export declare const query: (text: string, params?: any[]) => Promise<import("pg").QueryResult<any>>;
-export declare const closePool: () => Promise<void>;
-export declare const healthCheck: () => Promise<{
-    status: "healthy" | "unhealthy";
-    details: any;
-}>;
+export declare const testConnection: () => Promise<void>;
 export default pool;
 //# sourceMappingURL=connection.d.ts.map

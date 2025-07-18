@@ -10,17 +10,25 @@ import Footer from "./Footer";
 import AnnouncementStrip from "./AnnouncementStrip";
 
 interface FormData {
-  adminFullName: string;
+  adminFirstName: string;
+  adminLastName: string;
   email: string;
-  billingAddress: string;
+  streetAddress: string;
+  city: string;
+  state: string;
+  country: string;
+  zipCode: string;
   phoneNumber: string;
   organizationName: string;
   organizationType: string;
   description: string;
+  impact: string;
+  foundingYear: string;
+  slogan: string;
   logo: File | null;
   photos: File[];
-  primaryColor: string;
-  secondaryColor: string;
+  // primaryColor: string;
+  // secondaryColor: string;
   subscriptionTier: "basic" | "premium" | "elite";
   needsConsultation: boolean;
   taxExemptionForm: File | null;
@@ -42,17 +50,23 @@ const Tooltip = ({ text, children }: { text: string; children: React.ReactNode }
 
 const StoreRegistrationForm = () => {
   const [formData, setFormData] = useState<FormData>({
-    adminFullName: "",
+    adminFirstName: "",
+    adminLastName: "",
     email: "",
-    billingAddress: "",
+    streetAddress: "",
+    city: "",
+    state: "",
+    country: "",
+    zipCode: "",
     phoneNumber: "",
     organizationName: "",
     organizationType: "parish",
     description: "",
+    impact: "",
+    foundingYear: "",
+    slogan: "",
     logo: null,
     photos: [],
-    primaryColor: "#006699",
-    secondaryColor: "#ffffff",
     subscriptionTier: "basic",
     needsConsultation: false,
     taxExemptionForm: null,
@@ -60,6 +74,8 @@ const StoreRegistrationForm = () => {
     donationPlatform: "",
     otherDonationPlatform: "",
   });
+  // primaryColor: "#006699",
+  // secondaryColor: "#ffffff",
 
   const [logoPreview, setLogoPreview] = useState<string>("");
   const [banner, setBanner] = useState<File | null>(null);
@@ -130,13 +146,13 @@ const StoreRegistrationForm = () => {
     }
   };
 
-  const handleColorChange = (primary: string, secondary: string) => {
-    setFormData({
-      ...formData,
-      primaryColor: primary,
-      secondaryColor: secondary,
-    });
-  };
+  // const handleColorChange = (primary: string, secondary: string) => {
+  //   setFormData({
+  //     ...formData,
+  //     primaryColor: primary,
+  //     secondaryColor: secondary,
+  //   });
+  // };
 
   const removePhoto = (index: number) => {
     const updatedPhotos = [...formData.photos];
@@ -172,14 +188,21 @@ const StoreRegistrationForm = () => {
     e.preventDefault();
 
     // Mark all steps as attempted for validation
-    setAttemptedSteps([1, 2, 3, 4]);
+    setAttemptedSteps([1, 2, 3, 4, 5]);
 
     // Validate all required fields
     if (
-      !formData.adminFullName ||
+      !formData.adminFirstName ||
+      !formData.adminLastName ||
       !formData.email ||
-      !formData.billingAddress ||
+      !formData.streetAddress ||
+      !formData.city ||
+      !formData.state ||
+      !formData.country ||
+      !formData.zipCode ||
       !formData.organizationName ||
+      !formData.impact ||
+      !formData.foundingYear ||
       hasTaxExemptStatus === ""
     ) {
       alert("Please fill in all required fields");
@@ -208,18 +231,59 @@ const StoreRegistrationForm = () => {
     setIsSubmitting(true);
 
     try {
+      // Create FormData for file uploads
+      const submitData = new FormData();
+      
+      // Add registration type
+      submitData.append('registrationType', 'store');
+      
+      // Add tax exemption status
+      submitData.append('hasTaxExemptStatus', hasTaxExemptStatus);
+      
+      // Add products
+      submitData.append('products', JSON.stringify(products));
+      
+      // Add all form fields
+      Object.entries(formData).forEach(([key, value]) => {
+        if (key === 'logo' && value) {
+          submitData.append('logo', value);
+        } else if (key === 'taxExemptionForm' && value) {
+          submitData.append('taxExemptionForm', value);
+        } else if (key === 'photos' && value && Array.isArray(value)) {
+          // Handle multiple photos
+          value.forEach((photo: File) => {
+            submitData.append('photos', photo);
+          });
+        } else if (typeof value === 'boolean' || typeof value === 'string' || typeof value === 'number') {
+          submitData.append(key, value.toString());
+        }
+      });
+      
+      // Add banner image
+      if (banner) {
+        submitData.append('banner', banner);
+      }
+      
+      // Handle product files for elite subscription
+      if (formData.subscriptionTier === 'elite' && products.length > 0) {
+        products.forEach((product, productIndex) => {
+          if (product.images && product.images.length > 0) {
+            product.images.forEach((image: File) => {
+              submitData.append(`productImages_${productIndex}`, image);
+            });
+          }
+          if (product.videos && product.videos.length > 0) {
+            product.videos.forEach((video: File) => {
+              submitData.append(`productVideos_${productIndex}`, video);
+            });
+          }
+        });
+      }
+
       // Send form data to API endpoint
       const response = await fetch('/api/registration', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          registrationType: 'store',
-          ...formData,
-          hasTaxExemptStatus,
-          products,
-        }),
+        body: submitData, // Don't set Content-Type header for FormData
       });
 
       const data = await response.json();
@@ -228,8 +292,8 @@ const StoreRegistrationForm = () => {
         throw new Error(data.error || 'Failed to submit registration');
       }
 
-      console.log("Form submitted:", formData);
-      alert("Registration successful! Your store is being set up.");
+      console.log("Form submitted successfully:", data);
+      alert("Registration successful! Your store is being set up. You will receive login credentials via email.");
       // Redirect to home or dashboard
       window.location.href = "/";
     } catch (error) {
@@ -248,7 +312,10 @@ const StoreRegistrationForm = () => {
 
     // Validate current step before proceeding
     if (step === 1) {
-      if (!formData.adminFullName || !formData.email || !formData.organizationName || !formData.description || 
+      if (!formData.adminFirstName || !formData.adminLastName || !formData.email || 
+          !formData.streetAddress || !formData.city || !formData.state || !formData.country || !formData.zipCode ||
+          !formData.organizationName || !formData.description || 
+          !formData.impact || !formData.foundingYear ||
           (formData.organizationType === "other" && !formData.otherOrganizationType)) {
         return;
       }
@@ -259,6 +326,16 @@ const StoreRegistrationForm = () => {
     } else if (step === 3) {
       if (!formData.logo || !banner) {
         return;
+      }
+    } else if (step === 4) {
+      // Validate products if elite subscription
+      if (formData.subscriptionTier === "elite" && products.length > 0) {
+        const invalidProducts = products.filter(
+          (product) => !product.name || !product.category || (product.category === 'Other' && !product.otherCategory) || !product.description || !product.pricingInfo
+        );
+        if (invalidProducts.length > 0) {
+          return;
+        }
       }
     }
 
@@ -472,7 +549,20 @@ const StoreRegistrationForm = () => {
                 >
                   3
                 </div>
-                <span className="mt-2 text-sm font-medium">Final Steps</span>
+                <span className="mt-2 text-sm font-medium">Store Customization</span>
+              </div>
+              <div
+                className={`flex-1 h-1 mx-4 ${step >= 4 ? "bg-[#006699]" : "bg-gray-200"}`}
+              ></div>
+              <div
+                className={`flex flex-col items-center ${step >= 4 ? "text-[#006699]" : "text-gray-400"}`}
+              >
+                <div
+                  className={`w-10 h-10 rounded-full flex items-center justify-center ${step >= 4 ? "bg-[#006699] text-white" : "bg-gray-200 text-gray-500"}`}
+                >
+                  4
+                </div>
+                <span className="mt-2 text-sm font-medium">Submission</span>
               </div>
             </div>
           </div>
@@ -542,6 +632,64 @@ Cause: A non-profit or charitable organization focused on a specific mission or 
                     {!formData.description && attemptedSteps.includes(1) && (
                       <p className="mt-1 text-sm text-red-500">Organization description is required</p>
                     )}
+                    
+                    <Label htmlFor="impact" className="block text-sm font-medium text-gray-700 mb-1 mt-4">Impact of the Organization *</Label>
+                    <Input 
+                      id="impact" 
+                      name="impact" 
+                      value={formData.impact} 
+                      onChange={handleInputChange} 
+                      maxLength={50}
+                      required 
+                      className={`w-full ${!formData.impact && attemptedSteps.includes(1) ? "border-red-500" : ""}`} 
+                      placeholder="Brief description of your organization's impact..." 
+                    />
+                    <div className="flex justify-between items-center mt-1">
+                      {!formData.impact && attemptedSteps.includes(1) && (
+                        <p className="text-sm text-red-500">Impact description is required</p>
+                      )}
+                      <p className="text-sm text-gray-500 ml-auto">{formData.impact.length}/50 characters</p>
+                    </div>
+                    
+                    <Label htmlFor="foundingYear" className="block text-sm font-medium text-gray-700 mb-1 mt-4">Founding Year *</Label>
+                    <Input 
+                      id="foundingYear" 
+                      name="foundingYear" 
+                      type="text"
+                      pattern="[0-9]{4}"
+                      maxLength={4}
+                      value={formData.foundingYear} 
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        // Only allow digits and limit to 4 characters
+                        if (/^\d{0,4}$/.test(value)) {
+                          setFormData({ ...formData, foundingYear: value });
+                        }
+                      }}
+                      required 
+                      className={`w-full ${!formData.foundingYear && attemptedSteps.includes(1) ? "border-red-500" : ""}`} 
+                      placeholder="YYYY" 
+                    />
+                    {!formData.foundingYear && attemptedSteps.includes(1) && (
+                      <p className="mt-1 text-sm text-red-500">Founding year is required</p>
+                    )}
+                    {formData.foundingYear && formData.foundingYear.length === 4 && (
+                      <p className="mt-1 text-sm text-gray-500">✓ Valid 4-digit year</p>
+                    )}
+                    
+                    <Label htmlFor="slogan" className="block text-sm font-medium text-gray-700 mb-1 mt-4">Slogan</Label>
+                    <Textarea 
+                      id="slogan" 
+                      name="slogan" 
+                      value={formData.slogan} 
+                      onChange={handleInputChange} 
+                      maxLength={75}
+                      className="w-full h-20" 
+                      placeholder="Your organization's slogan or tagline..." 
+                    />
+                    <div className="flex justify-end mt-1">
+                      <p className="text-sm text-gray-500">{formData.slogan.length}/75 characters</p>
+                    </div>
                     {/* Tax Exemption Status Question */}
                     <Label className="block text-sm font-medium text-gray-700 mb-1 mt-4">Does your organization qualify for tax-exempt status as defined by the IRS? *</Label>
                     <div className="flex items-center gap-6 mb-2">
@@ -660,16 +808,53 @@ Cause: A non-profit or charitable organization focused on a specific mission or 
                   {/* Right: Administrator Info */}
                   <div>
                     <h3 className="text-lg font-medium mb-4">Administrator Information</h3>
-                    <Label htmlFor="adminFullName" className="block text-sm font-medium text-gray-700 mb-1">Administrator Full Name *</Label>
-                    <Input id="adminFullName" name="adminFullName" value={formData.adminFullName} onChange={handleInputChange} required className={`w-full ${!formData.adminFullName && attemptedSteps.includes(1) ? "border-red-500" : ""}`} />
-                    {!formData.adminFullName && attemptedSteps.includes(1) && (<p className="mt-1 text-sm text-red-500">Full name is required</p>)}
-                    <Label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1 mt-4">Email Address *</Label>
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <Label htmlFor="adminFirstName" className="block text-sm font-medium text-gray-700 mb-1">First Name *</Label>
+                        <Input id="adminFirstName" name="adminFirstName" value={formData.adminFirstName} onChange={handleInputChange} required className={`w-full ${!formData.adminFirstName && attemptedSteps.includes(1) ? "border-red-500" : ""}`} />
+                        {!formData.adminFirstName && attemptedSteps.includes(1) && (<p className="mt-1 text-sm text-red-500">First name is required</p>)}
+                      </div>
+                      <div>
+                        <Label htmlFor="adminLastName" className="block text-sm font-medium text-gray-700 mb-1">Last Name *</Label>
+                        <Input id="adminLastName" name="adminLastName" value={formData.adminLastName} onChange={handleInputChange} required className={`w-full ${!formData.adminLastName && attemptedSteps.includes(1) ? "border-red-500" : ""}`} />
+                        {!formData.adminLastName && attemptedSteps.includes(1) && (<p className="mt-1 text-sm text-red-500">Last name is required</p>)}
+                      </div>
+                    </div>
+                    <Label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email Address *</Label>
                     <Input id="email" name="email" type="email" value={formData.email} onChange={handleInputChange} required className={`w-full ${!formData.email && attemptedSteps.includes(1) ? "border-red-500" : ""}`} />
                     {!formData.email && attemptedSteps.includes(1) && (<p className="mt-1 text-sm text-red-500">Email is required</p>)}
                     <p className="mt-1 text-sm text-gray-500">We'll send your login credentials to this email</p>
-                    <Label htmlFor="billingAddress" className="block text-sm font-medium text-gray-700 mb-1 mt-4">Billing Address *</Label>
-                    <Input id="billingAddress" name="billingAddress" value={formData.billingAddress} onChange={handleInputChange} required className={`w-full ${!formData.billingAddress && attemptedSteps.includes(1) ? "border-red-500" : ""}`} />
-                    {!formData.billingAddress && attemptedSteps.includes(1) && (<p className="mt-1 text-sm text-red-500">Billing address is required</p>)}
+                    
+                    <Label className="block text-md font-medium text-gray-700 mb-1 mt-4">Billing Address *</Label>
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="streetAddress" className="block text-sm font-medium text-gray-700 mb-1">Street Address *</Label>
+                        <Input id="streetAddress" name="streetAddress" value={formData.streetAddress} onChange={handleInputChange} required className={`w-full ${!formData.streetAddress && attemptedSteps.includes(1) ? "border-red-500" : ""}`} />
+                        {!formData.streetAddress && attemptedSteps.includes(1) && (<p className="mt-1 text-sm text-red-500">Street address is required</p>)}
+                      </div>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div>
+                          <Label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">City *</Label>
+                          <Input id="city" name="city" value={formData.city} onChange={handleInputChange} required className={`w-full ${!formData.city && attemptedSteps.includes(1) ? "border-red-500" : ""}`} />
+                          {!formData.city && attemptedSteps.includes(1) && (<p className="mt-1 text-sm text-red-500">City is required</p>)}
+                        </div>
+                        <div>
+                          <Label htmlFor="state" className="block text-sm font-medium text-gray-700 mb-1">State *</Label>
+                          <Input id="state" name="state" value={formData.state} onChange={handleInputChange} required className={`w-full ${!formData.state && attemptedSteps.includes(1) ? "border-red-500" : ""}`} />
+                          {!formData.state && attemptedSteps.includes(1) && (<p className="mt-1 text-sm text-red-500">State is required</p>)}
+                        </div>
+                        <div>
+                          <Label htmlFor="country" className="block text-sm font-medium text-gray-700 mb-1">Country *</Label>
+                          <Input id="country" name="country" value={formData.country} onChange={handleInputChange} required className={`w-full ${!formData.country && attemptedSteps.includes(1) ? "border-red-500" : ""}`} />
+                          {!formData.country && attemptedSteps.includes(1) && (<p className="mt-1 text-sm text-red-500">Country is required</p>)}
+                        </div>
+                        <div>
+                          <Label htmlFor="zipCode" className="block text-sm font-medium text-gray-700 mb-1">Zip Code *</Label>
+                          <Input id="zipCode" name="zipCode" value={formData.zipCode} onChange={handleInputChange} required className={`w-full ${!formData.zipCode && attemptedSteps.includes(1) ? "border-red-500" : ""}`} />
+                          {!formData.zipCode && attemptedSteps.includes(1) && (<p className="mt-1 text-sm text-red-500">Zip code is required</p>)}
+                        </div>
+                      </div>
+                    </div>
                     <Label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-1 mt-4">Phone Number</Label>
                     <Input id="phoneNumber" name="phoneNumber" value={formData.phoneNumber} onChange={handleInputChange} className="w-full" />
                   </div>
@@ -1186,15 +1371,166 @@ Cause: A non-profit or charitable organization focused on a specific mission or 
                     Previous
                   </Button>
                   <Button
-                    type="submit"
+                    type="button"
+                    onClick={nextStep}
                     className="bg-[#006699] hover:bg-[#005588] text-white"
                     disabled={
-                      isSubmitting ||
                       (formData.subscriptionTier === "elite" &&
                         (!formData.logo || !formData.organizationName))
                     }
                   >
-                    {isSubmitting ? "Processing..." : "Complete Registration"}
+                    Next Step
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 4: Final Submission */}
+            {step === 4 && (
+              <div className="bg-white p-6 rounded-lg shadow-md mb-8">
+                <h2 className="text-xl font-semibold text-gray-900 mb-6">
+                  Final Submission
+                </h2>
+
+                <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-8">
+                  <p className="text-blue-700">
+                    Thank you for joining ParishMart! Your participation helps
+                    grow your business while supporting your parish and local
+                    community. If you have any questions, please contact us at{" "}
+                    <span className="font-semibold">
+                      support@parishmart.com
+                    </span>
+                    .
+                  </p>
+                </div>
+
+                <div className="bg-gray-50 p-6 rounded-lg mb-8">
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">
+                    Registration Summary
+                  </h3>
+
+                  <div className="space-y-4">
+                    <div>
+                      <h4 
+                        className="font-medium text-gray-700 cursor-pointer hover:text-[#006699] transition-colors flex items-center"
+                        onClick={() => setStep(1)}
+                      >
+                        Administrator & Organization Information (Edit)
+                        <ArrowRight className="ml-2 h-4 w-4 rotate-180" />
+                      </h4>
+                      <p className="text-gray-600">
+                        Name: {formData.adminFirstName} {formData.adminLastName}
+                      </p>
+                      <p className="text-gray-600">Email: {formData.email}</p>
+                      <p className="text-gray-600">Organization: {formData.organizationName}</p>
+                      <p className="text-gray-600">Type: {formData.organizationType === "other" ? formData.otherOrganizationType : formData.organizationType}</p>
+                      {formData.impact && (
+                        <p className="text-gray-600">Impact: {formData.impact}</p>
+                      )}
+                      {formData.foundingYear && (
+                        <p className="text-gray-600">Founded: {formData.foundingYear}</p>
+                      )}
+                      {formData.slogan && (
+                        <p className="text-gray-600">Slogan: {formData.slogan}</p>
+                      )}
+                      {hasTaxExemptStatus && (
+                        <p className="text-gray-600">Tax Exempt Status: {hasTaxExemptStatus === "yes" ? "Yes" : "No"}</p>
+                      )}
+                      {formData.collectsDonations !== null && (
+                        <p className="text-gray-600">
+                          Collects Donations: {formData.collectsDonations ? "Yes" : "No"}
+                        </p>
+                      )}
+                      {formData.collectsDonations && formData.donationPlatform && (
+                        <p className="text-gray-600">
+                          Donation Platform: {formData.donationPlatform === "other" ? formData.otherDonationPlatform : formData.donationPlatform}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <h4 
+                        className="font-medium text-gray-700 cursor-pointer hover:text-[#006699] transition-colors flex items-center"
+                        onClick={() => setStep(2)}
+                      >
+                        Subscription (Edit)
+                        <ArrowRight className="ml-2 h-4 w-4 rotate-180" />
+                      </h4>
+                      <p className="text-gray-600">
+                        Subscription:{" "}
+                        {formData.subscriptionTier === "basic"
+                          ? "Basic"
+                          : formData.subscriptionTier === "premium"
+                            ? "Premium"
+                            : "Elite"}
+                      </p>
+                    </div>
+
+                    <div>
+                      <h4 
+                        className="font-medium text-gray-700 cursor-pointer hover:text-[#006699] transition-colors flex items-center"
+                        onClick={() => setStep(3)}
+                      >
+                        Store Customization (Edit)
+                        <ArrowRight className="ml-2 h-4 w-4 rotate-180" />
+                      </h4>
+                      <p className="text-gray-600">
+                        Logo: {formData.logo ? "✓ Uploaded" : "✗ Not uploaded"}
+                      </p>
+                      <p className="text-gray-600">
+                        Banner: {banner ? "✓ Uploaded" : "✗ Not uploaded"}
+                      </p>
+                      {formData.subscriptionTier === "elite" && (
+                        <div>
+                          <p className="text-gray-600">
+                            Products: {products.length} product{products.length !== 1 ? 's' : ''} added
+                          </p>
+                          {products.map((product, index) => (
+                            <div key={index} className="mt-2 ml-4">
+                              <p className="text-gray-600 font-medium">
+                                Product {index + 1}: {product.name}
+                              </p>
+                              {product.category && (
+                                <p className="text-gray-600 text-sm">
+                                  Category: {product.category === "Other" ? product.otherCategory : product.category}
+                                </p>
+                              )}
+                              {product.pricingInfo && (
+                                <p className="text-gray-600 text-sm">
+                                  Pricing: {product.pricingInfo}
+                                </p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-between">
+                  <Button
+                    type="button"
+                    onClick={prevStep}
+                    variant="outline"
+                    className="border-[#006699] text-[#006699]"
+                  >
+                    Previous
+                  </Button>
+                  <Button
+                    type="submit"
+                    className="bg-[#006699] hover:bg-[#005588] text-white"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <span className="mr-2">Processing...</span>
+                        <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      </>
+                    ) : (
+                      "Complete Registration"
+                    )}
                   </Button>
                 </div>
               </div>
