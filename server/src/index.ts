@@ -19,7 +19,7 @@ import authRoutes from './routes/auth';
 import userRoutes from './routes/users';
 import productRoutes from './routes/products';
 import vendorRoutes from './routes/vendors';
-import uploadRoutes from './routes/uploads';
+// import uploadRoutes from './routes/uploads'; // Temporarily disabled due to compilation issues
 import registrationRoutes from './routes/registration';
 import adminRoutes from './routes/admin';
 import emailTestRoutes from './routes/emailTest';
@@ -128,7 +128,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/vendors', vendorRoutes);
-app.use('/api/uploads', uploadRoutes);
+// app.use('/api/uploads', uploadRoutes); // Temporarily disabled
 app.use('/api/registration', registrationRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/email-test', emailTestRoutes);
