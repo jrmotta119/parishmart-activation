@@ -11,7 +11,7 @@
   "scripts": {
     "heroku-postbuild": "npm run build:client && npm run build:server",
     "build:client": "cd client && npm run build:prebuilt",
-    "build:server": "cd server && npm install",
+    "build:server": "cd server && npm install && npm run build",
     "start": "cd server && npm start",
     "dev": "concurrently \"npm run dev:client\" \"npm run dev:server\"",
     "dev:client": "cd client && npm run dev",
