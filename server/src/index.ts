@@ -43,8 +43,8 @@ app.use(helmet({
     directives: {
       defaultSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'"],
-      scriptSrc: ["'self'"],
-      imgSrc: ["'self'", "data:", "https:"],
+      scriptSrc: ["'self'", "blob:", "https://api.tempolabs.ai"],
+      imgSrc: ["'self'", "data:", "blob:", "https:"],
     },
   },
 }));
