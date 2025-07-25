@@ -120,7 +120,7 @@ const renderAdminActionPage = (action: 'approved' | 'rejected', userType: 'vendo
                   : 'Please try again or contact technical support if the issue persists.'
                 }
             </p>
-            <a href="#" onclick="window.close()" class="button">Close Tab</a>
+            
             <div class="footer">
                 ParishMart Admin Panel<br>
                 © ${new Date().getFullYear()} ParishMart. All rights reserved.

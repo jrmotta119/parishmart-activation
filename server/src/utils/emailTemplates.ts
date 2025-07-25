@@ -91,7 +91,7 @@ export class EmailTemplates {
   private static getCommonData(): TemplateData {
     return {
       year: new Date().getFullYear(),
-      supportEmail: process.env.ADMIN_EMAIL_ADDRESS || 'support@parishmart.com',
+      supportEmail: process.env.SUPPORT_EMAIL_ADDRESS || 'support@parishmart.com',
       companyName: 'ParishMart',
       baseUrl: process.env.BASE_URL || 'http://localhost:3001',
       logoUrl: `${process.env.BASE_URL || 'http://localhost:3001'}/images/parishmart-logo.png`

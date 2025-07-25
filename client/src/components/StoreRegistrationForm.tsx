@@ -293,7 +293,7 @@ const StoreRegistrationForm = () => {
       }
 
       console.log("Form submitted successfully:", data);
-      alert("Registration successful! Your store is being set up. You will receive login credentials via email.");
+      alert("Registration successful! Your store is being set up. You will receive updates of your account status via email.");
       // Redirect to home or dashboard
       window.location.href = "/";
     } catch (error) {
