@@ -63,11 +63,12 @@ const AboutUs = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
             {/* Mission */}
             <div className="text-center lg:text-left">
-              <div className="bg-blue-100 rounded-lg p-8 mb-6 h-48 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-green-400 rounded-full mx-auto mb-4"></div>
-                  <div className="w-8 h-4 bg-white rounded-full mx-auto"></div>
-                </div>
+              <div className="bg-blue-100 rounded-lg mb-6 h-48 flex items-center justify-center overflow-hidden">
+                <img 
+                  src="https://images.unsplash.com/photo-1559027615-cd4628902d4a?q=80&w=1287&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" 
+                  alt="Mission - Helping hands" 
+                  className="w-full h-full object-cover"
+                />
               </div>
               <h2 className="text-2xl font-bold text-gray-900 mb-4">Our Mission</h2>
               <p className="text-gray-600 leading-relaxed">
@@ -78,11 +79,12 @@ const AboutUs = () => {
 
             {/* Vision */}
             <div className="text-center lg:text-left">
-              <div className="bg-blue-100 rounded-lg p-8 mb-6 h-48 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-green-400 rounded-full mx-auto mb-4"></div>
-                  <div className="w-8 h-4 bg-white rounded-full mx-auto"></div>
-                </div>
+              <div className="bg-blue-100 rounded-lg mb-6 h-48 flex items-center justify-center overflow-hidden">
+                <img 
+                  src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=1287&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" 
+                  alt="Vision - Future planning" 
+                  className="w-full h-full object-cover"
+                />
               </div>
               <h2 className="text-2xl font-bold text-gray-900 mb-4">Our Vision</h2>
               <p className="text-gray-600 leading-relaxed">
@@ -148,11 +150,12 @@ const AboutUs = () => {
             </div>
             
             <div className="flex items-center justify-center">
-              <div className="bg-blue-100 rounded-lg p-8 h-64 w-full flex items-center justify-center">
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-green-400 rounded-full mx-auto mb-4"></div>
-                  <div className="w-8 h-4 bg-white rounded-full mx-auto"></div>
-                </div>
+              <div className="bg-blue-100 rounded-lg h-64 w-full flex items-center justify-center overflow-hidden">
+                <img 
+                  src="https://images.unsplash.com/photo-1521791136064-7986c2920216?q=80&w=1287&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" 
+                  alt="Values - Community and trust" 
+                  className="w-full h-full object-cover"
+                />
               </div>
             </div>
           </div>
@@ -210,26 +213,29 @@ const AboutUs = () => {
               and generosity becomes a way of life.
             </p>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
-              <div className="bg-blue-100 rounded-lg p-8 h-48 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-green-400 rounded-full mx-auto mb-4"></div>
-                  <div className="w-8 h-4 bg-white rounded-full mx-auto"></div>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
+                <div className="bg-blue-100 rounded-lg h-48 flex items-center justify-center overflow-hidden">
+                  <img 
+                    src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1287&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" 
+                    alt="Entrepreneurship journey" 
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="bg-blue-100 rounded-lg h-48 flex items-center justify-center overflow-hidden">
+                  <img 
+                    src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=1287&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" 
+                    alt="Faith and family" 
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="bg-blue-100 rounded-lg h-48 flex items-center justify-center overflow-hidden">
+                  <img 
+                    src="https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=1287&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" 
+                    alt="Community support" 
+                    className="w-full h-full object-cover"
+                  />
                 </div>
               </div>
-              <div className="bg-blue-100 rounded-lg p-8 h-48 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-green-400 rounded-full mx-auto mb-4"></div>
-                  <div className="w-8 h-4 bg-white rounded-full mx-auto"></div>
-                </div>
-              </div>
-              <div className="bg-blue-100 rounded-lg p-8 h-48 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-green-400 rounded-full mx-auto mb-4"></div>
-                  <div className="w-8 h-4 bg-white rounded-full mx-auto"></div>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
 
@@ -252,11 +258,12 @@ const AboutUs = () => {
                   that make it easy to engage the community and extend their impact beyond their walls.
                 </p>
               </div>
-              <div className="bg-blue-100 rounded-lg p-8 h-64 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-green-400 rounded-full mx-auto mb-4"></div>
-                  <div className="w-8 h-4 bg-white rounded-full mx-auto"></div>
-                </div>
+              <div className="bg-blue-100 rounded-lg h-64 flex items-center justify-center overflow-hidden">
+                <img 
+                  src="https://images.unsplash.com/photo-1719208829083-3c528a2c959a?q=80&w=1287&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" 
+                  alt="Religious institution" 
+                  className="w-full h-full object-cover"
+                />
               </div>
             </div>
 
@@ -271,11 +278,12 @@ const AboutUs = () => {
                   It's a chance for their business to do well—while doing good.
                 </p>
               </div>
-              <div className="bg-blue-100 rounded-lg p-8 h-64 flex items-center justify-center lg:order-1">
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-green-400 rounded-full mx-auto mb-4"></div>
-                  <div className="w-8 h-4 bg-white rounded-full mx-auto"></div>
-                </div>
+              <div className="bg-blue-100 rounded-lg h-64 flex items-center justify-center overflow-hidden lg:order-1">
+                <img 
+                  src="https://images.unsplash.com/photo-1556761175-b413da4baf72?q=80&w=1287&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" 
+                  alt="Entrepreneurs and business" 
+                  className="w-full h-full object-cover"
+                />
               </div>
             </div>
 
@@ -290,11 +298,12 @@ const AboutUs = () => {
                   with a conscience—where shopping becomes a purpose.
                 </p>
               </div>
-              <div className="bg-blue-100 rounded-lg p-8 h-64 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-green-400 rounded-full mx-auto mb-4"></div>
-                  <div className="w-8 h-4 bg-white rounded-full mx-auto"></div>
-                </div>
+              <div className="bg-blue-100 rounded-lg h-64 flex items-center justify-center overflow-hidden">
+                <img 
+                  src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=1287&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" 
+                  alt="Shoppers and supporters" 
+                  className="w-full h-full object-cover"
+                />
               </div>
             </div>
           </div>
@@ -328,7 +337,7 @@ const AboutUs = () => {
               <Button 
                 variant="outline" 
                 className="bg-white text-[#006699] hover:bg-gray-100 border-white"
-                onClick={() => window.location.href = '/donations'}
+                onClick={() => window.location.href = 'https://parishmart.com'}
               >
                 Support our Mission
               </Button>
