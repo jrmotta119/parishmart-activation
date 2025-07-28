@@ -71,7 +71,7 @@ const Footer = ({
             <ul className="space-y-2">
               <li>
                 <a
-                  href="https://parishmart.com/pages/about-us"
+                  href="/about-us"
                   className="text-gray-600 hover:text-[#006699] transition-colors"
                 >
                   About Us

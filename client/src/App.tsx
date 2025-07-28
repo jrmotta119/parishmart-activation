@@ -13,6 +13,7 @@ import Login from "./components/auth/Login";
 import Signup from "./components/auth/Signup";
 import { AuthProvider } from "./components/auth/AuthContext";
 import VendorProfilePage from "./components/VendorProfilePage";
+import AboutUs from "./components/AboutUs";
 
 // Conditional import for tempo routes
 let routes: any = [];
@@ -52,6 +53,7 @@ function App() {
             <Route path="/products/:category" element={<ProductsPage />} />
             <Route path="/products/:category/:subcategory" element={<ProductsPage />} />
             <Route path="/donations" element={<DonationsPage />} />
+            <Route path="/about-us" element={<AboutUs />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/marketplace/vendor/:vendorId" element={<VendorProfilePage />} />

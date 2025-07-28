@@ -184,7 +184,7 @@ const Header = ({
               </a>
               
               <a
-                href="https://parishmart.com/pages/about-us"
+                href="/about-us"
                 className="text-[#006699] hover:text-[#005588] px-2 py-1 text-sm font-medium"
               >
                 About us
@@ -213,7 +213,7 @@ const Header = ({
               <div className="border-t border-gray-200 my-2"></div>
 
               <a
-                href="https://parishmart.com/pages/about-us"
+                href="/about-us"
                 className="py-2 px-4 text-[#006699] hover:bg-gray-100 rounded-md"
               >
                 About
