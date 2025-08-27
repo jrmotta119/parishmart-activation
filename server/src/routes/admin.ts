@@ -5,6 +5,9 @@ import { EmailTemplates } from '../utils/emailTemplates';
 import { query, getClient } from '../db/connection';
 import { HTTP_STATUS } from '@parishmart/shared';
 import rateLimit from 'express-rate-limit';
+import { readFileSync } from 'fs';
+import path from 'path';
+import { GraphQLClient } from 'graphql-request';
 
 const router = express.Router();
 
@@ -177,7 +180,32 @@ async function activateStoreApproval(client: any, adminId: number, userData: any
       userAgent || null
     ]);
 
-    console.log(`✅ Administrator approved successfully with ID: ${adminId}`);
+    // Load mutation from notes.graphql
+    const mutation = readFileSync(
+      path.join(__dirname, '../../../notes.graphql'),
+      'utf8'
+    ).split('variables:')[0].trim();
+
+    const metaobject = {
+      type: "seller",
+      fields: [
+        { key: "name", value: userData.organization_name || "" },
+        { key: "description", value: userData.organization_description || "" },
+        { key: "url", value: userData.organization_url || "" },
+        { key: "type", value: userData.organization_type || "" },
+        // Add more fields as needed from userData
+      ]
+    };
+
+    // Run mutation on Shopify
+    const result = await graphqlClient.request(mutation, { metaobject });
+
+    if (result.metaobjectCreate?.userErrors?.length) {
+      console.error('❌ Store creation GraphQL errors:', result.metaobjectCreate.userErrors);
+      throw new Error('Failed to create store via GraphQL');
+    }
+
+    console.log(`✅ Administrator approved and store created via GraphQL for adminId: ${adminId}`);
 
   } catch (error) {
     console.error(`❌ Failed to approve administrator:`, error);
@@ -569,4 +597,20 @@ router.get('/approval-stats', async (req: Request, res: Response) => {
   }
 });
 
-export default router; 
+export default router;
+
+// Shopify API config
+const SHOPIFY_DOMAIN = process.env.SHOPIFY_DOMAIN || 'your-shopify-domain.myshopify.com';
+const SHOPIFY_API_VERSION = process.env.SHOPIFY_API_VERSION || '2023-04';
+const SHOPIFY_ACCESS_TOKEN = process.env.SHOPIFY_ACCESS_TOKEN || 'your-access-token';
+
+// Shopify GraphQL endpoint
+const SHOPIFY_GRAPHQL_ENDPOINT = `https://${SHOPIFY_DOMAIN}/admin/api/${SHOPIFY_API_VERSION}/graphql.json`;
+
+// Initialize Shopify GraphQL client
+const graphqlClient = new GraphQLClient(SHOPIFY_GRAPHQL_ENDPOINT, {
+  headers: {
+    'X-Shopify-Access-Token': SHOPIFY_ACCESS_TOKEN,
+    'Content-Type': 'application/json'
+  }
+});

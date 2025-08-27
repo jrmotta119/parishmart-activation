@@ -1,0 +1,48 @@
+mutation CreateSeller($metaobject: MetaobjectCreateInput!) {
+  metaobjectCreate(metaobject: $metaobject) {
+    metaobject {
+      id
+      handle
+      type
+      fields {
+        key
+        value
+      }
+    }
+    userErrors {
+      field
+      message
+    }
+  }
+}
+
+
+
+
+variables:
+{
+  "metaobject": {
+    "type": "seller",
+    "fields": [
+      { "key": "name", "value": "ABC Company" },
+      { "key": "description", "value": "{\"type\":\"root\",\"children\":[{\"type\":\"paragraph\",\"children\":[{\"type\":\"text\",\"value\":\"TESTEST\"}]}]}" },
+      { "key": "banner_image", "value": "gid://shopify/MediaImage/42781886939430" },
+      { "key": "image", "value": "gid://shopify/MediaImage/42256296739110" },
+      { "key": "url", "value": "https://abc.com" },
+      { "key": "type", "value": "estore" },
+      { "key": "missions",   "value": "[\"gid://shopify/Metaobject/117907816742\"]" },
+      { "key": "location", "value": "New York, USA" },
+      { "key": "founder_name", "value": "John Smith" },
+      { "key": "founder_detail", "value": "Founder with over 20 years of experience" },
+      { "key": "question", "value": "Why choose us?" },
+      { "key": "answer", "value": "Because we always put our customers first" },
+      { "key": "founded", "value": "2010" },
+      { "key": "impact", "value": "Created jobs for over 500 employees" },
+      { "key": "slogan", "value": "Quality is our honor" },
+      { "key": "store_type", "value": "[\"Online & Offline\"]" },
+      { "key": "businesses", "value": "[\"gid://shopify/Metaobject/120535875878\"]" },
+      { "key": "support_level", "value": "gid://shopify/Metaobject/129619722534" },
+      { "key": "banner_image_mobile", "value": "gid://shopify/MediaImage/42256296739110" }
+    ]
+  }
+}
