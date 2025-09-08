@@ -180,11 +180,33 @@ async function activateStoreApproval(client: any, adminId: number, userData: any
       userAgent || null
     ]);
 
-    // Load mutation from notes.graphql
-    const mutation = readFileSync(
-      path.join(__dirname, '../../../notes.graphql'),
-      'utf8'
-    ).split('variables:')[0].trim();
+    // TODO check metaobject exists -> update to active store
+
+      //Check if metaobject exists
+
+
+
+
+    // Use mutation string directly instead of reading from file
+    const mutation = `
+      mutation CreateSeller($metaobject: MetaobjectCreateInput!) {
+        metaobjectCreate(metaobject: $metaobject) {
+          metaobject {
+            id
+            handle
+            type
+            fields {
+              key
+              value
+            }
+          }
+          userErrors {
+            field
+            message
+          }
+        }
+      }
+    `;
 
     const metaobject = {
       type: "seller",
