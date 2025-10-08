@@ -8,6 +8,7 @@ import { Upload, Check, Eye, ArrowRight, Crown, Globe, Info } from "lucide-react
 import Header from "./Header";
 import Footer from "./Footer";
 import AnnouncementStrip from "./AnnouncementStrip";
+import CountryStateSelector from "./CountryStateSelector";
 
 interface FormData {
   adminFirstName: string;
@@ -15,8 +16,10 @@ interface FormData {
   email: string;
   streetAddress: string;
   city: string;
-  state: string;
-  country: string;
+  location: {
+    country: string;
+    subdivision: string;
+  };
   zipCode: string;
   phoneNumber: string;
   organizationName: string;
@@ -55,8 +58,10 @@ const StoreRegistrationForm = () => {
     email: "",
     streetAddress: "",
     city: "",
-    state: "",
-    country: "",
+    location: {
+      country: "",
+      subdivision: "",
+    },
     zipCode: "",
     phoneNumber: "",
     organizationName: "",
@@ -85,6 +90,9 @@ const StoreRegistrationForm = () => {
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [attemptedSteps, setAttemptedSteps] = useState<number[]>([]);
+  const [emailError, setEmailError] = useState<string>("");
+  const [foundingYearError, setFoundingYearError] = useState<string>("");
+  const [donationPlatformError, setDonationPlatformError] = useState<string>("");
 
   const [customPrimaryColor, setCustomPrimaryColor] = useState("#006699");
   const [customSecondaryColor, setCustomSecondaryColor] = useState("#e6f7ff");
@@ -108,6 +116,26 @@ const StoreRegistrationForm = () => {
   const [productImagePreviews, setProductImagePreviews] = useState({});
   const [productVideoPreviews, setProductVideoPreviews] = useState({});
 
+  // Email validation function
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return emailRegex.test(email);
+  };
+
+  // Founding year validation function
+  const validateFoundingYear = (year: string): boolean => {
+    return year.length === 4 && /^\d{4}$/.test(year);
+  };
+
+  // Donation platform validation function
+  const validateDonationPlatform = (): boolean => {
+    if (formData.collectsDonations === true) {
+      return formData.donationPlatform !== "" &&
+             (formData.donationPlatform !== "other" || formData.otherDonationPlatform.trim() !== "");
+    }
+    return true;
+  };
+
   const handleInputChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
@@ -115,6 +143,30 @@ const StoreRegistrationForm = () => {
   ) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
+
+    // Email validation
+    if (name === 'email') {
+      if (value && !validateEmail(value)) {
+        setEmailError('Please enter a valid email address');
+      } else {
+        setEmailError('');
+      }
+    }
+
+    // Founding year validation
+    if (name === 'foundingYear') {
+      if (value && !validateFoundingYear(value)) {
+        setFoundingYearError('Founding year must be exactly 4 digits');
+      } else {
+        setFoundingYearError('');
+      }
+    }
+
+    // Donation platform validation
+    if (name === 'donationPlatform' || name === 'otherDonationPlatform') {
+      // Clear error when user starts typing/selecting
+      setDonationPlatformError('');
+    }
   };
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -197,8 +249,8 @@ const StoreRegistrationForm = () => {
       !formData.email ||
       !formData.streetAddress ||
       !formData.city ||
-      !formData.state ||
-      !formData.country ||
+      !formData.location.country ||
+      !formData.location.subdivision ||
       !formData.zipCode ||
       !formData.organizationName ||
       !formData.impact ||
@@ -206,6 +258,24 @@ const StoreRegistrationForm = () => {
       hasTaxExemptStatus === ""
     ) {
       alert("Please fill in all required fields");
+      return;
+    }
+    // Email format validation
+    if (formData.email && !validateEmail(formData.email)) {
+      setEmailError('Please enter a valid email address');
+      alert("Please enter a valid email address");
+      return;
+    }
+    // Founding year validation
+    if (formData.foundingYear && !validateFoundingYear(formData.foundingYear)) {
+      setFoundingYearError('Founding year must be exactly 4 digits');
+      alert("Founding year must be exactly 4 digits");
+      return;
+    }
+    // Donation platform validation
+    if (!validateDonationPlatform()) {
+      setDonationPlatformError('Please select a donation platform');
+      alert("Please select a donation platform");
       return;
     }
     if (hasTaxExemptStatus === "yes" && !formData.taxExemptionForm) {
@@ -254,6 +324,9 @@ const StoreRegistrationForm = () => {
           value.forEach((photo: File) => {
             submitData.append('photos', photo);
           });
+        } else if (key === 'location' && value && typeof value === 'object') {
+          // Handle location object
+          submitData.append('location', JSON.stringify(value));
         } else if (typeof value === 'boolean' || typeof value === 'string' || typeof value === 'number') {
           submitData.append(key, value.toString());
         }
@@ -312,11 +385,26 @@ const StoreRegistrationForm = () => {
 
     // Validate current step before proceeding
     if (step === 1) {
-      if (!formData.adminFirstName || !formData.adminLastName || !formData.email || 
-          !formData.streetAddress || !formData.city || !formData.state || !formData.country || !formData.zipCode ||
-          !formData.organizationName || !formData.description || 
+      if (!formData.adminFirstName || !formData.adminLastName || !formData.email ||
+          !formData.streetAddress || !formData.city || !formData.location.country || !formData.location.subdivision || !formData.zipCode ||
+          !formData.organizationName || !formData.description ||
           !formData.impact || !formData.foundingYear ||
           (formData.organizationType === "other" && !formData.otherOrganizationType)) {
+        return;
+      }
+      // Email format validation
+      if (formData.email && !validateEmail(formData.email)) {
+        setEmailError('Please enter a valid email address');
+        return;
+      }
+      // Founding year validation - must be exactly 4 digits
+      if (formData.foundingYear && !validateFoundingYear(formData.foundingYear)) {
+        setFoundingYearError('Founding year must be exactly 4 digits');
+        return;
+      }
+      // Donation platform validation
+      if (!validateDonationPlatform()) {
+        setDonationPlatformError('Please select a donation platform');
         return;
       }
     } else if (step === 2) {
@@ -667,13 +755,18 @@ Cause: A non-profit or charitable organization focused on a specific mission or 
                         }
                       }}
                       required 
-                      className={`w-full ${!formData.foundingYear && attemptedSteps.includes(1) ? "border-red-500" : ""}`} 
+                      className={`w-full ${(!formData.foundingYear && attemptedSteps.includes(1)) || foundingYearError ? "border-red-500" : ""}`} 
                       placeholder="YYYY" 
                     />
                     {!formData.foundingYear && attemptedSteps.includes(1) && (
                       <p className="mt-1 text-sm text-red-500">Founding year is required</p>
                     )}
-                    {formData.foundingYear && formData.foundingYear.length === 4 && (
+                    {foundingYearError && (
+                      <p className="mt-1 text-sm text-red-500">
+                        {foundingYearError}
+                      </p>
+                    )}
+                    {formData.foundingYear && formData.foundingYear.length === 4 && !foundingYearError && (
                       <p className="mt-1 text-sm text-gray-500">✓ Valid 4-digit year</p>
                     )}
                     
@@ -745,7 +838,10 @@ Cause: A non-profit or charitable organization focused on a specific mission or 
                           name="collectsDonations"
                           value="yes"
                           checked={formData.collectsDonations === true}
-                          onChange={() => setFormData({ ...formData, collectsDonations: true })}
+                          onChange={() => {
+                            setFormData({ ...formData, collectsDonations: true });
+                            setDonationPlatformError('');
+                          }}
                           required
                         />
                         <span>Yes</span>
@@ -756,7 +852,10 @@ Cause: A non-profit or charitable organization focused on a specific mission or 
                           name="collectsDonations"
                           value="no"
                           checked={formData.collectsDonations === false}
-                          onChange={() => setFormData({ ...formData, collectsDonations: false, donationPlatform: "", otherDonationPlatform: "" })}
+                          onChange={() => {
+                            setFormData({ ...formData, collectsDonations: false, donationPlatform: "", otherDonationPlatform: "" });
+                            setDonationPlatformError('');
+                          }}
                           required
                         />
                         <span>No</span>
@@ -775,8 +874,11 @@ Cause: A non-profit or charitable organization focused on a specific mission or 
                         <select
                           id="donationPlatform"
                           value={formData.donationPlatform}
-                          onChange={(e) => setFormData({ ...formData, donationPlatform: e.target.value, otherDonationPlatform: e.target.value === "other" ? formData.otherDonationPlatform : "" })}
-                          className="w-full rounded-md border border-gray-300 py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#006699] focus:border-transparent"
+                          onChange={(e) => {
+                            setFormData({ ...formData, donationPlatform: e.target.value, otherDonationPlatform: e.target.value === "other" ? formData.otherDonationPlatform : "" });
+                            setDonationPlatformError('');
+                          }}
+                          className={`w-full rounded-md border py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#006699] focus:border-transparent ${donationPlatformError ? "border-red-500" : "border-gray-300"}`}
                           required
                         >
                           <option value="">Select a platform</option>
@@ -795,12 +897,20 @@ Cause: A non-profit or charitable organization focused on a specific mission or 
                             <Input
                               id="otherDonationPlatform"
                               value={formData.otherDonationPlatform}
-                              onChange={(e) => setFormData({ ...formData, otherDonationPlatform: e.target.value })}
-                              className="w-full"
+                              onChange={(e) => {
+                                setFormData({ ...formData, otherDonationPlatform: e.target.value });
+                                setDonationPlatformError('');
+                              }}
+                              className={`w-full ${donationPlatformError && formData.donationPlatform === "other" ? "border-red-500" : ""}`}
                               placeholder="Enter the name of your donation platform"
                               required
                             />
                           </div>
+                        )}
+                        {donationPlatformError && (
+                          <p className="mt-1 text-sm text-red-500">
+                            {donationPlatformError}
+                          </p>
                         )}
                       </div>
                     )}
@@ -821,8 +931,13 @@ Cause: A non-profit or charitable organization focused on a specific mission or 
                       </div>
                     </div>
                     <Label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email Address *</Label>
-                    <Input id="email" name="email" type="email" value={formData.email} onChange={handleInputChange} required className={`w-full ${!formData.email && attemptedSteps.includes(1) ? "border-red-500" : ""}`} />
+                    <Input id="email" name="email" type="email" value={formData.email} onChange={handleInputChange} required className={`w-full ${(!formData.email && attemptedSteps.includes(1)) || emailError ? "border-red-500" : ""}`} />
                     {!formData.email && attemptedSteps.includes(1) && (<p className="mt-1 text-sm text-red-500">Email is required</p>)}
+                    {emailError && (
+                      <p className="mt-1 text-sm text-red-500">
+                        {emailError}
+                      </p>
+                    )}
                     <p className="mt-1 text-sm text-gray-500">We'll send your login credentials to this email</p>
                     
                     <Label className="block text-md font-medium text-gray-700 mb-1 mt-4">Billing Address *</Label>
@@ -832,27 +947,26 @@ Cause: A non-profit or charitable organization focused on a specific mission or 
                         <Input id="streetAddress" name="streetAddress" value={formData.streetAddress} onChange={handleInputChange} required className={`w-full ${!formData.streetAddress && attemptedSteps.includes(1) ? "border-red-500" : ""}`} />
                         {!formData.streetAddress && attemptedSteps.includes(1) && (<p className="mt-1 text-sm text-red-500">Street address is required</p>)}
                       </div>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div>
                           <Label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">City *</Label>
                           <Input id="city" name="city" value={formData.city} onChange={handleInputChange} required className={`w-full ${!formData.city && attemptedSteps.includes(1) ? "border-red-500" : ""}`} />
                           {!formData.city && attemptedSteps.includes(1) && (<p className="mt-1 text-sm text-red-500">City is required</p>)}
                         </div>
                         <div>
-                          <Label htmlFor="state" className="block text-sm font-medium text-gray-700 mb-1">State *</Label>
-                          <Input id="state" name="state" value={formData.state} onChange={handleInputChange} required className={`w-full ${!formData.state && attemptedSteps.includes(1) ? "border-red-500" : ""}`} />
-                          {!formData.state && attemptedSteps.includes(1) && (<p className="mt-1 text-sm text-red-500">State is required</p>)}
-                        </div>
-                        <div>
-                          <Label htmlFor="country" className="block text-sm font-medium text-gray-700 mb-1">Country *</Label>
-                          <Input id="country" name="country" value={formData.country} onChange={handleInputChange} required className={`w-full ${!formData.country && attemptedSteps.includes(1) ? "border-red-500" : ""}`} />
-                          {!formData.country && attemptedSteps.includes(1) && (<p className="mt-1 text-sm text-red-500">Country is required</p>)}
-                        </div>
-                        <div>
                           <Label htmlFor="zipCode" className="block text-sm font-medium text-gray-700 mb-1">Zip Code *</Label>
                           <Input id="zipCode" name="zipCode" value={formData.zipCode} onChange={handleInputChange} required className={`w-full ${!formData.zipCode && attemptedSteps.includes(1) ? "border-red-500" : ""}`} />
                           {!formData.zipCode && attemptedSteps.includes(1) && (<p className="mt-1 text-sm text-red-500">Zip code is required</p>)}
                         </div>
+                      </div>
+                      <div className="mb-4">
+                        <CountryStateSelector
+                          value={formData.location}
+                          onChange={(value) => setFormData({ ...formData, location: value })}
+                          countryError={!formData.location.country && attemptedSteps.includes(1)}
+                          stateError={!formData.location.subdivision && attemptedSteps.includes(1)}
+                          showErrors={attemptedSteps.includes(1)}
+                        />
                       </div>
                     </div>
                     <Label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-1 mt-4">Phone Number</Label>
@@ -882,7 +996,10 @@ Cause: A non-profit or charitable organization focused on a specific mission or 
                     onClick={() => handleSubscriptionChange("basic")}
                   >
                     <h3 className="text-lg font-semibold">Basic</h3>
-                    <p className="text-2xl font-bold mb-2">$19.99<span className="text-sm font-normal">/month</span></p>
+                    <div className="mb-2">
+                      <p className="text-3xl font-bold text-green-600 mb-1">$0<span className="text-sm font-normal">/month</span></p>
+                      <p className="text-lg text-gray-500 line-through">$19.99<span className="text-sm font-normal">/month</span></p>
+                    </div>
                     <ul className="space-y-2 text-sm">
                       <li className="flex items-center">
                         <span className="text-[#006699] font-bold mr-2">✓</span> Access to ParishMart marketplace community
@@ -910,7 +1027,10 @@ Cause: A non-profit or charitable organization focused on a specific mission or 
                     onClick={() => handleSubscriptionChange("premium")}
                   >
                     <h3 className="text-lg font-semibold">Premium</h3>
-                    <p className="text-2xl font-bold mb-2">$59.99<span className="text-sm font-normal">/month</span></p>
+                    <div className="mb-2">
+                      <p className="text-3xl font-bold text-green-600 mb-1">$0<span className="text-sm font-normal">/month</span></p>
+                      <p className="text-lg text-gray-500 line-through">$59.99<span className="text-sm font-normal">/month</span></p>
+                    </div>
                     <ul className="space-y-2 text-sm">
                       <li className="flex items-center">
                         <span className="text-[#006699] font-bold mr-2">✓</span> Access to ParishMart marketplace community
@@ -938,7 +1058,10 @@ Cause: A non-profit or charitable organization focused on a specific mission or 
                     onClick={() => handleSubscriptionChange("elite")}
                   >
                     <h3 className="text-lg font-semibold">Elite</h3>
-                    <p className="text-2xl font-bold mb-2">$79.99<span className="text-sm font-normal">/month</span></p>
+                    <div className="mb-2">
+                      <p className="text-3xl font-bold text-green-600 mb-1">$0<span className="text-sm font-normal">/month</span></p>
+                      <p className="text-lg text-gray-500 line-through">$79.99<span className="text-sm font-normal">/month</span></p>
+                    </div>
                     <ul className="space-y-2 text-sm">
                       <li className="flex items-center">
                         <span className="text-[#006699] font-bold mr-2">✓</span> Access to ParishMart marketplace community
@@ -1052,7 +1175,7 @@ Cause: A non-profit or charitable organization focused on a specific mission or 
                           )}
                         </label>
                       </div>
-                      <div className="text-xs text-gray-500 mt-1">Ideal size: 900x225 px</div>
+                      <div className="text-xs text-gray-500 mt-1">Ideal size: 1498x337 px</div>
                       {!banner && attemptedSteps.includes(4) && (
                         <p className="mt-1 text-xs text-red-500">At least one store image is required</p>
                       )}

@@ -22,8 +22,12 @@ interface VendorFormData {
   businessPolicy?: string;
   businessAddress: string;
   businessCity: string;
-  businessState: string;
-  businessCountry: string;
+  businessState?: string;
+  businessCountry?: string;
+  businessLocation?: {
+    country: string;
+    subdivision: string;
+  } | string;
   businessZipCode: string;
   websiteLinks?: string;
   subscriptionType: 'basic' | 'premium' | 'elite';
@@ -42,8 +46,12 @@ interface StoreFormData {
   email: string;
   streetAddress: string;
   city: string;
-  state: string;
-  country: string;
+  state?: string;
+  country?: string;
+  location?: {
+    country: string;
+    subdivision: string;
+  } | string;
   zipCode: string;
   phoneNumber?: string;
   // Organization Information
@@ -122,6 +130,20 @@ export class RegistrationService {
       const vendorId = vendorResult.rows[0].vendor_id;
       
       // 5. Create business record
+      // Parse businessLocation if it's a JSON string
+      if (typeof formData.businessLocation === 'string') {
+        try {
+          formData.businessLocation = JSON.parse(formData.businessLocation);
+        } catch (error) {
+          console.error('Error parsing businessLocation JSON:', error);
+          formData.businessLocation = undefined;
+        }
+      }
+
+      console.log('Form data businessLocation:', formData.businessLocation);
+      console.log('Form data businessState:', formData.businessState);
+      console.log('Form data businessCountry:', formData.businessCountry);
+
       const businessResult = await client.query(`
         INSERT INTO businesses (
           vendor_id, business_name, business_description, business_policy,
@@ -137,8 +159,8 @@ export class RegistrationService {
         formData.businessPolicy || null,
         formData.businessAddress,
         formData.businessCity,
-        formData.businessState,
-        formData.businessCountry,
+        (typeof formData.businessLocation === 'object' && formData.businessLocation?.subdivision) || formData.businessState,
+        (typeof formData.businessLocation === 'object' && formData.businessLocation?.country) || formData.businessCountry,
         formData.businessZipCode,
         formData.reach || null,
         formData.businessUnique || null,
@@ -302,6 +324,16 @@ export class RegistrationService {
       const organizationId = orgResult.rows[0].organization_id;
       
       // 6. Create administrator record (names already split in frontend)
+      // Parse location if it's a JSON string
+      if (typeof formData.location === 'string') {
+        try {
+          formData.location = JSON.parse(formData.location);
+        } catch (error) {
+          console.error('Error parsing location JSON:', error);
+          formData.location = undefined;
+        }
+      }
+
       const adminResult = await client.query(`
         INSERT INTO administrators (
           organization_id, first_name, last_name, email, password_hash,
@@ -316,8 +348,8 @@ export class RegistrationService {
         hashedPassword,
         formData.streetAddress,
         formData.city,
-        formData.state,
-        formData.country,
+        (typeof formData.location === 'object' && formData.location?.subdivision) || formData.state,
+        (typeof formData.location === 'object' && formData.location?.country) || formData.country,
         formData.zipCode,
         formData.phoneNumber || null
       ]);

@@ -1,7 +1,216 @@
 import { Router, Request, Response } from 'express';
 import { HTTP_STATUS } from '@parishmart/shared';
+import { query } from '../db/connection';
 
 const router = Router();
+
+// GET /api/vendors/missions
+router.get('/missions', async (req: Request, res: Response) => {
+  try {
+    console.log('📋 Fetching missions from database...');
+
+    // Query the missions table for mission names (only selecting columns that exist)
+    const result = await query(`
+      SELECT mission_id, mission_name
+      FROM missions
+      ORDER BY mission_name ASC
+    `);
+
+    console.log(`✅ Found ${result.rows.length} missions`);
+
+    res.status(HTTP_STATUS.OK).json({
+      success: true,
+      data: result.rows,
+      message: `Successfully retrieved ${result.rows.length} missions`
+    });
+
+  } catch (error) {
+    console.error('❌ Error fetching missions:', error);
+
+    // Check if the error is related to table not existing
+    if (error instanceof Error && error.message.includes('relation "missions" does not exist')) {
+      console.log('⚠️ Missions table does not exist, returning default missions list');
+
+      // Return a default list of missions if table doesn't exist yet
+      const defaultMissions = [
+        { mission_id: 'default-1', mission_name: "St. Mary's Parish", description: 'Traditional Catholic Parish', active: true },
+        { mission_id: 'default-2', mission_name: "St. Joseph's Church", description: 'Community focused church', active: true },
+        { mission_id: 'default-3', mission_name: 'Holy Trinity Parish', description: 'Family oriented parish', active: true },
+        { mission_id: 'default-4', mission_name: 'Sacred Heart Church', description: 'Historic Catholic church', active: true },
+        { mission_id: 'default-5', mission_name: "St. Patrick's Cathedral", description: 'Cathedral parish', active: true },
+        { mission_id: 'default-6', mission_name: 'Our Lady of Perpetual Help', description: 'Devotional parish', active: true },
+        { mission_id: 'default-7', mission_name: 'St. Francis of Assisi', description: 'Franciscan community', active: true },
+        { mission_id: 'default-8', mission_name: 'Christ the King Parish', description: 'Modern Catholic community', active: true },
+        { mission_id: 'default-9', mission_name: 'Immaculate Conception Church', description: 'Traditional parish', active: true },
+        { mission_id: 'default-10', mission_name: 'St. Thomas Aquinas Parish', description: 'Educational focused parish', active: true }
+      ];
+
+      res.status(HTTP_STATUS.OK).json({
+        success: true,
+        data: defaultMissions,
+        message: 'Retrieved default missions list (table not yet created)',
+        isDefault: true
+      });
+    } else {
+      res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+        success: false,
+        message: 'Failed to fetch missions',
+        error: process.env.NODE_ENV === 'development' ? error : 'Internal server error'
+      });
+    }
+  }
+});
+
+// GET /api/vendors/schema - Inspect database schema
+router.get('/schema', async (req: Request, res: Response) => {
+  try {
+    console.log('🔍 Inspecting database schema...');
+
+    // Get missions table structure
+    const missionsSchema = await query(`
+      SELECT column_name, data_type, is_nullable, column_default
+      FROM information_schema.columns
+      WHERE table_name = 'missions'
+      ORDER BY ordinal_position;
+    `);
+
+    // Get all tables
+    const tables = await query(`
+      SELECT table_name
+      FROM information_schema.tables
+      WHERE table_schema = 'public'
+      ORDER BY table_name;
+    `);
+
+    // Get responsible table schema
+    const responsibleSchema = await query(`
+      SELECT column_name, data_type, is_nullable, column_default
+      FROM information_schema.columns
+      WHERE table_name = 'responsible'
+      ORDER BY ordinal_position;
+    `);
+
+    // Get responsible table constraints
+    const responsibleConstraints = await query(`
+      SELECT con.conname as constraint_name,
+             con.contype as constraint_type,
+             pg_get_constraintdef(con.oid) as constraint_definition
+      FROM pg_constraint con
+      JOIN pg_class rel ON rel.oid = con.conrelid
+      WHERE rel.relname = 'responsible'
+      AND con.contype = 'c';
+    `);
+
+    res.status(HTTP_STATUS.OK).json({
+      success: true,
+      data: {
+        tables: tables.rows,
+        missionsSchema: missionsSchema.rows,
+        responsibleSchema: responsibleSchema.rows,
+        responsibleConstraints: responsibleConstraints.rows
+      },
+      message: 'Database schema retrieved successfully'
+    });
+
+  } catch (error) {
+    console.error('❌ Error inspecting schema:', error);
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: 'Failed to inspect database schema',
+      error: process.env.NODE_ENV === 'development' ? error : 'Internal server error'
+    });
+  }
+});
+
+// POST /api/vendors/update-missions - Update missions and responsible data from PDF
+router.post('/update-missions', async (req: Request, res: Response) => {
+  try {
+    console.log('🔄 Updating missions and responsible data from PDF...');
+
+    // Import the script content
+    const fs = require('fs');
+    const path = require('path');
+    const scriptPath = path.join(__dirname, '../scripts/complete_missions_data.sql');
+
+    if (!fs.existsSync(scriptPath)) {
+      throw new Error('SQL script file not found');
+    }
+
+    const sqlScript = fs.readFileSync(scriptPath, 'utf8');
+
+    // Execute the SQL script
+    await query(sqlScript);
+
+    // Get updated counts
+    const missionCount = await query('SELECT COUNT(*) as count FROM missions');
+    const responsibleCount = await query('SELECT COUNT(*) as count FROM responsible');
+
+    console.log(`✅ Missions updated: ${missionCount.rows[0].count} total missions`);
+    console.log(`✅ Responsible records: ${responsibleCount.rows[0].count} total responsible persons`);
+
+    res.status(HTTP_STATUS.OK).json({
+      success: true,
+      data: {
+        totalMissions: missionCount.rows[0].count,
+        totalResponsible: responsibleCount.rows[0].count
+      },
+      message: 'Missions and responsible data updated successfully from PDF'
+    });
+
+  } catch (error) {
+    console.error('❌ Error updating missions data:', error);
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: 'Failed to update missions data',
+      error: process.env.NODE_ENV === 'development' ? error : 'Internal server error'
+    });
+  }
+});
+
+// POST /api/vendors/add-remaining-parishes - Add all remaining parishes from complete PDF analysis
+router.post('/add-remaining-parishes', async (req: Request, res: Response) => {
+  try {
+    console.log('🔄 Adding remaining parishes, Eastern Rite churches, and hospitals from PDF...');
+
+    // Import the script content
+    const fs = require('fs');
+    const path = require('path');
+    const scriptPath = path.join(__dirname, '../scripts/add_remaining_parishes.sql');
+
+    if (!fs.existsSync(scriptPath)) {
+      throw new Error('SQL script file not found');
+    }
+
+    const sqlScript = fs.readFileSync(scriptPath, 'utf8');
+
+    // Execute the SQL script
+    await query(sqlScript);
+
+    // Get updated counts
+    const missionCount = await query('SELECT COUNT(*) as count FROM missions');
+    const responsibleCount = await query('SELECT COUNT(*) as count FROM responsible');
+
+    console.log(`✅ All parishes added: ${missionCount.rows[0].count} total missions`);
+    console.log(`✅ All responsible records: ${responsibleCount.rows[0].count} total responsible persons`);
+
+    res.status(HTTP_STATUS.OK).json({
+      success: true,
+      data: {
+        totalMissions: missionCount.rows[0].count,
+        totalResponsible: responsibleCount.rows[0].count
+      },
+      message: 'All remaining parishes, Eastern Rite churches, and hospitals added successfully from PDF'
+    });
+
+  } catch (error) {
+    console.error('❌ Error adding remaining parishes:', error);
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: 'Failed to add remaining parishes',
+      error: process.env.NODE_ENV === 'development' ? error : 'Internal server error'
+    });
+  }
+});
 
 // GET /api/vendors
 router.get('/', async (req: Request, res: Response) => {

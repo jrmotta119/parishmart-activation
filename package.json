@@ -30,7 +30,9 @@
     "db:seed": "cd server && npm run db:seed"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "concurrently": "^8.2.2",
+    "cypress": "^15.3.0",
+    "vite": "^6.3.6"
   },
   "engines": {
     "node": "18.x",

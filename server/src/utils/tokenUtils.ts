@@ -146,9 +146,22 @@ export class TokenUtils {
 
       if (user_type === 'vendor') {
         const result = await query(`
-          SELECT 
+          SELECT
             v.*,
             b.business_name,
+            b.business_description,
+            b.business_type,
+            b.business_policy,
+            b.business_address,
+            b.business_city,
+            b.business_state,
+            b.business_country,
+            b.business_zip_code,
+            b.business_reach,
+            b.what_makes_unique,
+            b.website_links,
+            b.contact_email,
+            b.contact_phone,
             b.current_subscription_type
           FROM vendors v
           LEFT JOIN businesses b ON v.vendor_id = b.vendor_id
@@ -158,10 +171,17 @@ export class TokenUtils {
         userData = result.rows[0] || null;
       } else if (user_type === 'administrator') {
         const result = await query(`
-          SELECT 
+          SELECT
             a.*,
             o.name as organization_name,
             o.organization_type,
+            o.description,
+            o.impact,
+            o.since_year,
+            o.slogan,
+            o.is_tax_exempt,
+            o.collect_donations,
+            o.donations_platform,
             o.current_subscription_type
           FROM administrators a
           LEFT JOIN organizations o ON a.organization_id = o.organization_id

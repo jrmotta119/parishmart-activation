@@ -35,6 +35,14 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "./ui/tooltip";
+import CountryStateSelector from "./CountryStateSelector";
+
+interface Mission {
+  mission_id: string;
+  mission_name: string;
+  description?: string;
+  active: boolean;
+}
 
 interface FormData {
   firstName: string;
@@ -51,8 +59,10 @@ interface FormData {
   businessPolicy: string;
   businessAddress: string;
   businessCity: string;
-  businessState: string;
-  businessCountry: string;
+  businessLocation: {
+    country: string;
+    subdivision: string;
+  };
   businessZipCode: string;
   logo: File | null;
   businessImages: (File | null)[];
@@ -71,7 +81,7 @@ interface FormData {
     otherCategory?: string;
   }[];
   participateInCampaigns: boolean;
-  
+
   reach: "local" | "regional" | "national" | "global" | "";
   contactForOpportunities: boolean | null;
 }
@@ -92,8 +102,10 @@ const VendorRegistrationForm = () => {
     businessPolicy: "",
     businessAddress: "",
     businessCity: "",
-    businessState: "",
-    businessCountry: "",
+    businessLocation: {
+      country: "",
+      subdivision: "",
+    },
     businessZipCode: "",
     logo: null,
     businessImages: [null, null, null],
@@ -123,6 +135,10 @@ const VendorRegistrationForm = () => {
   const [parishSearch, setParishSearch] = useState("");
   const [customParish, setCustomParish] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [missions, setMissions] = useState<Mission[]>([]);
+  const [missionsLoading, setMissionsLoading] = useState(true);
+  const [missionsError, setMissionsError] = useState<string | null>(null);
+  const [emailError, setEmailError] = useState<string>("");
 
   const [showAnnouncement, setShowAnnouncement] = useState(true);
 
@@ -140,19 +156,51 @@ const VendorRegistrationForm = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const parishes = [
-    "St. Mary's Parish",
-    "St. Joseph's Church",
-    "Holy Trinity Parish",
-    "Sacred Heart Church",
-    "St. Patrick's Cathedral",
-    "Our Lady of Perpetual Help",
-    "St. Francis of Assisi",
-    "Christ the King Parish",
-    "Immaculate Conception Church",
-    "St. Thomas Aquinas Parish",
-    "Other",
-  ];
+  // Fetch missions from API
+  useEffect(() => {
+    const fetchMissions = async () => {
+      try {
+        setMissionsLoading(true);
+        setMissionsError(null);
+
+        const response = await fetch('/api/vendors/missions');
+        const data = await response.json();
+
+        if (data.success) {
+          setMissions(data.data || []);
+          console.log(`✅ Loaded ${data.data?.length || 0} missions from API`);
+        } else {
+          throw new Error(data.message || 'Failed to fetch missions');
+        }
+      } catch (error) {
+        console.error('❌ Error fetching missions:', error);
+        setMissionsError(error instanceof Error ? error.message : 'Failed to load missions');
+
+        // Fallback to hardcoded list if API fails
+        const fallbackMissions: Mission[] = [
+          { mission_id: 'fallback-1', mission_name: "St. Mary's Parish", active: true },
+          { mission_id: 'fallback-2', mission_name: "St. Joseph's Church", active: true },
+          { mission_id: 'fallback-3', mission_name: 'Holy Trinity Parish', active: true },
+          { mission_id: 'fallback-4', mission_name: 'Sacred Heart Church', active: true },
+          { mission_id: 'fallback-5', mission_name: "St. Patrick's Cathedral", active: true },
+          { mission_id: 'fallback-6', mission_name: 'Our Lady of Perpetual Help', active: true },
+          { mission_id: 'fallback-7', mission_name: 'St. Francis of Assisi', active: true },
+          { mission_id: 'fallback-8', mission_name: 'Christ the King Parish', active: true },
+          { mission_id: 'fallback-9', mission_name: 'Immaculate Conception Church', active: true },
+          { mission_id: 'fallback-10', mission_name: 'St. Thomas Aquinas Parish', active: true }
+        ];
+
+        setMissions(fallbackMissions);
+        console.log('⚠️ Using fallback missions list');
+      } finally {
+        setMissionsLoading(false);
+      }
+    };
+
+    fetchMissions();
+  }, []);
+
+  // Missions are now loaded dynamically from the API
 
   const productCategories = [
     "Clothing & Apparel",
@@ -171,6 +219,12 @@ const VendorRegistrationForm = () => {
     "Other",
   ];
 
+  // Email validation function
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return emailRegex.test(email);
+  };
+
   const handleInputChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
@@ -178,6 +232,15 @@ const VendorRegistrationForm = () => {
   ) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
+
+    // Email validation
+    if (name === 'email') {
+      if (value && !validateEmail(value)) {
+        setEmailError('Please enter a valid email address');
+      } else {
+        setEmailError('');
+      }
+    }
   };
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -415,8 +478,8 @@ const VendorRegistrationForm = () => {
       !formData.reach ||
       !formData.businessAddress ||
       !formData.businessCity ||
-      !formData.businessState ||
-      !formData.businessCountry ||
+      !formData.businessLocation.country ||
+      !formData.businessLocation.subdivision ||
       !formData.businessZipCode
     ) {
       setToastMessage("Please fill in all required fields before submitting");
@@ -478,6 +541,9 @@ const VendorRegistrationForm = () => {
               submitData.append('businessImages', image);
             }
           });
+        } else if (key === 'businessLocation' && value && typeof value === 'object') {
+          // Handle businessLocation object
+          submitData.append('businessLocation', JSON.stringify(value));
         } else if (key === 'products') {
           // Handle products array
           submitData.append('products', JSON.stringify(value));
@@ -546,6 +612,14 @@ const VendorRegistrationForm = () => {
         setTimeout(() => setShowToast(false), 3000);
         return;
       }
+      // Email format validation
+      if (formData.email && !validateEmail(formData.email)) {
+        setEmailError('Please enter a valid email address');
+        setToastMessage("Please enter a valid email address");
+        setShowToast(true);
+        setTimeout(() => setShowToast(false), 3000);
+        return;
+      }
     } else if (step === 2) {
       if (
         !formData.businessName ||
@@ -554,8 +628,8 @@ const VendorRegistrationForm = () => {
         !formData.reach ||
         !formData.businessAddress ||
         !formData.businessCity ||
-        !formData.businessState ||
-        !formData.businessCountry ||
+        !formData.businessLocation.country ||
+        !formData.businessLocation.subdivision ||
         !formData.businessZipCode
       ) {
         setToastMessage("Please fill in all required fields and upload a logo");
@@ -780,11 +854,16 @@ const VendorRegistrationForm = () => {
                         value={formData.email}
                         onChange={handleInputChange}
                         required
-                        className={`w-full ${!formData.email && attemptedSteps.includes(step) && "border-red-300"}`}
+                        className={`w-full ${(!formData.email && attemptedSteps.includes(step)) || emailError ? "border-red-300" : ""}`}
                       />
                       {!formData.email && attemptedSteps.includes(step) && (
                         <p className="mt-1 text-sm text-red-600">
                           Email is required
+                        </p>
+                      )}
+                      {emailError && (
+                        <p className="mt-1 text-sm text-red-600">
+                          {emailError}
                         </p>
                       )}
                     </div>
@@ -841,21 +920,40 @@ const VendorRegistrationForm = () => {
                             autoFocus
                           />
                           <div className="max-h-48 overflow-y-auto">
-                            {parishes
-                              .filter(parish => parish.toLowerCase().includes(parishSearch.toLowerCase()))
-                              .map(parish => (
+                            {missionsLoading ? (
+                              <div className="px-3 py-2 text-gray-500">Loading missions...</div>
+                            ) : missionsError ? (
+                              <div className="px-3 py-2 text-red-500">Error loading missions</div>
+                            ) : (
+                              [...missions
+                                .filter(mission => mission.mission_name.toLowerCase().includes(parishSearch.toLowerCase()))
+                                .map(mission => (
+                                  <div
+                                    key={mission.mission_id}
+                                    className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                                    onClick={() => {
+                                      setFormData({ ...formData, parishAffiliation: mission.mission_name });
+                                      setDropdownOpen(false);
+                                      setParishSearch("");
+                                    }}
+                                  >
+                                    {mission.mission_name}
+                                  </div>
+                                )),
+                                // Add "Other" option at the end
                                 <div
-                                  key={parish}
-                                  className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                                  key="other"
+                                  className="px-3 py-2 hover:bg-gray-100 cursor-pointer border-t border-gray-200"
                                   onClick={() => {
-                                    setFormData({ ...formData, parishAffiliation: parish });
+                                    setFormData({ ...formData, parishAffiliation: "Other" });
                                     setDropdownOpen(false);
                                     setParishSearch("");
                                   }}
                                 >
-                                  {parish}
+                                  Other
                                 </div>
-                              ))}
+                              ]
+                            )}
                           </div>
                         </div>
                       )}
@@ -1118,7 +1216,7 @@ const VendorRegistrationForm = () => {
                     )}
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <div>
                       <Label
                         htmlFor="businessCity"
@@ -1141,52 +1239,16 @@ const VendorRegistrationForm = () => {
                         </p>
                       )}
                     </div>
+                  </div>
 
-                    <div>
-                      <Label
-                        htmlFor="businessState"
-                        className="block text-sm font-medium text-gray-700 mb-1"
-                      >
-                        State *
-                      </Label>
-                      <Input
-                        id="businessState"
-                        name="businessState"
-                        value={formData.businessState}
-                        onChange={handleInputChange}
-                        required
-                        className={`w-full ${!formData.businessState && attemptedSteps.includes(step) && "border-red-300"}`}
-                        placeholder="State"
-                      />
-                      {!formData.businessState && attemptedSteps.includes(step) && (
-                        <p className="mt-1 text-sm text-red-600">
-                          State is required
-                        </p>
-                      )}
-                    </div>
-
-                    <div>
-                      <Label
-                        htmlFor="businessCountry"
-                        className="block text-sm font-medium text-gray-700 mb-1"
-                      >
-                        Country *
-                      </Label>
-                      <Input
-                        id="businessCountry"
-                        name="businessCountry"
-                        value={formData.businessCountry}
-                        onChange={handleInputChange}
-                        required
-                        className={`w-full ${!formData.businessCountry && attemptedSteps.includes(step) && "border-red-300"}`}
-                        placeholder="Country"
-                      />
-                      {!formData.businessCountry && attemptedSteps.includes(step) && (
-                        <p className="mt-1 text-sm text-red-600">
-                          Country is required
-                        </p>
-                      )}
-                    </div>
+                  <div className="mb-6">
+                    <CountryStateSelector
+                      value={formData.businessLocation}
+                      onChange={(value) => setFormData({ ...formData, businessLocation: value })}
+                      countryError={!formData.businessLocation.country && attemptedSteps.includes(step)}
+                      stateError={!formData.businessLocation.subdivision && attemptedSteps.includes(step)}
+                      showErrors={attemptedSteps.includes(step)}
+                    />
                   </div>
 
                   <div className="mb-6">
@@ -1246,50 +1308,44 @@ const VendorRegistrationForm = () => {
                         )}
                       </div>
                       
-                      {/* Business Images Upload (3 Rectangular) */}
+                      {/* Business Banner Upload (Single Image) */}
                       <div className="flex flex-col items-center flex-1">
-                        <div className="text-center font-medium mb-2">Upload Business Images (for banner creation)</div>
-                        <div className="flex space-x-2">
-                          {[0, 1, 2].map((index) => (
-                            <div key={index} className="flex flex-col items-center">
-                              <div className={`w-48 h-32 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center text-center cursor-pointer hover:bg-gray-50 transition-colors mb-2`}>
-                                <input
-                                  type="file"
-                                  id={`business-image-${index}`}
-                                  accept="image/*"
-                                  onChange={(e) => {
-                                    if (e.target.files && e.target.files[0]) {
-                                      const file = e.target.files[0];
-                                      // Create a preview URL and update state
-                                      const newPreviews = [...businessImagePreviews];
-                                      newPreviews[index] = URL.createObjectURL(file);
-                                      setBusinessImagePreviews(newPreviews);
-                                      
-                                      // Update the actual file in formData
-                                      const newBusinessImages = [...formData.businessImages];
-                                      newBusinessImages[index] = file;
-                                      setFormData({ ...formData, businessImages: newBusinessImages });
-                                    }
-                                  }}
-                                  className="hidden"
-                                />
-                                <label htmlFor={`business-image-${index}`} className="cursor-pointer flex flex-col items-center w-full h-full justify-center">
-                                  {businessImagePreviews[index] ? (
-                                    <img src={businessImagePreviews[index]} alt={`Business preview ${index + 1}`} className="w-full h-full object-cover rounded-lg" />
-                                  ) : (
-                                    <>
-                                      <Upload className="h-6 w-6 text-gray-400 mb-1 mx-auto" />
-                                      <span className="text-xs text-gray-500">Image {index + 1}</span>
-                                      <span className="text-xs text-gray-400">PNG, JPG, GIF</span>
-                                    </>
-                                  )}
-                                </label>
-                              </div>
-                            </div>
-                          ))}
+                        <div className="text-center font-medium mb-2">Upload Business Banner</div>
+                        <div className="flex flex-col items-center">
+                          <div className={`w-96 h-32 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center text-center cursor-pointer hover:bg-gray-50 transition-colors mb-2`}>
+                            <input
+                              type="file"
+                              id="business-banner"
+                              accept="image/*"
+                              onChange={(e) => {
+                                if (e.target.files && e.target.files[0]) {
+                                  const file = e.target.files[0];
+                                  // Create a preview URL and update state
+                                  const newPreviews = [URL.createObjectURL(file), null, null];
+                                  setBusinessImagePreviews(newPreviews);
+
+                                  // Update the actual file in formData (only first slot)
+                                  const newBusinessImages = [file, null, null];
+                                  setFormData({ ...formData, businessImages: newBusinessImages });
+                                }
+                              }}
+                              className="hidden"
+                            />
+                            <label htmlFor="business-banner" className="cursor-pointer flex flex-col items-center w-full h-full justify-center">
+                              {businessImagePreviews[0] ? (
+                                <img src={businessImagePreviews[0]} alt="Business banner preview" className="w-full h-full object-cover rounded-lg" />
+                              ) : (
+                                <>
+                                  <Upload className="h-8 w-8 text-gray-400 mb-2 mx-auto" />
+                                  <span className="text-sm text-gray-500">Click to upload banner</span>
+                                  <span className="text-xs text-gray-400">PNG, JPG, GIF up to 5MB</span>
+                                </>
+                              )}
+                            </label>
+                          </div>
                         </div>
-                        <div className="text-xs text-gray-500 mt-1">Ideal size: 300x225 px</div>
-                        <p className="text-xs text-gray-500 mt-1">These images will be used to create your business banner</p>
+                        <div className="text-xs text-gray-500 mt-1">Ideal size: 2489x500 px</div>
+                        <p className="text-xs text-gray-500 mt-1">This image will be used as your business banner</p>
                       </div>
                     </div>
                   </div>
@@ -1329,7 +1385,10 @@ const VendorRegistrationForm = () => {
                       onClick={() => handleSubscriptionChange("basic")}
                     >
                       <h3 className="text-lg font-semibold">Basic</h3>
-                      <p className="text-2xl font-bold mb-2">$49.99<span className="text-sm font-normal">/month</span></p>
+                      <div className="mb-2">
+                        <p className="text-3xl font-bold text-green-600 mb-1">$0<span className="text-sm font-normal">/month</span></p>
+                        <p className="text-lg text-gray-500 line-through">$49.99<span className="text-sm font-normal">/month</span></p>
+                      </div>
                       <ul className="space-y-2 text-sm">
                         <li className="flex items-center">
                           <span className="text-[#006699] font-bold mr-2">✓</span> Promotional listing
@@ -1352,7 +1411,10 @@ const VendorRegistrationForm = () => {
                       onClick={() => handleSubscriptionChange("premium")}
                     >
                       <h3 className="text-lg font-semibold">Premium</h3>
-                      <p className="text-2xl font-bold mb-2">$79.99<span className="text-sm font-normal">/month</span></p>
+                      <div className="mb-2">
+                        <p className="text-3xl font-bold text-green-600 mb-1">$0<span className="text-sm font-normal">/month</span></p>
+                        <p className="text-lg text-gray-500 line-through">$79.99<span className="text-sm font-normal">/month</span></p>
+                      </div>
                       <ul className="space-y-2 text-sm">
                         <li className="flex items-center">
                           <span className="text-[#006699] font-bold mr-2">✓</span> Promotional listing
@@ -1375,7 +1437,10 @@ const VendorRegistrationForm = () => {
                       onClick={() => handleSubscriptionChange("elite")}
                     >
                       <h3 className="text-lg font-semibold">Elite</h3>
-                      <p className="text-2xl font-bold mb-2">$99.99<span className="text-sm font-normal">/month</span></p>
+                      <div className="mb-2">
+                        <p className="text-3xl font-bold text-green-600 mb-1">$0<span className="text-sm font-normal">/month</span></p>
+                        <p className="text-lg text-gray-500 line-through">$99.99<span className="text-sm font-normal">/month</span></p>
+                      </div>
                       <ul className="space-y-2 text-sm">
                         <li className="flex items-center">
                           <span className="text-[#006699] font-bold mr-2">✓</span> Promotional listing
