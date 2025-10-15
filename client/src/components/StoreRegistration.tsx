@@ -42,11 +42,24 @@ const StoreRegistration = () => {
             <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
               Build your Store
             </h1>
+            {/* YouTube Video */}
+            <div className="max-w-4xl mx-auto mb-8">
+              <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+                <iframe
+                  className="absolute top-0 left-0 w-full h-full rounded-xl shadow-lg"
+                  src="https://www.youtube.com/embed/Gb81W2dnNFk"
+                  title="Build Your Store Video"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                ></iframe>
+              </div>
+            </div>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-6">
-              Expand your outreach and empower your mission with your own ParishMart storefront. Whether you're a parish, church, or mission, we make it easy to showcase products, collect donations, and engage and grow your community. 
+              Expand your outreach and empower your mission with your own ParishMart storefront. Whether you're a parish, church, or mission, we make it easy to showcase products, collect donations, and engage and grow your community.
             </p>
             <p className="text-lg text-center text-gray-700 font-medium">
-              Get started today and make an even greater impact! 
+              Get started today and make an even greater impact!
             </p>
           </div>
 

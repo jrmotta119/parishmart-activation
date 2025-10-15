@@ -43,6 +43,19 @@ const SellWithUs = () => {
             <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
               Sell With Us
             </h1>
+            {/* YouTube Video */}
+            <div className="max-w-4xl mx-auto mb-8">
+              <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+                <iframe
+                  className="absolute top-0 left-0 w-full h-full rounded-xl shadow-lg"
+                  src="https://www.youtube.com/embed/flELulcfGlM"
+                  title="Sell With Us Video"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                ></iframe>
+              </div>
+            </div>
           </div>
           {/* Why Sell With Us Section */}
           <div className="mb-16">
