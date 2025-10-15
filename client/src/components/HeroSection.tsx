@@ -111,9 +111,9 @@ const HeroSection = () => {
         <button
           aria-label="Previous slide"
           onClick={prev}
-          className="absolute z-20 bg-white text-[#006699] shadow-md rounded-full w-12 h-12 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-[#006699] left-6 top-1/2 -translate-y-1/2"
+          className="absolute z-20 text-white/80 hover:text-white hover:bg-white/20 bg-black/20 backdrop-blur-sm transition-all duration-200 rounded-full w-10 h-10 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-white/30 left-4 top-1/2 -translate-y-1/2"
         >
-          <span className="text-3xl">&#60;</span>
+          <span className="text-2xl font-normal">‹</span>
         </button>
         {/* Slide Content - swipeable and clickable */}
         <motion.div
@@ -156,9 +156,9 @@ const HeroSection = () => {
         <button
           aria-label="Next slide"
           onClick={next}
-          className="absolute z-20 bg-white text-[#006699] shadow-md rounded-full w-12 h-12 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-[#006699] right-6 top-1/2 -translate-y-1/2"
+          className="absolute z-20 text-white/80 hover:text-white hover:bg-white/20 bg-black/20 backdrop-blur-sm transition-all duration-200 rounded-full w-10 h-10 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-white/30 right-4 top-1/2 -translate-y-1/2"
         >
-          <span className="text-3xl">&#62;</span>
+          <span className="text-2xl font-normal">›</span>
         </button>
         {/* Dots */}
         <div className="absolute left-0 right-0 bottom-6 flex justify-center z-30">

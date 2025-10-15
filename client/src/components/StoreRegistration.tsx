@@ -68,10 +68,10 @@ const StoreRegistration = () => {
                     1
                   </div>
                   <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                    Register
+                    Register Your Store
                   </h3>
                   <p className="text-gray-700">
-                  Provide your organization's basic information to get started.
+                  Provide your organization's information and submit your application.
                   </p>
                 </div>
                 <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100 text-center">
@@ -79,10 +79,10 @@ const StoreRegistration = () => {
                     2
                   </div>
                   <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                    Customize Your Storefront
+                    Get Approved
                   </h3>
                   <p className="text-gray-700">
-                  Upload your logo and images that reflect your mission and identity.
+                    We'll review your registration and approve your Organization.
                   </p>
                 </div>
                 <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100 text-center">

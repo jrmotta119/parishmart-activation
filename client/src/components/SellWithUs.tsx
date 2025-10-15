@@ -68,10 +68,10 @@ const SellWithUs = () => {
                   1
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                  Select Your Membership
+                  Complete Your Registration Form
                 </h3>
                 <p className="text-gray-700">
-                  Explore and select the membership that best suits your needs.
+                  Provide your business information and set up your listings.
                 </p>
               </div>
               <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100 text-center">
@@ -79,10 +79,10 @@ const SellWithUs = () => {
                   2
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                  Complete Your Registration
+                  Get Approved
                 </h3>
                 <p className="text-gray-700">
-                  Provide your business information and set up your listings.
+                  We'll review your registration and approve your account.
                 </p>
               </div>
               <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100 text-center">
