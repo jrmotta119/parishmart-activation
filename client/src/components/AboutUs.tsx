@@ -51,9 +51,22 @@ const AboutUs = () => {
           <p className="text-xl md:text-2xl font-semibold text-center text-gray-700 mb-8">
             ParishMart - Shop with purpose, serve with love.
           </p>
+          {/* YouTube Video */}
+          <div className="max-w-4xl mx-auto mb-8">
+            <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+              <iframe
+                className="absolute top-0 left-0 w-full h-full rounded-xl shadow-lg"
+                src="https://www.youtube.com/embed/yT9ZlgoEQyg"
+                title="About ParishMart Video"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              ></iframe>
+            </div>
+          </div>
           <p className="text-lg text-gray-600 text-center max-w-4xl mx-auto leading-relaxed">
-            ParishMart is more than a marketplace—it's a mission uniting faith, service, and entrepreneurship. 
-            We bring faith-based communities, mission-driven causes and values-aligned businesses to create 
+            ParishMart is more than a marketplace—it's a mission uniting faith, service, and entrepreneurship.
+            We bring faith-based communities, mission-driven causes and values-aligned businesses to create
             a marketplace where every transaction supports a greater purpose.
           </p>
         </div>
@@ -64,9 +77,9 @@ const AboutUs = () => {
             {/* Mission */}
             <div className="text-center lg:text-left">
               <div className="bg-blue-100 rounded-lg mb-6 h-48 flex items-center justify-center overflow-hidden">
-                <img 
-                  src="https://images.unsplash.com/photo-1559027615-cd4628902d4a?q=80&w=1287&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" 
-                  alt="Mission - Helping hands" 
+                <img
+                  src="https://parishmart-files-public.s3.us-east-2.amazonaws.com/media/friends-embracing-beach-looking-sky.jpg"
+                  alt="Mission - Helping hands"
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -80,9 +93,9 @@ const AboutUs = () => {
             {/* Vision */}
             <div className="text-center lg:text-left">
               <div className="bg-blue-100 rounded-lg mb-6 h-48 flex items-center justify-center overflow-hidden">
-                <img 
-                  src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=1287&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" 
-                  alt="Vision - Future planning" 
+                <img
+                  src="https://parishmart-files-public.s3.us-east-2.amazonaws.com/media/couple-s-hand-holding-tied-valentine-gift.jpg"
+                  alt="Vision - Future planning"
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -149,11 +162,11 @@ const AboutUs = () => {
               </Accordion>
             </div>
             
-            <div className="flex items-center justify-center">
+            <div className="flex items-start justify-center mt-16 lg:mt-20">
               <div className="bg-blue-100 rounded-lg h-64 w-full flex items-center justify-center overflow-hidden">
-                <img 
-                  src="https://images.unsplash.com/photo-1521791136064-7986c2920216?q=80&w=1287&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" 
-                  alt="Values - Community and trust" 
+                <img
+                  src="https://parishmart-files-public.s3.us-east-2.amazonaws.com/media/strength-people-hands-success-meeting.jpg"
+                  alt="Values - Community and trust"
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -215,23 +228,23 @@ const AboutUs = () => {
             
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
                 <div className="bg-blue-100 rounded-lg h-48 flex items-center justify-center overflow-hidden">
-                  <img 
-                    src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1287&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" 
-                    alt="Entrepreneurship journey" 
+                  <img
+                    src="https://parishmart-files-public.s3.us-east-2.amazonaws.com/media/tourists-go-up-hill-sunrise.jpg"
+                    alt="Entrepreneurship journey"
                     className="w-full h-full object-cover"
                   />
                 </div>
                 <div className="bg-blue-100 rounded-lg h-48 flex items-center justify-center overflow-hidden">
-                  <img 
-                    src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=1287&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" 
-                    alt="Faith and family" 
+                  <img
+                    src="https://parishmart-files-public.s3.us-east-2.amazonaws.com/media/app-woman-white-solution-closeup-two.jpg"
+                    alt="Faith and family"
                     className="w-full h-full object-cover"
                   />
                 </div>
                 <div className="bg-blue-100 rounded-lg h-48 flex items-center justify-center overflow-hidden">
-                  <img 
-                    src="https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=1287&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" 
-                    alt="Community support" 
+                  <img
+                    src="https://parishmart-files-public.s3.us-east-2.amazonaws.com/media/businesses_w_t.png"
+                    alt="Community support"
                     className="w-full h-full object-cover"
                   />
                 </div>

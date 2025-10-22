@@ -243,7 +243,9 @@ export class RegistrationService {
         businessDescription: formData.businessDescription || '',
         parishAffiliation: formData.parishAffiliation,
         reach: 'local', // Default value
-        contactForOpportunities: formData.contactForOpportunities || false
+        contactForOpportunities: formData.contactForOpportunities || false,
+        logoUrl: logoResult?.directUrl,
+        bannerUrl: businessImageResults.length > 0 ? businessImageResults[0].directUrl : undefined
       }, vendorId);
       
       return {
@@ -463,7 +465,9 @@ export class RegistrationService {
         slogan: formData.slogan,
         hasTaxExemptStatus: formData.hasTaxExemptStatus,
         collectsDonations: formData.collectsDonations,
-        donationPlatform: formData.donationPlatform === 'other' ? formData.otherDonationPlatform : formData.donationPlatform
+        donationPlatform: formData.donationPlatform === 'other' ? formData.otherDonationPlatform : formData.donationPlatform,
+        logoUrl: logoResult?.directUrl,
+        bannerUrl: bannerResult?.directUrl
       }, adminId);
       
       return {

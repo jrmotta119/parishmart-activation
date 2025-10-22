@@ -18,6 +18,8 @@ interface VendorData {
   businessDescription?: string;
   reach?: string;
   contactForOpportunities?: boolean;
+  logoUrl?: string;
+  bannerUrl?: string;
 }
 
 interface StoreData {
@@ -35,6 +37,8 @@ interface StoreData {
   hasTaxExemptStatus?: string;
   collectsDonations?: boolean;
   donationPlatform?: string;
+  logoUrl?: string;
+  bannerUrl?: string;
 }
 
 /**
@@ -149,7 +153,7 @@ export class EmailTemplates {
    */
   static renderAdminVendorReview(userData: VendorData, approvalToken: string, rejectionToken: string): string {
     const fullName = userData.fullName || `${userData.firstName} ${userData.lastName}`;
-    
+
     const templateData: TemplateData = {
       ...this.getCommonData(),
       userName: fullName,
@@ -164,6 +168,8 @@ export class EmailTemplates {
       parishAffiliation: userData.parishAffiliation || 'Not specified',
       reach: userData.reach || 'Not specified',
       contactForOpportunities: userData.contactForOpportunities ? 'Yes' : 'No',
+      logoUrl: userData.logoUrl || '',
+      bannerUrl: userData.bannerUrl || '',
       approveUrl: `${process.env.BASE_URL || 'http://localhost:3001'}/api/admin/approve/${approvalToken}`,
       rejectUrl: `${process.env.BASE_URL || 'http://localhost:3001'}/api/admin/reject/${rejectionToken}`,
       tokenExpiration: '7 days'
@@ -177,7 +183,7 @@ export class EmailTemplates {
    */
   static renderAdminStoreReview(userData: StoreData, approvalToken: string, rejectionToken: string): string {
     const adminFullName = userData.adminFullName || `${userData.adminFirstName} ${userData.adminLastName}`;
-    
+
     const templateData: TemplateData = {
       ...this.getCommonData(),
       adminName: adminFullName,
@@ -194,6 +200,8 @@ export class EmailTemplates {
       hasTaxExemptStatus: userData.hasTaxExemptStatus || 'Not specified',
       collectsDonations: userData.collectsDonations ? 'Yes' : 'No',
       donationPlatform: userData.donationPlatform || 'Not applicable',
+      logoUrl: userData.logoUrl || '',
+      bannerUrl: userData.bannerUrl || '',
       approveUrl: `${process.env.BASE_URL || 'http://localhost:3001'}/api/admin/approve/${approvalToken}`,
       rejectUrl: `${process.env.BASE_URL || 'http://localhost:3001'}/api/admin/reject/${rejectionToken}`,
       tokenExpiration: '7 days'

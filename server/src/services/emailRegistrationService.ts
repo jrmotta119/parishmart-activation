@@ -14,6 +14,8 @@ interface VendorEmailData {
   businessDescription?: string;
   reach?: string;
   contactForOpportunities?: boolean;
+  logoUrl?: string;
+  bannerUrl?: string;
 }
 
 interface StoreEmailData {
@@ -30,6 +32,8 @@ interface StoreEmailData {
   hasTaxExemptStatus?: string;
   collectsDonations?: boolean;
   donationPlatform?: string;
+  logoUrl?: string;
+  bannerUrl?: string;
 }
 
 /**
