@@ -47,10 +47,11 @@ const StoreRegistration = () => {
               <div className="aspect-video w-full">
                 <iframe
                   className="w-full h-full rounded-xl shadow-lg"
-                  src="https://www.youtube.com/embed/Gb81W2dnNFk?enablejsapi=1&origin=http://localhost:5173"
+                  src="https://www.youtube.com/embed/Gb81W2dnNFk"
                   title="Build Your Store Video"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                   allowFullScreen
+                  referrerPolicy="strict-origin-when-cross-origin"
                 ></iframe>
               </div>
             </div>
