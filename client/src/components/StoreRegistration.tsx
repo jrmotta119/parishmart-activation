@@ -44,12 +44,11 @@ const StoreRegistration = () => {
             </h1>
             {/* YouTube Video */}
             <div className="max-w-4xl mx-auto mb-8">
-              <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+              <div className="aspect-video w-full">
                 <iframe
-                  className="absolute top-0 left-0 w-full h-full rounded-xl shadow-lg"
-                  src="https://www.youtube-nocookie.com/embed/Gb81W2dnNFk"
+                  className="w-full h-full rounded-xl shadow-lg"
+                  src="https://www.youtube.com/embed/Gb81W2dnNFk?enablejsapi=1&origin=http://localhost:5173"
                   title="Build Your Store Video"
-                  frameBorder="0"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                   allowFullScreen
                 ></iframe>
