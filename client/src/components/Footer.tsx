@@ -1,38 +1,22 @@
 import React, { useState } from "react";
-import { Input } from "./ui/input";
-import { Button } from "./ui/button";
 import { Separator } from "./ui/separator";
 import {
-  Facebook,
-  Instagram,
-  Twitter,
-  Mail,
   Heart,
-  MapPin,
   Globe,
   ChevronDown,
+  Linkedin,
+  Instagram,
+  Facebook,
 } from "lucide-react";
 
 interface FooterProps {
   missionStatement?: string;
-  socialLinks?: {
-    facebook?: string;
-    twitter?: string;
-    instagram?: string;
-  };
-  newsletterPlaceholder?: string;
   copyrightText?: string;
   onLanguageChange?: (language: string) => void;
 }
 
 const Footer = ({
   missionStatement = "ParishMart is dedicated to connecting communities through purpose-driven shopping. Every purchase you make directly supports community initiatives and charitable causes.",
-  socialLinks = {
-    facebook: "https://facebook.com/parishmart",
-    twitter: "https://twitter.com/parishmart",
-    instagram: "https://instagram.com/parishmart",
-  },
-  newsletterPlaceholder = "Enter your email",
   copyrightText = "© 2023 ParishMart. All rights reserved.",
   onLanguageChange = (language: string) =>
     console.log(`Language changed to ${language}`),
@@ -44,11 +28,6 @@ const Footer = ({
     setCurrentLanguage(language);
     setIsLanguageDropdownOpen(false);
     onLanguageChange(language);
-  };
-  const handleNewsletterSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Newsletter signup logic would go here
-    console.log("Newsletter signup submitted");
   };
 
   return (
@@ -62,7 +41,32 @@ const Footer = ({
               <h3 className="text-lg font-semibold">Our Mission description</h3>
             </div>
             <p className="text-gray-600 mb-4">{missionStatement}</p>
-            
+            <div className="flex space-x-4">
+              <a
+                href="https://www.linkedin.com/company/parishmart/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[#006699] hover:text-gray-500 transition-colors"
+              >
+                <Linkedin className="h-5 w-5" />
+              </a>
+              <a
+                href="https://www.instagram.com/myparishmart/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[#006699] hover:text-gray-500 transition-colors"
+              >
+                <Instagram className="h-5 w-5" />
+              </a>
+              <a
+                href="https://www.facebook.com/myparishmart"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[#006699] hover:text-gray-500 transition-colors"
+              >
+                <Facebook className="h-5 w-5" />
+              </a>
+            </div>
           </div>
 
           {/* Quick Links */}
@@ -129,55 +133,6 @@ const Footer = ({
             </ul>
           </div>
 
-          {/* Newsletter Signup */}
-          <div>
-            <h3 className="text-lg font-semibold mb-4">Stay Connected</h3>
-            <p className="text-gray-600 mb-4">
-              Subscribe to our newsletter for updates and special offers.
-            </p>
-            <form onSubmit={handleNewsletterSubmit} className="mb-4">
-              <div className="flex">
-                <Input
-                  type="email"
-                  placeholder={newsletterPlaceholder}
-                  className="rounded-r-none focus:ring-[#006699] focus:border-[#006699]"
-                  required
-                />
-                <Button
-                  type="submit"
-                  className="bg-[#006699] hover:bg-[#005588] text-white rounded-l-none"
-                >
-                  <Mail className="h-4 w-4" />
-                </Button>
-              </div>
-            </form>
-            <div className="flex space-x-4">
-              <a
-                href={socialLinks.facebook}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-500 hover:text-[#006699] transition-colors"
-              >
-                <Facebook className="h-5 w-5" />
-              </a>
-              <a
-                href={socialLinks.twitter}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-500 hover:text-[#006699] transition-colors"
-              >
-                <Twitter className="h-5 w-5" />
-              </a>
-              <a
-                href={socialLinks.instagram}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-500 hover:text-[#006699] transition-colors"
-              >
-                <Instagram className="h-5 w-5" />
-              </a>
-            </div>
-          </div>
         </div>
 
         <Separator className="my-6" />
