@@ -46,13 +46,22 @@ const AboutUs = () => {
         {/* Main Title */}
         <div className="container mx-auto px-4 py-12">
           <h1 className="text-4xl md:text-5xl font-bold text-center text-gray-900 mb-4">
-            About Us
+            About us
           </h1>
           <p className="text-xl md:text-2xl font-semibold text-center text-gray-700 mb-8">
             ParishMart - Shop with purpose, serve with love.
           </p>
-          {/* YouTube Video */}
-          <div className="max-w-4xl mx-auto mb-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center max-w-6xl mx-auto">
+            {/* Paragraph - Left */}
+            <div>
+              <p className="text-lg text-gray-600 leading-relaxed mb-6">
+                ParishMart is the first Catholic marketplace that connects parishes, causes & faith-driven entrepreneurs. It is a new revenue & engagement ecosystem that helps parishes and causes turn commerce into recurring support and stronger communities.
+              </p>
+              <p className="text-lg text-gray-600 font-medium">
+                Every purchase uplifts parishes, empowers entrepreneurs & supports missions.
+              </p>
+            </div>
+            {/* Video - Right */}
             <div className="aspect-video w-full">
               <iframe
                 className="w-full h-full rounded-xl shadow-lg"
@@ -64,11 +73,6 @@ const AboutUs = () => {
               ></iframe>
             </div>
           </div>
-          <p className="text-lg text-gray-600 text-center max-w-4xl mx-auto leading-relaxed">
-            ParishMart is more than a marketplace—it's a mission uniting faith, service, and entrepreneurship.
-            We bring faith-based communities, mission-driven causes and values-aligned businesses to create
-            a marketplace where every transaction supports a greater purpose.
-          </p>
         </div>
 
         {/* Mission and Vision Section */}
@@ -177,7 +181,7 @@ const AboutUs = () => {
         {/* Our Origins Section */}
         <div className="container mx-auto px-4 py-16">
           <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">
-            Our Origins - Connecting the Dots with Purpose
+            Our story - Connecting the dots with purpose
           </h2>
           
           <div className="max-w-4xl mx-auto">
@@ -215,9 +219,9 @@ const AboutUs = () => {
               </p>
               
               <p>
-                Through ParishMart, we want to share that experience. To offer a tool for churches, nonprofits, 
-                and small businesses to generate income with purpose. To build a space where every transaction 
-                supports something greater.
+                Through ParishMart, we want to share that experience. To offer an ecosystem for parishes, non-profits,
+                and small businesses to generate income with purpose. To build a space where every transaction supports
+                something greater.
               </p>
             </div>
             
@@ -255,17 +259,17 @@ const AboutUs = () => {
         {/* How It Works Section */}
         <div className="container mx-auto px-4 py-16">
           <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">
-            How It Works - A Virtuous Cycle of Support
+            ParishMart activates a virtuous cycle
           </h2>
           
           <div className="space-y-12">
             {/* For Religious Institutions */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
               <div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-4">For Religious Institutions:</h3>
+                <h3 className="text-2xl font-bold text-gray-900 mb-4">For religious institutions:</h3>
                 <p className="text-gray-600 leading-relaxed">
-                  ParishMart offers a unique way for parishes, churches, and faith-based organizations to earn 
-                  passive income that directly supports their missions, outreach programs, and community initiatives. 
+                  ParishMart offers a unique way for parishes and faith-based organizations to earn passive 
+                  income that directly supports their missions, outreach programs, and community initiatives. 
                   By promoting products and services offered by their own members, they help local entrepreneurs 
                   grow while strengthening ties within the congregation. Our platform also provides digital tools 
                   that make it easy to engage the community and extend their impact beyond their walls.
@@ -283,12 +287,12 @@ const AboutUs = () => {
             {/* For Sellers & Entrepreneurs */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
               <div className="lg:order-2">
-                <h3 className="text-2xl font-bold text-gray-900 mb-4">For Sellers & Entrepreneurs:</h3>
+                <h3 className="text-2xl font-bold text-gray-900 mb-4">For sellers & entrepreneurs:</h3>
                 <p className="text-gray-600 leading-relaxed">
-                  Sellers and local business owners aligned with a purpose can use ParishMart to reach a dedicated 
-                  audience that values mission-driven commerce. Every product or service sold not only grows their 
-                  business but also contributes to the greater good by supporting local churches, parishes and missions. 
-                  It's a chance for their business to do well—while doing good.
+                  Sellers and local business owners aligned with a purpose can use ParishMart to reach a 
+                  dedicated audience that values mission-driven commerce. Every product or service sold not 
+                  only grows their business but also contributes to the greater good by supporting parishes 
+                  and missions. It's a chance for their business to do well—while doing good.
                 </p>
               </div>
               <div className="bg-blue-100 rounded-lg h-64 flex items-center justify-center overflow-hidden lg:order-1">
@@ -303,12 +307,12 @@ const AboutUs = () => {
             {/* For Shoppers & Supporters */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
               <div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-4">For Shoppers & Supporters:</h3>
+                <h3 className="text-2xl font-bold text-gray-900 mb-4">For shoppers & supporters:</h3>
                 <p className="text-gray-600 leading-relaxed">
-                  Shoppers on ParishMart can discover meaningful, purpose-driven products and services that reflect 
-                  their beliefs and support their communities. Every purchase becomes a way to give back—helping fund 
-                  church programs, empower local businesses, and support the missions that matter most. It's commerce 
-                  with a conscience—where shopping becomes a purpose.
+                  Shoppers on ParishMart can discover meaningful, purpose-driven products and services 
+                  that reflect their beliefs and support their communities. Every purchase becomes a way 
+                  to give back—helping fund parish programs, empower local businesses, and support meaningful 
+                  missions. It's commerce with a conscience—where shopping becomes a purpose.
                 </p>
               </div>
               <div className="bg-blue-100 rounded-lg h-64 flex items-center justify-center overflow-hidden">
@@ -325,12 +329,12 @@ const AboutUs = () => {
         {/* Join the Movement Section */}
         <div className="bg-[#006699] text-white py-16">
           <div className="container mx-auto px-4 text-center">
-            <h2 className="text-4xl font-bold mb-4">Join the Movement</h2>
+            <h2 className="text-4xl font-bold mb-4">Join the movement</h2>
             <p className="text-xl mb-6 max-w-3xl mx-auto">
               When you buy, sell, or support ParishMart, you help build stronger communities and bring faith to life through action.
             </p>
             <p className="text-2xl font-bold mb-8">
-              Together, let's make commerce a force for good.
+              Together, let’s make commerce a force for good—empowering parishes, causes, and local entrepreneurs.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button 

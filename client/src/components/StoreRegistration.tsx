@@ -38,12 +38,20 @@ const StoreRegistration = () => {
       </div>
       <div className="pt-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="text-center mb-12">
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              Build your Store
+          <div className="mb-12">
+            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-8 text-center">
+              Build your store
             </h1>
-            {/* YouTube Video */}
-            <div className="max-w-4xl mx-auto mb-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+              {/* Paragraph - Left */}
+              <div>
+                <p className="text-xl text-gray-600 mb-6">
+                  Expand your outreach and support your mission with your own personalized storefront on ParishMart. We make it easy for parishes and local businesses to support one another by offering curated products, engaging your community, and creating sustainable support beyond donations.                </p>
+                <p className="text-lg text-gray-700 font-medium">
+                  Get started today and make an even greater impact!
+                </p>
+              </div>
+              {/* Video - Right */}
               <div className="aspect-video w-full">
                 <iframe
                   className="w-full h-full rounded-xl shadow-lg"
@@ -55,12 +63,6 @@ const StoreRegistration = () => {
                 ></iframe>
               </div>
             </div>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-6">
-              Expand your outreach and empower your mission with your own ParishMart storefront. Whether you're a parish, church, or mission, we make it easy to showcase products, collect donations, and engage and grow your community.
-            </p>
-            <p className="text-lg text-center text-gray-700 font-medium">
-              Get started today and make an even greater impact!
-            </p>
           </div>
 
           <div className="mb-16">
@@ -73,7 +75,7 @@ const StoreRegistration = () => {
             </div> */}
             <div className="mb-16">
               <h2 className="text-3xl text-center font-bold text-gray-900 mb-8">
-                How It Works
+                How it works
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100 text-center">
@@ -81,10 +83,10 @@ const StoreRegistration = () => {
                     1
                   </div>
                   <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                    Register Your Store
+                    Register today
                   </h3>
                   <p className="text-gray-700">
-                  Provide your organization's information and submit your application.
+                    Share your organization’s information and submit your application.
                   </p>
                 </div>
                 <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100 text-center">
@@ -92,10 +94,10 @@ const StoreRegistration = () => {
                     2
                   </div>
                   <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                    Get Approved
+                    Get approved & build your store
                   </h3>
                   <p className="text-gray-700">
-                    We'll review your registration and approve your Organization.
+                    Once approved, you’ll get access to your dashboard to finish setting up your ParishMart storefront.
                   </p>
                 </div>
                 <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100 text-center">
@@ -103,10 +105,10 @@ const StoreRegistration = () => {
                     3
                   </div>
                   <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                    Promote & Earn
+                    Promote & earn
                   </h3>
                   <p className="text-gray-700">
-                    Share your ParishMart link with your community and start raising funds through every purchase from your storefront.
+                    Share your storefront link with your community. A portion of every purchase made through your storefront goes back to support your mission.
                   </p>
                 </div>
               </div>
@@ -114,74 +116,69 @@ const StoreRegistration = () => {
 
             <div className="text-center">
               <p className="text-xl text-gray-700 mb-8">
-                Join ParishMart today and elevate your cause through
-                purchase-driven shopping.
+                Join ParishMart today and receive sustainable support through purpose-driven shopping.
               </p>
               <Button
                 className="bg-[#006699] hover:bg-[#005588] text-white font-semibold text-lg px-8 py-6 h-auto rounded-full transition-all duration-300 transform hover:scale-105"
                 onClick={() => (window.location.href = "/store-registration")}
               >
-                Join Now
+                Join now
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </div>
             <div className="mb-16 pt-10">
               <h2 className="text-3xl text-center font-bold text-gray-900 mb-8">
-                Why Partner with ParishMart?
+                Why partner with ParishMart?
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100">
                   <h3 className="text-xl font-semibold text-[#006699] mb-2">
-                    Your Cause, Your Storefront
+                    Your mission, your storefront
                   </h3>
                   <p className="text-gray-700">
-                    Join an online marketplace that empowers your mission and serves your community.
+                    Create a personalized storefront to share your story, support ministries, and serve your community.
                   </p>
                 </div>
                 <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100">
                   <h3 className="text-xl font-semibold text-[#006699] mb-2">
-                    Generate Passive Income
+                    Sustainable support for your parish
                   </h3>
                   <p className="text-gray-700">
-                    Earn referral fees on every transaction from your storefront.
+                    Earn referrals from every purchase made through your storefront.
                   </p>
                 </div>
                 <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100">
                   <h3 className="text-xl font-semibold text-[#006699] mb-2">
-                    Donations as Store Products
+                    Donations as store products
                   </h3>
                   <p className="text-gray-700">
-                    Provide an easy way for your community to contribute to
-                    causes by purchasing donation-based items.
+                    Offer donation-based products that make it easy for your community to support your mission.
                   </p>
                 </div>
                 <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100">
                   <h3 className="text-xl font-semibold text-[#006699] mb-2">
-                    Religious Gifts & Faith-Based Products
+                    Religious gifts & faith-based products
                   </h3>
                   <p className="text-gray-700">
-                    Access to a curated selection of books, gifts, and essential
-                    religious items.
+                    Access to a curated selection of books, gifts, and essential religious items.
                   </p>
                 </div>
                 <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100">
                   <h3 className="text-xl font-semibold text-[#006699] mb-2">
-                    Merch Store & Personalized Items
+                    Merch store & personalized items
                   </h3>
                   <p className="text-gray-700">
-                    Sell branded merchandise, customized apparel, and custom
-                    products on demand.
+                    Sell parish branded merchandise, customized apparel, and custom products on demand.
                   </p>
                 </div>
                 
                 
                 <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100">
                   <h3 className="text-xl font-semibold text-[#006699] mb-2">
-                    No Inventory or Fullfillment Required
+                    No inventory or fullfillment required
                   </h3>
                   <p className="text-gray-700">
-                    ParishMart manages product sourcing, fulfillment, and
-                    customer services.
+                    ParishMart handles product sourcing, fulfillment, and customer support—so you can focus on your mission.
                   </p>
                 </div>
                 

@@ -66,32 +66,32 @@ interface GrowWithUsProps {
 }
 
 const GrowWithUs = ({
-  title = "Grow With Us",
-  subtitle = "Join our community and make a difference",
+  title = "Grow with us",
+  subtitle = "Join the first Catholic marketplace that connects parishes, causes & faith-driven entrepreneurs.",
   cards = [
     {
-      title: "Open a Store for your Parish, Church, or Mission",
-      description: "Amplify your reach with an Online Store",
-      buttonText: "Start Your Store",
+      title: "Are you a Parish, Diocese, or Archdiocese?",
+      description: "Create your personalized online store to amplify your reach and engagement.",
+      buttonText: "Build Your Store",
       imageSrc:
         "https://images.unsplash.com/photo-1556740738-b6a63e27c4df?w=800&q=80",
       onClick: () => (window.location.href = "./why-register"),
     },
     {
-      title: "Sell & Support your Community",
-      description: "Boost your business while supporting your community",
+      title: "Are you a local entrepreneur?",
+      description: "Sell your products or services while growing your business and giving back.",
       buttonText: "Start Selling",
       imageSrc:
         "https://images.unsplash.com/photo-1556740772-1a741367b93e?w=800&q=80",
       onClick: () => (window.location.href = "./sell-with-us"),
     },
     {
-      title: "Set up donations for your Cause",
-      description: "Raise funds, inspire giving",
-      buttonText: "Start a Donation Cause",
+      title: "Are you a non-profit or cause?",
+      description: "Share your story, receive donations, and redefine giving.",
+      buttonText: "Launch Your Cause",
       imageSrc:
         "https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?w=800&q=80",
-      onClick: () => (window.location.href = "./donations"),
+      onClick: () => (window.location.href = "./launch-cause"),
     },
   ],
 }: GrowWithUsProps) => {

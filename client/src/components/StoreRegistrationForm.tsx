@@ -4,7 +4,7 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Textarea } from "./ui/textarea";
 import { Card, CardContent } from "./ui/card";
-import { Upload, Check, Eye, ArrowRight, Crown, Globe, Info } from "lucide-react";
+import { Upload, Check, ArrowRight, Info } from "lucide-react";
 import Header from "./Header";
 import Footer from "./Footer";
 import AnnouncementStrip from "./AnnouncementStrip";
@@ -99,7 +99,6 @@ const StoreRegistrationForm = () => {
   const [bannerImages, setBannerImages] = useState<File[]>([]);
   const [bannerImagesPreviews, setBannerImagesPreviews] = useState<string[]>([]);
   const [photosPreviews, setPhotosPreviews] = useState<string[]>([]);
-  const [showPreview, setShowPreview] = useState(false);
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [attemptedSteps, setAttemptedSteps] = useState<number[]>([]);
@@ -124,12 +123,6 @@ const StoreRegistrationForm = () => {
     { name: "Orange", primary: "#ed6c02", secondary: "#fff3e0" },
     { name: "Teal", primary: "#00796b", secondary: "#e0f2f1" },
   ];
-
-  const [products, setProducts] = useState([
-    // { name: '', category: '', description: '', images: [], videos: [], promotionalHook: '', pricingInfo: '' }
-  ]);
-  const [productImagePreviews, setProductImagePreviews] = useState({});
-  const [productVideoPreviews, setProductVideoPreviews] = useState({});
 
   // Email validation function
   const validateEmail = (email: string): boolean => {
@@ -353,15 +346,6 @@ const StoreRegistrationForm = () => {
       return;
     }
 
-    const invalidProducts = products.filter(
-      (product) => !product.name || !product.category || (product.category === 'Other' && !product.otherCategory) || !product.description || !product.pricingInfo
-    );
-
-    if (invalidProducts.length > 0) {
-      alert("Please fill in all required fields for each product");
-      return;
-    }
-
     setIsSubmitting(true);
 
     try {
@@ -373,9 +357,6 @@ const StoreRegistrationForm = () => {
       
       // Add tax exemption status
       submitData.append('hasTaxExemptStatus', hasTaxExemptStatus);
-      
-      // Add products
-      submitData.append('products', JSON.stringify(products));
       
       // Add all form fields
       Object.entries(formData).forEach(([key, value]) => {
@@ -406,22 +387,6 @@ const StoreRegistrationForm = () => {
         });
       }
       
-      // Handle product files for elite subscription
-      if (formData.subscriptionTier === 'elite' && products.length > 0) {
-        products.forEach((product, productIndex) => {
-          if (product.images && product.images.length > 0) {
-            product.images.forEach((image: File) => {
-              submitData.append(`productImages_${productIndex}`, image);
-            });
-          }
-          if (product.videos && product.videos.length > 0) {
-            product.videos.forEach((video: File) => {
-              submitData.append(`productVideos_${productIndex}`, video);
-            });
-          }
-        });
-      }
-
       // Send form data to API endpoint
       const response = await fetch('/api/registration', {
         method: 'POST',
@@ -495,16 +460,6 @@ const StoreRegistrationForm = () => {
       if (!formData.logo || !bannerValid) {
         return;
       }
-    } else if (step === 4) {
-      // Validate products if elite subscription
-      if (formData.subscriptionTier === "elite" && products.length > 0) {
-        const invalidProducts = products.filter(
-          (product) => !product.name || !product.category || (product.category === 'Other' && !product.otherCategory) || !product.description || !product.pricingInfo
-        );
-        if (invalidProducts.length > 0) {
-          return;
-        }
-      }
     }
 
     setStep(step + 1);
@@ -515,127 +470,6 @@ const StoreRegistrationForm = () => {
     setStep(step - 1);
     window.scrollTo(0, 0);
   };
-
-  const togglePreview = () => {
-    setShowPreview(!showPreview);
-  };
-
-  const addProduct = () => {
-    if (products.length >= 10) return;
-    setProducts([
-      ...products,
-      { name: '', category: '', description: '', images: [], videos: [], promotionalHook: '', pricingInfo: '' },
-    ]);
-  };
-  const removeProduct = (index) => {
-    const updated = [...products];
-    updated.splice(index, 1);
-    setProducts(updated);
-    setProductImagePreviews((prev) => {
-      const updatedPreviews = { ...prev };
-      delete updatedPreviews[index];
-      return updatedPreviews;
-    });
-  };
-  const updateProduct = (index, field, value) => {
-    const updated = [...products];
-    updated[index] = { ...updated[index], [field]: value };
-    setProducts(updated);
-  };
-  const handleProductImagesChange = (e: React.ChangeEvent<HTMLInputElement>, productIndex: number) => {
-    if (e.target.files) {
-      const filesArray = Array.from(e.target.files).slice(0, 5);
-      const updated = [...products];
-      updated[productIndex].images = [
-        ...(updated[productIndex].images || []),
-        ...filesArray,
-      ].slice(0, 5);
-      setProducts(updated);
-      const newPreviews = filesArray.map((file) => URL.createObjectURL(file));
-      setProductImagePreviews((prev) => {
-        const currentPreviews = prev[productIndex] || [];
-        return {
-          ...prev,
-          [productIndex]: [...currentPreviews, ...newPreviews].slice(0, 5),
-        };
-      });
-    }
-  };
-  const handleProductVideoChange = (e: React.ChangeEvent<HTMLInputElement>, productIndex: number) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      
-      // Check file size (50MB limit)
-      if (file.size > 50 * 1024 * 1024) {
-        alert('Video file size must be less than 50MB');
-        e.target.value = '';
-        return;
-      }
-      
-      // Check file type
-      if (!file.type.startsWith('video/')) {
-        alert('Please upload a valid video file');
-        e.target.value = '';
-        return;
-      }
-
-      const updated = [...products];
-      updated[productIndex].videos = [file]; // Only allow one video
-      setProducts(updated);
-      
-      const videoPreview = URL.createObjectURL(file);
-      setProductVideoPreviews((prev) => ({
-        ...prev,
-        [productIndex]: videoPreview,
-      }));
-    }
-  };
-  const removeProductImage = (productIndex, imageIndex) => {
-    const updated = [...products];
-    updated[productIndex].images.splice(imageIndex, 1);
-    setProducts(updated);
-    setProductImagePreviews((prev) => {
-      const updatedPreviews = { ...prev };
-      if (updatedPreviews[productIndex]) {
-        const previewsArray = [...updatedPreviews[productIndex]];
-        previewsArray.splice(imageIndex, 1);
-        updatedPreviews[productIndex] = previewsArray;
-      }
-      return updatedPreviews;
-    });
-  };
-  const removeProductVideo = (productIndex) => {
-    const updated = [...products];
-    updated[productIndex].videos = [];
-    setProducts(updated);
-    setProductVideoPreviews((prev) => {
-      const updatedPreviews = { ...prev };
-      delete updatedPreviews[productIndex];
-      return updatedPreviews;
-    });
-  };
-  const handleBulkUpload = (e) => {
-    if (e.target.files && e.target.files[0]) {
-      // CSV parsing logic placeholder
-      alert(`CSV file received: ${e.target.files[0].name}`);
-    }
-  };
-  const productCategories = [
-    "Clothing & Apparel",
-    "Food & Beverages",
-    "Educational Resources",
-    "Home & Living",
-    "Religious Items",
-    "Services",
-    "Technology & Electronics",
-    "Beauty & Personal Care",
-    "Sports, Fun & Travel",
-    "Health & Wellness",
-    "Pet Supplies",
-    "Gifts & Seasonal Items",
-    "Custom Merchandise",
-    "Other",
-  ];
 
   useEffect(() => {
     const handleScroll = () => {
@@ -1427,307 +1261,6 @@ Archdiocese: A chief diocese, headed by an archbishop.`
                   )}
                 </div>
 
-                {/* Elite tier: Upload Products Section */}
-                {formData.subscriptionTier === "elite" && (
-                  <div className="mb-8">
-                    <h3 className="text-lg font-medium text-gray-800 mb-4">Upload Products</h3>
-                    <div className="flex space-x-2 mb-4">
-                      <label className="relative cursor-pointer">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          className="border-[#006699] text-[#006699] flex items-center"
-                        >
-                          <Upload className="h-4 w-4 mr-1" />
-                          Upload in bulk (CSV file)
-                        </Button>
-                        <input
-                          type="file"
-                          accept=".csv"
-                          onChange={handleBulkUpload}
-                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                        />
-                      </label>
-                      <Button
-                        type="button"
-                        onClick={addProduct}
-                        size="sm"
-                        className="bg-[#006699] hover:bg-[#005588] text-white"
-                        disabled={products.length >= 10}
-                      >
-                        Add Product
-                      </Button>
-                    </div>
-                    {products.length === 0 ? (
-                      <div className="bg-gray-50 p-4 rounded-lg mb-6 text-center">
-                        <p className="text-gray-500">
-                          No products added yet. Click "Add Product" to get started.
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="space-y-8">
-                        {products.map((product, productIndex) => (
-                          <div key={productIndex} className="border border-gray-200 rounded-lg p-4">
-                            <div className="flex justify-between items-center mb-4">
-                              <h4 className="font-medium">Listing {productIndex + 1}</h4>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => removeProduct(productIndex)}
-                                className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                              >
-                                Remove
-                              </Button>
-                            </div>
-                            <div className="mb-4">
-                              <Label htmlFor={`product-name-${productIndex}`} className="block text-sm font-medium text-gray-700 mb-1">
-                                Product/Service Name *
-                              </Label>
-                              <Input
-                                id={`product-name-${productIndex}`}
-                                value={product.name}
-                                onChange={(e) => updateProduct(productIndex, "name", e.target.value)}
-                                required
-                                className="w-full"
-                              />
-                            </div>
-                            <div className="mb-4">
-                              <Label htmlFor={`product-category-${productIndex}`} className="block text-sm font-medium text-gray-700 mb-1">
-                                Category of Your Product/Service *
-                              </Label>
-                              <select
-                                id={`product-category-${productIndex}`}
-                                value={product.category}
-                                onChange={(e) => updateProduct(productIndex, "category", e.target.value)}
-                                className="w-full rounded-md border border-gray-300 py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#006699] focus:border-transparent"
-                              >
-                                <option value="">Select a category</option>
-                                {productCategories.map((category) => (
-                                  <option key={category} value={category}>{category}</option>
-                                ))}
-                              </select>
-                              {product.category === "Other" && (
-                                <div className="mt-2">
-                                  <Label htmlFor={`other-category-${productIndex}`} className="block text-sm font-medium text-gray-700 mb-1">
-                                    Please specify the category
-                                  </Label>
-                                  <Input
-                                    id={`other-category-${productIndex}`}
-                                    value={product.otherCategory || ""}
-                                    onChange={e => updateProduct(productIndex, "otherCategory", e.target.value)}
-                                    className={`w-full${!product.otherCategory && attemptedSteps.includes(3) ? " border-red-300" : ""}`}
-                                    placeholder="Enter the category"
-                                    required
-                                  />
-                                  {!product.otherCategory && attemptedSteps.includes(3) && (
-                                    <p className="mt-1 text-sm text-red-500">Category is required</p>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                            <div className="mb-4">
-                              <Label htmlFor={`product-description-${productIndex}`} className="block text-sm font-medium text-gray-700 mb-1">
-                                Description of Product/Service *
-                              </Label>
-                              <Textarea
-                                id={`product-description-${productIndex}`}
-                                value={product.description}
-                                onChange={(e) => updateProduct(productIndex, "description", e.target.value)}
-                                required
-                                className="w-full h-32"
-                                placeholder="Describe your product or service in detail..."
-                              />
-                            </div>
-                            {/* Product Media Upload */}
-                            <div className="mb-4">
-                              <Label className="block text-sm font-medium text-gray-700 mb-2">
-                                Upload Product/Service Media *
-                              </Label>
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {/* Video Upload - Left Side */}
-                                <div>
-                                  <Label className="block text-sm font-medium text-gray-600 mb-2">
-                                    Video (Optional)
-                                  </Label>
-                                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:bg-gray-50 transition-colors mb-4">
-                                    <input
-                                      type="file"
-                                      id={`product-video-${productIndex}`}
-                                      accept="video/*"
-                                      onChange={(e) => handleProductVideoChange(e, productIndex)}
-                                      className="hidden"
-                                    />
-                                    <label
-                                      htmlFor={`product-video-${productIndex}`}
-                                      className="cursor-pointer flex flex-col items-center"
-                                    >
-                                      <svg
-                                        className="h-8 w-8 text-gray-400 mb-2"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                      >
-                                        <path
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                          strokeWidth={2}
-                                          d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
-                                        />
-                                      </svg>
-                                      <span className="text-sm text-gray-500">
-                                        Click to upload video
-                                      </span>
-                                      <span className="text-xs text-gray-400 mt-1">
-                                        MP4, MOV, AVI up to 50MB (1 video only)
-                                      </span>
-                                    </label>
-                                  </div>
-                                  {productVideoPreviews[productIndex] && (
-                                    <div className="relative group">
-                                      <div className="w-full h-24 border rounded-lg overflow-hidden">
-                                        <video
-                                          src={productVideoPreviews[productIndex]}
-                                          className="w-full h-full object-cover"
-                                          controls
-                                        />
-                                      </div>
-                                      <button
-                                        type="button"
-                                        onClick={() => removeProductVideo(productIndex)}
-                                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                                      >
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          className="h-4 w-4"
-                                          fill="none"
-                                          viewBox="0 0 24 24"
-                                          stroke="currentColor"
-                                        >
-                                          <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={2}
-                                            d="M6 18L18 6M6 6l12 12"
-                                          />
-                                        </svg>
-                                      </button>
-                                    </div>
-                                  )}
-                                </div>
-
-                                {/* Image Upload - Right Side */}
-                                <div>
-                                  <Label className="block text-sm font-medium text-gray-600 mb-2">
-                                    Images (Required)
-                                  </Label>
-                                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:bg-gray-50 transition-colors mb-4">
-                                    <input
-                                      type="file"
-                                      id={`product-images-${productIndex}`}
-                                      accept="image/*"
-                                      multiple
-                                      onChange={(e) => handleProductImagesChange(e, productIndex)}
-                                      className="hidden"
-                                    />
-                                    <label
-                                      htmlFor={`product-images-${productIndex}`}
-                                      className="cursor-pointer flex flex-col items-center"
-                                    >
-                                      <Upload className="h-8 w-8 text-gray-400 mb-2" />
-                                      <span className="text-sm text-gray-500">
-                                        Click to upload images
-                                      </span>
-                                      <span className="text-xs text-gray-400 mt-1">
-                                        PNG, JPG, GIF up to 5MB each (max 5 images)
-                                      </span>
-                                    </label>
-                                  </div>
-                                  {productImagePreviews[productIndex] && productImagePreviews[productIndex].length > 0 && (
-                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                                      {productImagePreviews[productIndex].map((preview, imageIndex) => (
-                                        <div key={imageIndex} className="relative group">
-                                          <div className="w-full h-20 border rounded-lg overflow-hidden">
-                                            <img
-                                              src={preview}
-                                              alt={`Listing ${productIndex + 1} Image ${imageIndex + 1}`}
-                                              className="w-full h-full object-cover"
-                                            />
-                                          </div>
-                                          <button
-                                            type="button"
-                                            onClick={() => removeProductImage(productIndex, imageIndex)}
-                                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                                          >
-                                            <svg
-                                              xmlns="http://www.w3.org/2000/svg"
-                                              className="h-3 w-3"
-                                              fill="none"
-                                              viewBox="0 0 24 24"
-                                              stroke="currentColor"
-                                            >
-                                              <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth={2}
-                                                d="M6 18L18 6M6 6l12 12"
-                                              />
-                                            </svg>
-                                          </button>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                            <div className="mb-4">
-                              <Label htmlFor={`promotional-hook-${productIndex}`} className="block text-sm font-medium text-gray-700 mb-1">
-                                Promotional Hook Offer
-                              </Label>
-                              <Input
-                                id={`promotional-hook-${productIndex}`}
-                                value={product.promotionalHook}
-                                onChange={(e) => updateProduct(productIndex, "promotionalHook", e.target.value)}
-                                className="w-full"
-                                placeholder="e.g., 10% off first purchase, Free shipping on orders over $50"
-                              />
-                              <p className="mt-1 text-sm text-gray-500">
-                                Optional: Add a special offer to attract customers
-                              </p>
-                            </div>
-                            <div className="mb-4">
-                              <Label htmlFor={`pricing-info-${productIndex}`} className="block text-sm font-medium text-gray-700 mb-1">
-                                Pricing Information *
-                              </Label>
-                              <Input
-                                id={`pricing-info-${productIndex}`}
-                                value={product.pricingInfo}
-                                onChange={(e) => updateProduct(productIndex, "pricingInfo", e.target.value)}
-                                className={`w-full${!product.pricingInfo && attemptedSteps.includes(3) ? " border-red-300" : ""}`}
-                                placeholder="e.g., $19.99 per item, $50-100 per service, Starting at $29.99"
-                                required
-                              />
-                              {!product.pricingInfo && attemptedSteps.includes(3) && (
-                                <p className="mt-1 text-sm text-red-500">Pricing information is required</p>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    {products.length >= 10 && (
-                      <div className="bg-amber-50 border-l-4 border-amber-500 p-4 mt-4">
-                        <p className="text-amber-700">
-                          You have reached the maximum of 10 products allowed. Use bulk upload for more.
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                )}
-
                 <div className="flex justify-between">
                   <Button
                     type="button"
@@ -1848,30 +1381,6 @@ Archdiocese: A chief diocese, headed by an archbishop.`
                       <p className="text-gray-600">
                         Banner: {bannerMode === "full" ? (banner ? "✓ Uploaded" : "✗ Not uploaded") : `✓ ${bannerImages.length} image${bannerImages.length !== 1 ? "s" : ""} (collage)`}
                       </p>
-                      {formData.subscriptionTier === "elite" && (
-                        <div>
-                          <p className="text-gray-600">
-                            Products: {products.length} product{products.length !== 1 ? 's' : ''} added
-                          </p>
-                          {products.map((product, index) => (
-                            <div key={index} className="mt-2 ml-4">
-                              <p className="text-gray-600 font-medium">
-                                Product {index + 1}: {product.name}
-                              </p>
-                              {product.category && (
-                                <p className="text-gray-600 text-sm">
-                                  Category: {product.category === "Other" ? product.otherCategory : product.category}
-                                </p>
-                              )}
-                              {product.pricingInfo && (
-                                <p className="text-gray-600 text-sm">
-                                  Pricing: {product.pricingInfo}
-                                </p>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      )}
                     </div>
                   </div>
                 </div>

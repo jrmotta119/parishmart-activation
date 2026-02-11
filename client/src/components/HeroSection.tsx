@@ -146,7 +146,7 @@ const HeroSection = () => {
               <div className="flex flex-col justify-center h-full pl-10">
                 <p className="text-white text-lg md:text-xl mb-2">Discover products that make a difference</p>
                 <h2 className="text-4xl md:text-6xl font-bold mb-4" style={{ color: '#006699' }}>SHOP WITH PURPOSE.</h2>
-                <p className="text-white text-xl md:text-3xl font-medium">When you make a purchase, a portion of the sale supports a mission.</p>
+                <p className="text-white text-xl md:text-3xl font-medium">Empower parishes, causes & local entrepreneurs. Make a difference today!</p>
               </div>
             )}
           </div>

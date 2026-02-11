@@ -124,10 +124,10 @@ const Footer = ({
               </li>
               <li>
                 <a
-                  href="/donations"
+                  href="/launch-cause"
                   className="text-gray-600 hover:text-[#006699] transition-colors"
                 >
-                  Donations
+                  Launch your cause
                 </a>
               </li>
             </ul>

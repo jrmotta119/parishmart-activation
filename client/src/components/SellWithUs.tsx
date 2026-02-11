@@ -39,12 +39,21 @@ const SellWithUs = () => {
       <div className="pt-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           {/* Banner Section */}
-          <div className="text-center mb-16">
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              Sell With Us
+          <div className="mb-16">
+            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-8 text-center">
+              Start selling
             </h1>
-            {/* YouTube Video */}
-            <div className="max-w-4xl mx-auto mb-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+              {/* Paragraph - Left */}
+              <div>
+                <p className="text-lg text-gray-700 mb-6">
+                  Reach a purpose-driven audience and grow your business with lower customer acquisition costs and stronger long-term relationships. Offer your products or services through a new sales channel—ParishMart—where you can give back a portion of every sale to support a parish or cause of your choice.
+                </p>
+                <p className="text-lg text-gray-700 font-medium">
+                  Ready to grow your business and support meaningful missions?
+                </p>
+              </div>
+              {/* Video - Right */}
               <div className="aspect-video w-full">
                 <iframe
                   className="w-full h-full rounded-xl shadow-lg"
@@ -57,23 +66,11 @@ const SellWithUs = () => {
               </div>
             </div>
           </div>
-          {/* Why Sell With Us Section */}
-          <div className="mb-16">
-            <div className=" rounded-xl p-0 mb-12">
-              <p className="text-lg text-center text-gray-700 mb-6">
-                By selling on ParishMart, you gain access to a unique audience passionate about purpose-driven shopping. Our platform helps expand your reach while contributing a portion of each sale to a meaningful cause. With easy onboarding, secure transactions, and a supportive network, ParishMart offers a powerful way to grow your business while making a positive impact.
-              </p>
-              <p className="text-lg text-center text-gray-700 font-medium">
-                Ready to grow your business and support meaningful missions?
-                
-              </p>
-            </div>
-          </div>
 
           {/* How It Works Section */}
           <div className="mb-16">
             <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">
-              How It Works
+              How it works
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100 text-center">
@@ -81,10 +78,10 @@ const SellWithUs = () => {
                   1
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                  Complete Your Registration Form
+                  Register today
                 </h3>
                 <p className="text-gray-700">
-                  Provide your business information and set up your listings.
+                  Share your business information and your story as an entrepreneur.
                 </p>
               </div>
               <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100 text-center">
@@ -92,10 +89,10 @@ const SellWithUs = () => {
                   2
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                  Get Approved
+                  Get approved & list your offerings
                 </h3>
                 <p className="text-gray-700">
-                  We'll review your registration and approve your account.
+                  Once approved, you’ll get access to your dashboard to set up your seller page and showcase your products or services.
                 </p>
               </div>
               <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100 text-center">
@@ -103,11 +100,10 @@ const SellWithUs = () => {
                   3
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                  Start Selling
+                  Start selling with purpose
                 </h3>
                 <p className="text-gray-700">
-                  Amplify your reach and offer your products and services to our
-                  community.
+                  Reach our community and offer your products or services while turning everyday commerce into meaningful impact.
                 </p>
               </div>
             </div>
@@ -115,7 +111,7 @@ const SellWithUs = () => {
           {/* CTA Section */}
           <div className="text-center mb-16">
             <p className="text-xl text-gray-700 mb-8">
-              Join us today and become part of a marketplace where commerce turns into community support.
+              Join ParishMart today and be part of transforming everyday commerce into meaningful impact.
             </p>
             <Button
               className="bg-[#006699] hover:bg-[#005588] text-white font-semibold text-lg px-8 py-6 h-auto rounded-full transition-all duration-300 transform hover:scale-105"
