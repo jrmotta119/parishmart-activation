@@ -7,6 +7,7 @@ import {
   Upload,
   ArrowRight,
   Info,
+  Check,
 } from "lucide-react";
 import Header from "./Header";
 import Footer from "./Footer";
@@ -86,6 +87,7 @@ const VendorRegistrationForm = () => {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const [step, setStep] = useState(1);
+  const [isAnnual, setIsAnnual] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [attemptedSteps, setAttemptedSteps] = useState<number[]>([]);
   const [parishSearch, setParishSearch] = useState("");
@@ -466,7 +468,7 @@ const VendorRegistrationForm = () => {
           <Header />
         </div>
         <div className="pt-36 pb-16 relative z-10">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className={`${step === 1 ? 'max-w-7xl' : 'max-w-4xl'} mx-auto px-4 sm:px-6 lg:px-8`}>
             <div className="text-center mb-10">
               <h1 className="text-3xl md:text-4xl font-bold text-[#006699]">
                 Vendor Registration
@@ -1219,97 +1221,209 @@ const VendorRegistrationForm = () => {
 
               {/* Step 1: Subscription Selection */}
               {step === 1 && (
-                <div className="bg-white p-6 rounded-lg shadow-md mb-8">
-                  <h2 className="text-xl font-semibold text-gray-900 mb-6">
-                    Choose Your Subscription Plan
-                  </h2>
+                <div className="mb-8">
+                  <div className="text-center mb-8">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                      Grow Your Business with ParishMart
+                    </h2>
+                    <p className="text-gray-600">Choose the plan that fits your business needs</p>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    {/* Basic Tier */}
-                    <div
-                      className={`border-2 rounded-lg p-6 cursor-pointer transition-all ${formData.subscriptionType === "basic" ? "border-[#006699] shadow-md" : "border-gray-200"}`}
-                      onClick={() => handleSubscriptionChange("basic")}
-                    >
-                      <h3 className="text-lg font-semibold">Basic</h3>
-                      <div className="mb-2">
-                        <p className="text-2xl font-bold text-[#006699]">$49.99<span className="text-sm font-normal">/month</span></p>
-                      </div>
-                      <ul className="space-y-2 text-sm">
-                        <li className="flex items-center">
-                          <span className="text-[#006699] font-bold mr-2">✓</span> Promotional listing
-                        </li>
-
-                        <li className="flex items-center text-gray-400">
-                          <span className="mr-2">✗</span> Product listings
-                        </li>
-                        <li className="flex items-center text-gray-400">
-                          <span className="mr-2">✗</span> Featured Placement
-                        </li>
-                        <li className="flex items-center text-gray-400">
-                          <span className="mr-2">✗</span> API integration available **
-                        </li>
-                      </ul>
-                    </div>
-                    {/* Premium Tier */}
-                    <div
-                      className={`border-2 rounded-lg p-6 cursor-pointer transition-all ${formData.subscriptionType === "premium" ? "border-[#006699] shadow-md" : "border-gray-200"}`}
-                      onClick={() => handleSubscriptionChange("premium")}
-                    >
-                      <h3 className="text-lg font-semibold">Premium</h3>
-                      <div className="mb-2">
-                        <p className="text-2xl font-bold text-[#006699]">$79.99<span className="text-sm font-normal">/month</span></p>
-                      </div>
-                      <ul className="space-y-2 text-sm">
-                        <li className="flex items-center">
-                          <span className="text-[#006699] font-bold mr-2">✓</span> Promotional listing
-                        </li>
-
-                        <li className="flex items-center">
-                          <span className="text-[#006699] font-bold mr-2">✓</span> Up to 3 product listings *
-                        </li>
-                        <li className="flex items-center text-gray-400">
-                          <span className="mr-2">✗</span> Featured Placement
-                        </li>
-                        <li className="flex items-center text-gray-400">
-                          <span className="mr-2">✗</span> API integration available **
-                        </li>
-                      </ul>
-                    </div>
-                    {/* Elite Tier */}
-                    <div
-                      className={`border-2 rounded-lg p-6 cursor-pointer transition-all ${formData.subscriptionType === "elite" ? "border-[#006699] shadow-md" : "border-gray-200"}`}
-                      onClick={() => handleSubscriptionChange("elite")}
-                    >
-                      <h3 className="text-lg font-semibold">Elite</h3>
-                      <div className="mb-2">
-                        <p className="text-2xl font-bold text-[#006699]">$99.99<span className="text-sm font-normal">/month</span></p>
-                      </div>
-                      <ul className="space-y-2 text-sm">
-                        <li className="flex items-center">
-                          <span className="text-[#006699] font-bold mr-2">✓</span> Promotional listing
-                        </li>
-
-                        <li className="flex items-center">
-                          <span className="text-[#006699] font-bold mr-2">✓</span> Unlimited product listings*
-                        </li>
-                        <li className="flex items-center">
-                          <span className="text-[#006699] font-bold mr-2">✓</span> Featured placement
-                        </li>
-                        <li className="flex items-center">
-                          <span className="text-[#006699] font-bold mr-2">✓</span> API integration available **
-                        </li>
-                      </ul>
+                    {/* Monthly/Annual Toggle */}
+                    <div className="flex items-center justify-center gap-3 mt-6">
+                      <span className={`text-sm font-medium ${!isAnnual ? 'text-gray-900' : 'text-gray-500'}`}>Monthly</span>
+                      <button
+                        type="button"
+                        onClick={() => setIsAnnual(!isAnnual)}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${isAnnual ? 'bg-[#006699]' : 'bg-gray-300'}`}
+                      >
+                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isAnnual ? 'translate-x-6' : 'translate-x-1'}`} />
+                      </button>
+                      <span className={`text-sm font-medium ${isAnnual ? 'text-gray-900' : 'text-gray-500'}`}>Annual <span className="text-green-600 text-xs font-semibold">(Save ~17%)</span></span>
                     </div>
                   </div>
-                  <div className="mt-4 text-sm text-gray-600">
-                    <p>
-                      * Transactional fees apply. Please review our full
-                      policy for details.
-                    </p>
-                    <p>** One-time set-up fee may apply.</p>
+
+                  <div className="flex flex-col xl:flex-row gap-6">
+                    {/* Subscription Cards */}
+                    <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-5">
+                      {/* Basic Listing */}
+                      <div
+                        className={`relative border-2 rounded-xl p-6 cursor-pointer transition-all bg-white ${formData.subscriptionType === "basic" ? "border-[#006699] shadow-lg" : "border-gray-200 hover:border-gray-300"}`}
+                        onClick={() => handleSubscriptionChange("basic")}
+                      >
+                        {formData.subscriptionType === "basic" && (
+                          <div className="absolute top-3 right-3 bg-[#006699] rounded-full p-1">
+                            <Check className="h-4 w-4 text-white" />
+                          </div>
+                        )}
+                        <div className="inline-block bg-amber-100 text-amber-800 text-xs font-semibold px-3 py-1 rounded-full mb-4">
+                          BASIC LISTING
+                        </div>
+                        <div className="mb-4">
+                          <p className="text-3xl font-bold text-gray-900">
+                            {isAnnual ? "$390" : "$39"}
+                            <span className="text-base font-normal text-gray-500">/{isAnnual ? "year" : "month"}</span>
+                          </p>
+                          {isAnnual ? (
+                            <p className="text-xs text-green-600 mt-1">$32.50/mo — Save $78/year</p>
+                          ) : (
+                            <>
+                              <p className="text-xs text-gray-500 mt-1">or <span className="text-green-600 font-medium">$390</span> / year</p>
+                              <p className="text-xs text-green-600 font-medium">Save ~17%</p>
+                            </>
+                          )}
+                        </div>
+                        <ul className="space-y-3 text-sm">
+                          <li className="flex items-start">
+                            <span className="text-[#006699] font-bold mr-2 mt-0.5">✓</span>
+                            <span>Business profile</span>
+                          </li>
+                          <li className="flex items-start">
+                            <span className="text-[#006699] font-bold mr-2 mt-0.5">✓</span>
+                            <span>Up to 10 Products or 5 Services</span>
+                          </li>
+                          <li className="flex items-start">
+                            <span className="text-[#006699] font-bold mr-2 mt-0.5">✓</span>
+                            <span>Contact or Get a Quote CTA</span>
+                          </li>
+                          <li className="flex items-start">
+                            <span className="text-[#006699] font-bold mr-2 mt-0.5">✓</span>
+                            <span>Listed in ParishMart Directory</span>
+                          </li>
+                        </ul>
+                      </div>
+
+                      {/* Commerce */}
+                      <div
+                        className={`relative border-2 rounded-xl p-6 cursor-pointer transition-all bg-white ${formData.subscriptionType === "premium" ? "border-[#006699] shadow-lg" : "border-gray-200 hover:border-gray-300"}`}
+                        onClick={() => handleSubscriptionChange("premium")}
+                      >
+                        {formData.subscriptionType === "premium" && (
+                          <div className="absolute top-3 right-3 bg-[#006699] rounded-full p-1">
+                            <Check className="h-4 w-4 text-white" />
+                          </div>
+                        )}
+                        <div className="inline-block bg-[#1a365d] text-white text-xs font-semibold px-3 py-1 rounded-full mb-4">
+                          COMMERCE — MOST POPULAR
+                        </div>
+                        <div className="mb-4">
+                          <p className="text-3xl font-bold text-gray-900">
+                            {isAnnual ? "$790" : "$79"}
+                            <span className="text-base font-normal text-gray-500">/{isAnnual ? "year" : "month"}</span>
+                          </p>
+                          {isAnnual ? (
+                            <p className="text-xs text-green-600 mt-1">$65.83/mo — Save $158/year</p>
+                          ) : (
+                            <>
+                              <p className="text-xs text-gray-500 mt-1">or <span className="text-green-600 font-medium">$790</span> / year</p>
+                              <p className="text-xs text-green-600 font-medium">Save ~17%</p>
+                            </>
+                          )}
+                        </div>
+                        <ul className="space-y-3 text-sm">
+                          <li className="flex items-start">
+                            <span className="text-[#006699] font-bold mr-2 mt-0.5">✓</span>
+                            <span>Up to 50 Products or Services</span>
+                          </li>
+                          <li className="flex items-start">
+                            <span className="text-[#006699] font-bold mr-2 mt-0.5">✓</span>
+                            <span>Book Now or Buy Now CTAs</span>
+                          </li>
+                          <li className="flex items-start">
+                            <span className="text-[#006699] font-bold mr-2 mt-0.5">✓</span>
+                            <span>Integrated Payments & Booking</span>
+                          </li>
+                          <li className="flex items-start">
+                            <span className="text-[#006699] font-bold mr-2 mt-0.5">✓</span>
+                            <span>Analytics & Engagement Tools</span>
+                          </li>
+                        </ul>
+                      </div>
+
+                      {/* Featured Partner */}
+                      <div
+                        className={`relative border-2 rounded-xl p-6 cursor-pointer transition-all bg-white ${formData.subscriptionType === "elite" ? "border-[#006699] shadow-lg" : "border-gray-200 hover:border-gray-300"}`}
+                        onClick={() => handleSubscriptionChange("elite")}
+                      >
+                        {formData.subscriptionType === "elite" && (
+                          <div className="absolute top-3 right-3 bg-[#006699] rounded-full p-1">
+                            <Check className="h-4 w-4 text-white" />
+                          </div>
+                        )}
+                        <div className="inline-block bg-amber-100 text-amber-800 text-xs font-semibold px-3 py-1 rounded-full mb-4">
+                          FEATURED PARTNER
+                        </div>
+                        <div className="mb-4">
+                          <p className="text-3xl font-bold text-gray-900">
+                            {isAnnual ? "$1,490" : "$149"}
+                            <span className="text-base font-normal text-gray-500">/{isAnnual ? "year" : "month"}</span>
+                          </p>
+                          {isAnnual ? (
+                            <p className="text-xs text-green-600 mt-1">$124.17/mo — Save $298/year</p>
+                          ) : (
+                            <>
+                              <p className="text-xs text-gray-500 mt-1">or <span className="text-green-600 font-medium">$1,490</span> / year</p>
+                              <p className="text-xs text-green-600 font-medium">Save ~17%</p>
+                            </>
+                          )}
+                        </div>
+                        <ul className="space-y-3 text-sm">
+                          <li className="flex items-start">
+                            <span className="text-[#006699] font-bold mr-2 mt-0.5">✓</span>
+                            <span>Unlimited Products & Services</span>
+                          </li>
+                          <li className="flex items-start">
+                            <span className="text-[#006699] font-bold mr-2 mt-0.5">✓</span>
+                            <span>Priority Featured Placement</span>
+                          </li>
+                          <li className="flex items-start">
+                            <span className="text-[#006699] font-bold mr-2 mt-0.5">✓</span>
+                            <span>Highlighted Banner Ads</span>
+                          </li>
+                          <li className="flex items-start">
+                            <span className="text-[#006699] font-bold mr-2 mt-0.5">✓</span>
+                            <span>Top Category Placement</span>
+                          </li>
+                          <li className="flex items-start">
+                            <span className="text-[#006699] font-bold mr-2 mt-0.5">✓</span>
+                            <span>Advanced Reporting Dashboard</span>
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+
+                    {/* What's Included Sidebar */}
+                    <div className="xl:w-56 flex-shrink-0">
+                      <div className="bg-gray-50 rounded-xl p-5 h-full">
+                        <h3 className="font-semibold text-gray-900 text-sm mb-4">What's included in every plan</h3>
+                        <ul className="space-y-3 text-xs text-gray-600">
+                          <li className="flex items-start">
+                            <span className="text-[#006699] font-bold mr-2 mt-0.5">✓</span>
+                            <span>Business profile page</span>
+                          </li>
+                          <li className="flex items-start">
+                            <span className="text-[#006699] font-bold mr-2 mt-0.5">✓</span>
+                            <span>ParishMart directory listing</span>
+                          </li>
+                          <li className="flex items-start">
+                            <span className="text-[#006699] font-bold mr-2 mt-0.5">✓</span>
+                            <span>Community exposure</span>
+                          </li>
+                          <li className="flex items-start">
+                            <span className="text-[#006699] font-bold mr-2 mt-0.5">✓</span>
+                            <span>Secure checkout via Stripe</span>
+                          </li>
+                          <li className="flex items-start">
+                            <span className="text-[#006699] font-bold mr-2 mt-0.5">✓</span>
+                            <span>Dedicated support</span>
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="flex justify-end">
+                  <p className="text-xs text-gray-400 mt-4 text-center">All transactions are secured through Stripe. Transactional fees may apply.</p>
+
+                  <div className="flex justify-end mt-6">
                     <Button
                       type="button"
                       onClick={nextStep}
@@ -1358,10 +1472,10 @@ const VendorRegistrationForm = () => {
                         <p className="text-gray-600">
                           Subscription:{" "}
                           {formData.subscriptionType === "basic"
-                            ? "Basic"
+                            ? "Basic Listing"
                             : formData.subscriptionType === "premium"
-                              ? "Premium"
-                              : "Elite"}
+                              ? "Commerce"
+                              : "Featured Partner"}
                         </p>
                       </div>
 

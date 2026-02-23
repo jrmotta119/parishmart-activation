@@ -17,7 +17,7 @@ interface FooterProps {
 
 const Footer = ({
   missionStatement = "ParishMart is dedicated to connecting communities through purpose-driven shopping. Every purchase you make directly supports community initiatives and charitable causes.",
-  copyrightText = "© 2023 ParishMart. All rights reserved.",
+  copyrightText = "© 2026 ParishMart. All rights reserved.",
   onLanguageChange = (language: string) =>
     console.log(`Language changed to ${language}`),
 }: FooterProps) => {
@@ -120,14 +120,6 @@ const Footer = ({
                   className="text-gray-600 hover:text-[#006699] transition-colors"
                 >
                   Sell with us
-                </a>
-              </li>
-              <li>
-                <a
-                  href="/launch-cause"
-                  className="text-gray-600 hover:text-[#006699] transition-colors"
-                >
-                  Launch your cause
                 </a>
               </li>
             </ul>

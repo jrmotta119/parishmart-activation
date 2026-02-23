@@ -67,7 +67,7 @@ interface GrowWithUsProps {
 
 const GrowWithUs = ({
   title = "Grow with us",
-  subtitle = "Join the first Catholic marketplace that connects parishes, causes & faith-driven entrepreneurs.",
+  subtitle = "Join the first Catholic marketplace that connects parishes, causes and faith-driven entrepreneurs.",
   cards = [
     {
       title: "Are you a Parish, Diocese, or Archdiocese?",
@@ -85,27 +85,19 @@ const GrowWithUs = ({
         "https://images.unsplash.com/photo-1556740772-1a741367b93e?w=800&q=80",
       onClick: () => (window.location.href = "./sell-with-us"),
     },
-    {
-      title: "Are you a non-profit or cause?",
-      description: "Share your story, receive donations, and redefine giving.",
-      buttonText: "Launch Your Cause",
-      imageSrc:
-        "https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?w=800&q=80",
-      onClick: () => (window.location.href = "./launch-cause"),
-    },
   ],
 }: GrowWithUsProps) => {
   return (
-    <section className="py-16 px-4 md:px-8 lg:px-16 bg-white scroll-mt-24" id="grow-with-us">
-      <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-12">
+    <section className="py-20 px-4 md:px-8 lg:px-16 bg-white scroll-mt-24" id="grow-with-us">
+      <div className="max-w-5xl mx-auto">
+        <div className="text-center mb-14">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
             {title}
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">{subtitle}</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
           {cards.map((card, index) => (
             <GrowCard
               key={index}

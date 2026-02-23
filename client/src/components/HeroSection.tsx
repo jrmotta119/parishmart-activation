@@ -105,7 +105,7 @@ const HeroSection = () => {
             alt="Slide background"
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-[#1a2341]/90" />
+          <div className="absolute inset-0 bg-[#1a2341]/70" />
         </div>
         {/* Left Arrow - now inside the card */}
         <button

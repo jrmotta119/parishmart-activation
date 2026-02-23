@@ -177,12 +177,6 @@ const Header = ({
                 Sell with us
               </a>
               <a
-                href="/launch-cause"
-                className="text-[#006699] hover:text-[#005588] px-2 py-1 text-sm font-medium"
-              >
-                Launch your cause
-              </a>
-              <a
                 href="https://shop.parishmart.com/"
                 className="text-[#006699] hover:text-[#005588] px-2 py-1 text-sm font-medium"
               >

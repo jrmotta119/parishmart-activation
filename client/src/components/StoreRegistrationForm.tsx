@@ -71,7 +71,7 @@ const StoreRegistrationForm = () => {
     zipCode: "",
     phoneNumber: "",
     organizationName: "",
-    organizationType: "parish",
+    organizationType: "cause",
     description: "",
     impact: "",
     foundingYear: "",
@@ -100,6 +100,7 @@ const StoreRegistrationForm = () => {
   const [bannerImagesPreviews, setBannerImagesPreviews] = useState<string[]>([]);
   const [photosPreviews, setPhotosPreviews] = useState<string[]>([]);
   const [step, setStep] = useState(1);
+  const [isAnnual, setIsAnnual] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [attemptedSteps, setAttemptedSteps] = useState<number[]>([]);
   const [emailError, setEmailError] = useState<string>("");
@@ -111,7 +112,6 @@ const StoreRegistrationForm = () => {
   const [customPrimaryColor, setCustomPrimaryColor] = useState("#006699");
   const [customSecondaryColor, setCustomSecondaryColor] = useState("#e6f7ff");
 
-  const [hasTaxExemptStatus, setHasTaxExemptStatus] = useState<string>("");
 
   const [showAnnouncement, setShowAnnouncement] = useState(true);
 
@@ -273,25 +273,15 @@ const StoreRegistrationForm = () => {
     setPhotosPreviews(updatedPreviews);
   };
 
+  const orgTypeByTier: Record<string, string> = { basic: "cause", premium: "parish", elite: "diocese" };
   const handleSubscriptionChange = (tier: "basic" | "premium" | "elite") => {
-    setFormData({ ...formData, subscriptionTier: tier });
+    setFormData({ ...formData, subscriptionTier: tier, organizationType: orgTypeByTier[tier] });
   };
 
   const handleConsultationChange = (needsConsultation: boolean) => {
     setFormData({ ...formData, needsConsultation });
   };
 
-  const handleTaxExemptionFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      if (file.type === 'application/pdf') {
-        setFormData({ ...formData, taxExemptionForm: file });
-      } else {
-        alert('Please upload a PDF file');
-        e.target.value = ''; // Reset the input
-      }
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -311,8 +301,7 @@ const StoreRegistrationForm = () => {
       !formData.zipCode ||
       !formData.organizationName ||
       !formData.impact ||
-      !formData.foundingYear ||
-      hasTaxExemptStatus === ""
+      !formData.foundingYear
     ) {
       alert("Please fill in all required fields");
       return;
@@ -335,11 +324,6 @@ const StoreRegistrationForm = () => {
       alert("Please select a donation platform");
       return;
     }
-    if (hasTaxExemptStatus === "yes" && !formData.taxExemptionForm) {
-      alert("Please upload your tax exemption form");
-      return;
-    }
-
     // Validate elite subscription requirements
     if (formData.subscriptionTier === "elite" && !formData.logo) {
       alert("Please upload your organization logo");
@@ -354,9 +338,6 @@ const StoreRegistrationForm = () => {
       
       // Add registration type
       submitData.append('registrationType', 'store');
-      
-      // Add tax exemption status
-      submitData.append('hasTaxExemptStatus', hasTaxExemptStatus);
       
       // Add all form fields
       Object.entries(formData).forEach(([key, value]) => {
@@ -425,7 +406,6 @@ const StoreRegistrationForm = () => {
           !formData.streetAddress || !formData.city || !formData.location.country || !formData.location.subdivision || !formData.zipCode ||
           !formData.organizationName || !formData.description ||
           !formData.impact || !formData.foundingYear ||
-          (formData.organizationType === "other" && !formData.otherOrganizationType) ||
           (formData.referredBy === "ministry_brands" && !formData.referralAssociateName) ||
           (formData.referredBy === "social_media" && !formData.socialMediaPlatform)) {
         return;
@@ -500,7 +480,7 @@ const StoreRegistrationForm = () => {
         <Header />
       </div>
       <div className="pt-36 pb-16 relative z-10">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className={`mx-auto px-4 sm:px-6 lg:px-8 ${step === 1 ? 'max-w-7xl' : 'max-w-4xl'} transition-all`}>
           <div className="text-center mb-10">
             <h1 className="text-3xl md:text-4xl font-bold text-[#006699] mb-4">
               Register Your Store
@@ -584,44 +564,17 @@ const StoreRegistrationForm = () => {
                     <Input id="organizationName" name="organizationName" value={formData.organizationName} onChange={handleInputChange} required maxLength={250} className={`w-full ${!formData.organizationName && attemptedSteps.includes(2) ? "border-red-500" : ""}`} />
                     {!formData.organizationName && attemptedSteps.includes(2) && (<p className="mt-1 text-sm text-red-500">Organization name is required</p>)}
                     <Label htmlFor="organizationType" className="text-sm font-medium text-gray-700 mb-1 mt-4 flex items-center gap-2">
-                      Organization Type *
-                      <Tooltip text={
-                        `
-Parish: A local Catholic community.
-
-Diocese: A district under the pastoral care of a bishop.
-
-Archdiocese: A chief diocese, headed by an archbishop.`
-                      }>
+                      Organization Type
+                      <Tooltip text="This is automatically set based on the subscription plan you selected in Step 1.">
                         <Info className="h-4 w-4 text-gray-400 hover:text-[#006699]" />
                       </Tooltip>
                     </Label>
-                    <select id="organizationType" name="organizationType" value={formData.organizationType} onChange={handleInputChange} required className="w-full rounded-md border border-gray-300 py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#006699] focus:border-transparent">
+                    <select id="organizationType" name="organizationType" value={formData.organizationType} disabled className="w-full rounded-md border border-gray-200 bg-gray-100 py-2 px-3 text-gray-500 cursor-not-allowed">
+                      <option value="cause">Cause/Non-profit</option>
                       <option value="parish">Parish</option>
-                      <option value="diocese">Diocese</option>
-                      <option value="archdiocese">Archdiocese</option>
-                      <option value="other">Other</option>
+                      <option value="diocese">Diocese/Archdiocese</option>
                     </select>
-                    {formData.organizationType === "other" && (
-                      <div className="mt-2">
-                        <Label htmlFor="otherOrganizationType" className="block text-sm font-medium text-gray-700 mb-1">
-                          Please specify
-                        </Label>
-                        <Input
-                          id="otherOrganizationType"
-                          name="otherOrganizationType"
-                          value={formData.otherOrganizationType || ""}
-                          onChange={handleInputChange}
-                          className={`w-full ${!formData.otherOrganizationType && attemptedSteps.includes(2) ? "border-red-500" : ""}`}
-                          maxLength={250}
-                          placeholder="Enter your organization type"
-                          required
-                        />
-                        {!formData.otherOrganizationType && attemptedSteps.includes(2) && (
-                          <p className="mt-1 text-sm text-red-500">Please specify your organization type</p>
-                        )}
-                      </div>
-                    )}
+                    <p className="mt-1 text-xs text-gray-400">Based on your selected plan</p>
                     <Label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1 mt-4">Organization Description *</Label>
                     <Textarea 
                       id="description" 
@@ -701,52 +654,6 @@ Archdiocese: A chief diocese, headed by an archbishop.`
                     <div className="flex justify-end mt-1">
                       <p className="text-sm text-gray-500">{formData.slogan.length}/75 characters</p>
                     </div>
-                    {/* Tax Exemption Status Question */}
-                    <Label className="block text-sm font-medium text-gray-700 mb-1 mt-4">Does your organization qualify for tax-exempt status as defined by the IRS? *</Label>
-                    <div className="flex items-center gap-6 mb-2">
-                      <label className="flex items-center gap-2">
-                        <input
-                          type="radio"
-                          name="hasTaxExemptStatus"
-                          value="yes"
-                          checked={hasTaxExemptStatus === "yes"}
-                          onChange={() => setHasTaxExemptStatus("yes")}
-                          required
-                        />
-                        <span>Yes</span>
-                      </label>
-                      <label className="flex items-center gap-2">
-                        <input
-                          type="radio"
-                          name="hasTaxExemptStatus"
-                          value="no"
-                          checked={hasTaxExemptStatus === "no"}
-                          onChange={() => setHasTaxExemptStatus("no")}
-                          required
-                        />
-                        <span>No</span>
-                      </label>
-                    </div>
-                    {hasTaxExemptStatus === "" && attemptedSteps.includes(2) && (
-                      <p className="text-sm text-red-500 mb-2">This field is required</p>
-                    )}
-                    {/* Tax Exemption Form Section (conditional) */}
-                    {hasTaxExemptStatus === "yes" && (
-                      <>
-                        <Label className="block text-sm font-medium text-gray-700 mb-1 mt-4">Tax Exemption Status</Label>
-                        <p className="text-sm text-gray-500 mb-2">If your organization has a 501(c)(3) tax exemption status, please upload your documentation here. This is optional and can be added later.</p>
-                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
-                          <input type="file" id="taxExemptionForm" accept=".pdf" onChange={handleTaxExemptionFormChange} className="hidden" />
-                          <label htmlFor="taxExemptionForm" className="cursor-pointer flex flex-col items-center">
-                            <Upload className="h-8 w-8 text-gray-400 mb-2" />
-                            <span className="text-sm text-gray-500">Click to upload your tax exemption form</span>
-                            <span className="text-xs text-gray-400 mt-1">PDF only, max 5MB</span>
-                          </label>
-                        </div>
-                        {formData.taxExemptionForm && (<p className="mt-2 text-sm text-green-600">✓ Tax exemption form uploaded</p>)}
-                      </>
-                    )}
-
                     {/* Donation Collection Question */}
                     <Label className="block text-sm font-medium text-gray-700 mb-1 mt-4">Do you currently collect online donations? *</Label>
                     <div className="flex items-center gap-6 mb-2">
@@ -850,7 +757,7 @@ Archdiocese: A chief diocese, headed by an archbishop.`
                       </div>
                     </div>
                     <Label htmlFor="adminRole" className="block text-sm font-medium text-gray-700 mb-1">Role / Title *</Label>
-                    <Input id="adminRole" name="adminRole" value={formData.adminRole} onChange={handleInputChange} required maxLength={250} placeholder="e.g. Pastor, Office Manager" className={`w-full ${!formData.adminRole && attemptedSteps.includes(2) ? "border-red-500" : ""}`} />
+                    <Input id="adminRole" name="adminRole" value={formData.adminRole} onChange={handleInputChange} required maxLength={250} placeholder="e.g. Parish Administrator, Bishop" className={`w-full ${!formData.adminRole && attemptedSteps.includes(2) ? "border-red-500" : ""}`} />
                     {!formData.adminRole && attemptedSteps.includes(2) && (<p className="mt-1 text-sm text-red-500">Role / Title is required</p>)}
                     <Label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1 mt-4">Email *</Label>
                     <Input id="email" name="email" type="email" value={formData.email} onChange={handleInputChange} required maxLength={250} className={`w-full ${(!formData.email && attemptedSteps.includes(2)) || emailError ? "border-red-500" : ""}`} />
@@ -1007,103 +914,178 @@ Archdiocese: A chief diocese, headed by an archbishop.`
 
             {/* Step 1: Subscription Selection */}
             {step === 1 && (
-              <div className="bg-white p-6 rounded-lg shadow-md mb-8">
-                <h2 className="text-xl font-semibold text-gray-900 mb-6">
-                  Choose Your Subscription
-                </h2>
+              <div className="mb-8">
+                <div className="text-center mb-8">
+                  <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+                    Grow Your Mission with ParishMart
+                  </h2>
+                  <p className="text-gray-600">
+                    Choose the plan that helps your parish or cause expand its impact and connect.
+                  </p>
+                </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                  {/* Basic Tier */}
-                  <div
-                    className={`border-2 rounded-lg p-6 cursor-pointer transition-all ${formData.subscriptionTier === "basic" ? "border-[#006699] shadow-md" : "border-gray-200"}`}
-                    onClick={() => handleSubscriptionChange("basic")}
+                {/* Monthly/Annual Toggle */}
+                <div className="flex items-center justify-center gap-3 mb-10">
+                  <span className={`text-sm font-medium ${!isAnnual ? 'text-gray-900' : 'text-gray-500'}`}>Monthly</span>
+                  <button
+                    type="button"
+                    onClick={() => setIsAnnual(!isAnnual)}
+                    className={`relative w-14 h-7 rounded-full transition-colors ${isAnnual ? 'bg-[#006699]' : 'bg-gray-300'}`}
                   >
-                    <h3 className="text-lg font-semibold">Basic</h3>
-                    <div className="mb-2">
-                      <p className="text-2xl font-bold text-[#006699]">$19.99<span className="text-sm font-normal text-gray-500">/month</span></p>
+                    <span className={`absolute top-0.5 left-0.5 w-6 h-6 bg-white rounded-full shadow transition-transform ${isAnnual ? 'translate-x-7' : ''}`} />
+                  </button>
+                  <span className={`text-sm font-medium ${isAnnual ? 'text-gray-900' : 'text-gray-500'}`}>Annual - Save 20%</span>
+                </div>
+
+                {/* Pricing Cards + What's Included sidebar */}
+                <div className="flex flex-col xl:flex-row gap-6 mb-6">
+                  {/* Pricing Cards */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 flex-1 min-w-0">
+                    {/* Cause Plan (left) */}
+                    <div
+                      className={`border-2 rounded-xl p-6 cursor-pointer transition-all flex flex-col bg-white relative ${formData.subscriptionTier === "basic" ? "border-[#006699] shadow-lg" : "border-gray-200 hover:border-gray-300"}`}
+                      onClick={() => handleSubscriptionChange("basic")}
+                    >
+                      {formData.subscriptionTier === "basic" && (
+                        <div className="absolute top-3 right-3 w-6 h-6 bg-[#006699] rounded-full flex items-center justify-center">
+                          <Check className="h-3.5 w-3.5 text-white" />
+                        </div>
+                      )}
+                      <h3 className="text-xl font-bold text-gray-900 mb-4">Cause Plan</h3>
+                      <div className="mb-4">
+                        {isAnnual ? (
+                          <>
+                            <p className="text-3xl font-bold text-gray-900">$279<span className="text-base font-normal text-gray-500"> / year</span></p>
+                            <p className="text-sm text-green-600 font-medium">Save 20%</p>
+                          </>
+                        ) : (
+                          <>
+                            <p className="text-3xl font-bold text-gray-900">$29<span className="text-base font-normal text-gray-500"> / month</span></p>
+                            <p className="text-sm text-gray-500">or <span className="text-green-600 font-medium">$279</span> / year</p>
+                            <p className="text-sm text-green-600 font-medium">Save 20%</p>
+                          </>
+                        )}
+                      </div>
+                      <div className="border-t border-gray-100 pt-4 flex-grow">
+                        <ul className="space-y-3 text-sm">
+                          <li className="flex items-start"><Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" /> Campaign Storefront</li>
+                          <li className="flex items-start"><Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" /> Accept Donations</li>
+                          <li className="flex items-start"><Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" /> Up to 5 Products</li>
+                          <li className="flex items-start"><Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" /> Basic Dashboard</li>
+                        </ul>
+                      </div>
                     </div>
-                    <ul className="space-y-2 text-sm">
-                      <li className="flex items-center">
-                        <span className="text-[#006699] font-bold mr-2">✓</span> Access to ParishMart marketplace community
-                      </li>
-                      <li className="flex items-center">
-                        <span className="text-[#006699] font-bold mr-2">✓</span> Branded storefront
-                      </li>
-                      <li className="flex items-center">
-                        <span className="text-[#006699] font-bold mr-2">✓</span> Engagement tracking dashboard
-                      </li>
-                      <li className="flex items-center text-gray-400">
-                        <span className="mr-2">✗</span> Donations as a product
-                      </li>
-                      <li className="flex items-center text-gray-400">
-                        <span className="mr-2">✗</span> Customizable products with your branding
-                      </li>
-                      <li className="flex items-center text-gray-400">
-                        <span className="mr-2">✗</span> Upload your exclusive products
-                      </li>
-                    </ul>
+
+                    {/* Parish Growth Plan (middle) - MOST POPULAR */}
+                    <div
+                      className={`border-2 rounded-xl p-6 cursor-pointer transition-all relative flex flex-col bg-white ${formData.subscriptionTier === "premium" ? "border-[#006699] shadow-lg ring-2 ring-[#006699]/20" : "border-gray-200 hover:border-gray-300"}`}
+                      onClick={() => handleSubscriptionChange("premium")}
+                    >
+                      <span className="absolute -top-3 left-6 bg-[#1a365d] text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide">Most Popular</span>
+                      {formData.subscriptionTier === "premium" && (
+                        <div className="absolute top-3 right-3 w-6 h-6 bg-[#006699] rounded-full flex items-center justify-center">
+                          <Check className="h-3.5 w-3.5 text-white" />
+                        </div>
+                      )}
+                      <h3 className="text-xl font-bold text-gray-900 mb-4 mt-2">Parish Growth Plan</h3>
+                      <div className="mb-4">
+                        {isAnnual ? (
+                          <>
+                            <p className="text-3xl font-bold text-gray-900">$1,430<span className="text-base font-normal text-gray-500"> / year</span></p>
+                            <p className="text-sm text-green-600 font-medium">Save 20%</p>
+                          </>
+                        ) : (
+                          <>
+                            <p className="text-3xl font-bold text-gray-900">$149<span className="text-base font-normal text-gray-500"> / month</span></p>
+                            <p className="text-sm text-gray-500">or <span className="text-green-600 font-medium">$1,430</span> / year</p>
+                            <p className="text-sm text-green-600 font-medium">Save 20%</p>
+                          </>
+                        )}
+                      </div>
+                      <div className="border-t border-gray-100 pt-4 flex-grow">
+                        <ul className="space-y-3 text-sm">
+                          <li className="flex items-start"><Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" /> Branded Parish Store</li>
+                          <li className="flex items-start"><Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" /> Unlimited Donations</li>
+                          <li className="flex items-start"><Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" /> Sell Products & Services</li>
+                          <li className="flex items-start"><Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" /> Featured Exposure in Marketplace</li>
+                          <li className="flex items-start"><Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" /> Impact Dashboard & Reporting</li>
+                          <li className="flex items-start"><Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" /> ParishSoft Integration</li>
+                          <li className="flex items-start"><Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" /> Secure Stripe Connect Setup</li>
+                        </ul>
+                      </div>
+                    </div>
+
+                    {/* Diocese Network Plan (right) */}
+                    <div
+                      className={`border-2 rounded-xl overflow-hidden cursor-pointer transition-all flex flex-col bg-white relative ${formData.subscriptionTier === "elite" ? "border-[#006699] shadow-lg" : "border-gray-200 hover:border-gray-300"}`}
+                      onClick={() => handleSubscriptionChange("elite")}
+                    >
+                      {formData.subscriptionTier === "elite" && (
+                        <div className="absolute top-3 right-3 z-10 w-6 h-6 bg-[#006699] rounded-full flex items-center justify-center">
+                          <Check className="h-3.5 w-3.5 text-white" />
+                        </div>
+                      )}
+                      <div className="bg-[#1a365d] px-6 py-4">
+                        <h3 className="text-xl font-bold text-white">Diocese Network Plan</h3>
+                      </div>
+                      <div className="p-6 flex flex-col flex-grow">
+                        <div className="mb-4">
+                          {isAnnual ? (
+                            <>
+                              <p className="text-3xl font-bold text-gray-900">$1,150<span className="text-base font-normal text-gray-500"> / year per parish</span></p>
+                              <p className="text-sm text-gray-600">(20% savings vs individual)</p>
+                              <p className="text-sm text-green-600 font-medium">Save 20% vs individual</p>
+                            </>
+                          ) : (
+                            <>
+                              <p className="text-3xl font-bold text-gray-900">$119<span className="text-base font-normal text-gray-500"> / month per parish</span></p>
+                              <p className="text-sm text-gray-500">or <span className="text-green-600 font-medium">$1,150</span> / year per parish</p>
+                              <p className="text-sm text-green-600 font-medium">Save 20% vs individual</p>
+                            </>
+                          )}
+                        </div>
+                        <div className="border-t border-gray-100 pt-4 flex-grow">
+                          <ul className="space-y-3 text-sm">
+                            <li className="flex items-start"><Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" /> Centralized Diocese Dashboard</li>
+                            <li className="flex items-start"><Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" /> Consolidated Reporting Across Parishes</li>
+                            <li className="flex items-start"><Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" /> Volume Discount Applied Automatically</li>
+                            <li className="flex items-start"><Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" /> Stripe Visibility Per Parish</li>
+                            <li className="flex items-start"><Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" /> Priority Support</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  {/* Premium Tier */}
-                  <div
-                    className={`border-2 rounded-lg p-6 cursor-pointer transition-all ${formData.subscriptionTier === "premium" ? "border-[#006699] shadow-md" : "border-gray-200"}`}
-                    onClick={() => handleSubscriptionChange("premium")}
-                  >
-                    <h3 className="text-lg font-semibold">Premium</h3>
-                    <div className="mb-2">
-                      <p className="text-2xl font-bold text-[#006699]">$59.99<span className="text-sm font-normal text-gray-500">/month</span></p>
+
+                  {/* What's included sidebar */}
+                  <div className="xl:w-56 flex-shrink-0">
+                    <div className="bg-gray-50 rounded-xl p-5 h-full">
+                      <h3 className="text-sm font-semibold text-gray-900 mb-4">What's included in every ParishMart plan:</h3>
+                      <ul className="space-y-3">
+                        <li className="flex items-start">
+                          <Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" />
+                          <span className="text-xs text-gray-600">Secure Stripe-compliant donation processing</span>
+                        </li>
+                        <li className="flex items-start">
+                          <Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" />
+                          <span className="text-xs text-gray-600">Dedicated store inside ParishMart marketplace</span>
+                        </li>
+                        <li className="flex items-start">
+                          <Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" />
+                          <span className="text-xs text-gray-600">Ongoing platform updates</span>
+                        </li>
+                        <li className="flex items-start">
+                          <Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" />
+                          <span className="text-xs text-gray-600">Access to ParishMart support team</span>
+                        </li>
+                      </ul>
                     </div>
-                    <ul className="space-y-2 text-sm">
-                      <li className="flex items-center">
-                        <span className="text-[#006699] font-bold mr-2">✓</span> Access to ParishMart marketplace community
-                      </li>
-                      <li className="flex items-center">
-                        <span className="text-[#006699] font-bold mr-2">✓</span> Branded storefront
-                      </li>
-                      <li className="flex items-center">
-                        <span className="text-[#006699] font-bold mr-2">✓</span> Engagement tracking dashboard
-                      </li>
-                      <li className="flex items-center">
-                        <span className="text-[#006699] font-bold mr-2">✓</span> Donations as a product
-                      </li>
-                      <li className="flex items-center">
-                        <span className="text-[#006699] font-bold mr-2">✓</span> Customizable products with your branding
-                      </li>
-                      <li className="flex items-center text-gray-400">
-                        <span className="mr-2">✗</span> Upload your exclusive products
-                      </li>
-                    </ul>
-                  </div>
-                  {/* Elite Tier */}
-                  <div
-                    className={`border-2 rounded-lg p-6 cursor-pointer transition-all ${formData.subscriptionTier === "elite" ? "border-[#006699] shadow-md" : "border-gray-200"}`}
-                    onClick={() => handleSubscriptionChange("elite")}
-                  >
-                    <h3 className="text-lg font-semibold">Elite</h3>
-                    <div className="mb-2">
-                      <p className="text-2xl font-bold text-[#006699]">$79.99<span className="text-sm font-normal text-gray-500">/month</span></p>
-                    </div>
-                    <ul className="space-y-2 text-sm">
-                      <li className="flex items-center">
-                        <span className="text-[#006699] font-bold mr-2">✓</span> Access to ParishMart marketplace community
-                      </li>
-                      <li className="flex items-center">
-                        <span className="text-[#006699] font-bold mr-2">✓</span> Branded storefront
-                      </li>
-                      <li className="flex items-center">
-                        <span className="text-[#006699] font-bold mr-2">✓</span> Engagement tracking dashboard
-                      </li>
-                      <li className="flex items-center">
-                        <span className="text-[#006699] font-bold mr-2">✓</span> Donations as a product
-                      </li>
-                      <li className="flex items-center">
-                        <span className="text-[#006699] font-bold mr-2">✓</span> Customizable products with your branding
-                      </li>
-                      <li className="flex items-center">
-                        <span className="text-[#006699] font-bold mr-2">✓</span> Upload your exclusive products
-                      </li>
-                    </ul>
                   </div>
                 </div>
+
+                <p className="text-center text-xs text-gray-500 mb-8">
+                  All funds are processed securely through Stripe. ParishMart never holds or controls your donations.
+                </p>
 
                 <div className="flex justify-end">
                   <Button
@@ -1322,10 +1304,13 @@ Archdiocese: A chief diocese, headed by an archbishop.`
                       <p className="text-gray-600">
                         Subscription:{" "}
                         {formData.subscriptionTier === "basic"
-                          ? "Basic"
+                          ? "Cause Plan"
                           : formData.subscriptionTier === "premium"
-                            ? "Premium"
-                            : "Elite"}
+                            ? "Parish Growth Plan"
+                            : "Diocese Network Plan"}
+                        {formData.subscriptionTier !== "elite" && (
+                          <span className="text-gray-500"> ({isAnnual ? "Annual" : "Monthly"})</span>
+                        )}
                       </p>
                     </div>
 
@@ -1342,7 +1327,7 @@ Archdiocese: A chief diocese, headed by an archbishop.`
                       </p>
                       <p className="text-gray-600">Email: {formData.email}</p>
                       <p className="text-gray-600">Organization: {formData.organizationName}</p>
-                      <p className="text-gray-600">Type: {formData.organizationType === "other" ? formData.otherOrganizationType : formData.organizationType}</p>
+                      <p className="text-gray-600">Type: {formData.organizationType === "cause" ? "Cause/Non-profit" : formData.organizationType === "diocese" ? "Diocese/Archdiocese" : "Parish"}</p>
                       {formData.impact && (
                         <p className="text-gray-600">Impact: {formData.impact}</p>
                       )}
@@ -1351,9 +1336,6 @@ Archdiocese: A chief diocese, headed by an archbishop.`
                       )}
                       {formData.slogan && (
                         <p className="text-gray-600">Slogan: {formData.slogan}</p>
-                      )}
-                      {hasTaxExemptStatus && (
-                        <p className="text-gray-600">Tax Exempt Status: {hasTaxExemptStatus === "yes" ? "Yes" : "No"}</p>
                       )}
                       {formData.collectsDonations !== null && (
                         <p className="text-gray-600">
