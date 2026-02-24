@@ -2,8 +2,9 @@ import React, { useState, useEffect } from "react";
 import Header from "./Header";
 import HeroSection from "./HeroSection";
 import GrowWithUs from "./GrowWithUs";
-import ProductCarousel from "./ProductCarousel";
-import ValueProposition from "./ValueProposition";
+import HowItWorksSection from "./HowItWorksSection";
+import TestimonialSection from "./TestimonialSection";
+import ClosingBannerSection from "./ClosingBannerSection";
 import Footer from "./Footer";
 import Notification from "./Notification";
 import AnnouncementStrip from "./AnnouncementStrip";
@@ -78,25 +79,10 @@ const HomePage = ({
         {/* Hero Section */}
         <HeroSection/>
 
-        {/* Grow With Us Section */}
-        
         <GrowWithUs />
-      
-
-        {/* Product Carousel */}
-        {/* <div id="products">
-          <ProductCarousel
-            onProductSelect={(product) => {
-              // This now only handles product selection, not cart addition
-              console.log("Product selected:", product.title);
-            }}
-          />
-        </div> */}
-
-        {/* Value Proposition */}
-        {/* <ValueProposition /> */}
-
-        {/* Footer */}
+        <HowItWorksSection />
+        <TestimonialSection />
+        <ClosingBannerSection />
         <Footer />
       </main>
 
