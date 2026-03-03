@@ -44,12 +44,13 @@ interface FormData {
   businessZipCode: string;
   logo: File | null;
   websiteLinks: string;
-  subscriptionType: "basic" | "premium" | "elite";
+  subscriptionType: "tier1" | "tier2" | "tier3";
   contactEmail: string;
   contactPhone: string;
   participateInCampaigns: boolean;
 
   reach: "local" | "regional" | "national" | "global" | "";
+  logoHasTransparentBg: boolean;
 }
 
 const VendorRegistrationForm = () => {
@@ -75,12 +76,13 @@ const VendorRegistrationForm = () => {
     businessZipCode: "",
     logo: null,
     websiteLinks: "",
-    subscriptionType: "basic",
+    subscriptionType: "tier1",
     contactEmail: "",
     contactPhone: "",
     participateInCampaigns: true,
-    
+
     reach: "",
+    logoHasTransparentBg: false,
   });
 
   const [logoPreview, setLogoPreview] = useState<string>("");
@@ -262,7 +264,7 @@ const VendorRegistrationForm = () => {
   };
 
   // Handle subscription type change
-  const handleSubscriptionChange = (type: "basic" | "premium" | "elite") => {
+  const handleSubscriptionChange = (type: "tier1" | "tier2" | "tier3") => {
     setFormData({
       ...formData,
       subscriptionType: type,
@@ -315,10 +317,10 @@ const VendorRegistrationForm = () => {
       
       submitData.append('parishAffiliation', finalParishAffiliation);
       
-      // Add all form fields (except parishAffiliation which we handled above)
+      // Add all form fields (except those handled separately below)
       Object.entries(formData).forEach(([key, value]) => {
-        if (key === 'parishAffiliation') {
-          // Skip - already handled above
+        if (key === 'parishAffiliation' || key === 'contactEmail' || key === 'contactPhone') {
+          // Skip - handled separately (parishAffiliation above, contactEmail/contactPhone below with fallback logic)
           return;
         } else if (key === 'logo' && value) {
           submitData.append('logo', value);
@@ -1092,6 +1094,15 @@ const VendorRegistrationForm = () => {
                         <p className="mt-1 text-xs text-red-500">Logo is required</p>
                       )}
                     </div>
+                    <label className="flex items-center gap-2 mt-2 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={formData.logoHasTransparentBg}
+                        onChange={(e) => setFormData(prev => ({ ...prev, logoHasTransparentBg: e.target.checked }))}
+                        className="w-4 h-4 accent-[#006699]"
+                      />
+                      <span className="text-xs text-gray-600">Logo already has transparent background</span>
+                    </label>
                   </div>
 
                   {/* Banner Upload */}
@@ -1247,10 +1258,10 @@ const VendorRegistrationForm = () => {
                     <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-5">
                       {/* Basic Listing */}
                       <div
-                        className={`relative border-2 rounded-xl p-6 cursor-pointer transition-all bg-white ${formData.subscriptionType === "basic" ? "border-[#006699] shadow-lg" : "border-gray-200 hover:border-gray-300"}`}
-                        onClick={() => handleSubscriptionChange("basic")}
+                        className={`relative border-2 rounded-xl p-6 cursor-pointer transition-all bg-white ${formData.subscriptionType === "tier1" ? "border-[#006699] shadow-lg" : "border-gray-200 hover:border-gray-300"}`}
+                        onClick={() => handleSubscriptionChange("tier1")}
                       >
-                        {formData.subscriptionType === "basic" && (
+                        {formData.subscriptionType === "tier1" && (
                           <div className="absolute top-3 right-3 bg-[#006699] rounded-full p-1">
                             <Check className="h-4 w-4 text-white" />
                           </div>
@@ -1294,10 +1305,10 @@ const VendorRegistrationForm = () => {
 
                       {/* Commerce */}
                       <div
-                        className={`relative border-2 rounded-xl p-6 cursor-pointer transition-all bg-white ${formData.subscriptionType === "premium" ? "border-[#006699] shadow-lg" : "border-gray-200 hover:border-gray-300"}`}
-                        onClick={() => handleSubscriptionChange("premium")}
+                        className={`relative border-2 rounded-xl p-6 cursor-pointer transition-all bg-white ${formData.subscriptionType === "tier2" ? "border-[#006699] shadow-lg" : "border-gray-200 hover:border-gray-300"}`}
+                        onClick={() => handleSubscriptionChange("tier2")}
                       >
-                        {formData.subscriptionType === "premium" && (
+                        {formData.subscriptionType === "tier2" && (
                           <div className="absolute top-3 right-3 bg-[#006699] rounded-full p-1">
                             <Check className="h-4 w-4 text-white" />
                           </div>
@@ -1341,10 +1352,10 @@ const VendorRegistrationForm = () => {
 
                       {/* Featured Partner */}
                       <div
-                        className={`relative border-2 rounded-xl p-6 cursor-pointer transition-all bg-white ${formData.subscriptionType === "elite" ? "border-[#006699] shadow-lg" : "border-gray-200 hover:border-gray-300"}`}
-                        onClick={() => handleSubscriptionChange("elite")}
+                        className={`relative border-2 rounded-xl p-6 cursor-pointer transition-all bg-white ${formData.subscriptionType === "tier3" ? "border-[#006699] shadow-lg" : "border-gray-200 hover:border-gray-300"}`}
+                        onClick={() => handleSubscriptionChange("tier3")}
                       >
-                        {formData.subscriptionType === "elite" && (
+                        {formData.subscriptionType === "tier3" && (
                           <div className="absolute top-3 right-3 bg-[#006699] rounded-full p-1">
                             <Check className="h-4 w-4 text-white" />
                           </div>
@@ -1471,9 +1482,9 @@ const VendorRegistrationForm = () => {
                         </h4>
                         <p className="text-gray-600">
                           Subscription:{" "}
-                          {formData.subscriptionType === "basic"
+                          {formData.subscriptionType === "tier1"
                             ? "Basic Listing"
-                            : formData.subscriptionType === "premium"
+                            : formData.subscriptionType === "tier2"
                               ? "Commerce"
                               : "Featured Partner"}
                         </p>

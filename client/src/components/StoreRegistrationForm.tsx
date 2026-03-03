@@ -33,7 +33,7 @@ interface FormData {
   photos: File[];
   // primaryColor: string;
   // secondaryColor: string;
-  subscriptionTier: "basic" | "premium" | "elite";
+  subscriptionTier: "tier1" | "tier2" | "tier3";
   needsConsultation: boolean;
   taxExemptionForm: File | null;
   collectsDonations: boolean | null;
@@ -44,6 +44,7 @@ interface FormData {
   otherReferredBy?: string;
   referralAssociateName?: string;
   socialMediaPlatform?: string;
+  logoHasTransparentBg: boolean;
 }
 
 // Tooltip component
@@ -78,7 +79,7 @@ const StoreRegistrationForm = () => {
     slogan: "",
     logo: null,
     photos: [],
-    subscriptionTier: "basic",
+    subscriptionTier: "tier1",
     needsConsultation: false,
     taxExemptionForm: null,
     collectsDonations: null,
@@ -88,6 +89,7 @@ const StoreRegistrationForm = () => {
     otherReferredBy: "",
     referralAssociateName: "",
     socialMediaPlatform: "",
+    logoHasTransparentBg: false,
   });
   // primaryColor: "#006699",
   // secondaryColor: "#ffffff",
@@ -273,8 +275,8 @@ const StoreRegistrationForm = () => {
     setPhotosPreviews(updatedPreviews);
   };
 
-  const orgTypeByTier: Record<string, string> = { basic: "cause", premium: "parish", elite: "diocese" };
-  const handleSubscriptionChange = (tier: "basic" | "premium" | "elite") => {
+  const orgTypeByTier: Record<string, string> = { tier1: "cause", tier2: "parish", tier3: "diocese" };
+  const handleSubscriptionChange = (tier: "tier1" | "tier2" | "tier3") => {
     setFormData({ ...formData, subscriptionTier: tier, organizationType: orgTypeByTier[tier] });
   };
 
@@ -325,7 +327,7 @@ const StoreRegistrationForm = () => {
       return;
     }
     // Validate elite subscription requirements
-    if (formData.subscriptionTier === "elite" && !formData.logo) {
+    if (formData.subscriptionTier === "tier3" && !formData.logo) {
       alert("Please upload your organization logo");
       return;
     }
@@ -943,10 +945,10 @@ const StoreRegistrationForm = () => {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6 flex-1 min-w-0">
                     {/* Cause Plan (left) */}
                     <div
-                      className={`border-2 rounded-xl p-6 cursor-pointer transition-all flex flex-col bg-white relative ${formData.subscriptionTier === "basic" ? "border-[#006699] shadow-lg" : "border-gray-200 hover:border-gray-300"}`}
-                      onClick={() => handleSubscriptionChange("basic")}
+                      className={`border-2 rounded-xl p-6 cursor-pointer transition-all flex flex-col bg-white relative ${formData.subscriptionTier === "tier1" ? "border-[#006699] shadow-lg" : "border-gray-200 hover:border-gray-300"}`}
+                      onClick={() => handleSubscriptionChange("tier1")}
                     >
-                      {formData.subscriptionTier === "basic" && (
+                      {formData.subscriptionTier === "tier1" && (
                         <div className="absolute top-3 right-3 w-6 h-6 bg-[#006699] rounded-full flex items-center justify-center">
                           <Check className="h-3.5 w-3.5 text-white" />
                         </div>
@@ -978,11 +980,11 @@ const StoreRegistrationForm = () => {
 
                     {/* Parish Growth Plan (middle) - MOST POPULAR */}
                     <div
-                      className={`border-2 rounded-xl p-6 cursor-pointer transition-all relative flex flex-col bg-white ${formData.subscriptionTier === "premium" ? "border-[#006699] shadow-lg ring-2 ring-[#006699]/20" : "border-gray-200 hover:border-gray-300"}`}
-                      onClick={() => handleSubscriptionChange("premium")}
+                      className={`border-2 rounded-xl p-6 cursor-pointer transition-all relative flex flex-col bg-white ${formData.subscriptionTier === "tier2" ? "border-[#006699] shadow-lg ring-2 ring-[#006699]/20" : "border-gray-200 hover:border-gray-300"}`}
+                      onClick={() => handleSubscriptionChange("tier2")}
                     >
                       <span className="absolute -top-3 left-6 bg-[#1a365d] text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide">Most Popular</span>
-                      {formData.subscriptionTier === "premium" && (
+                      {formData.subscriptionTier === "tier2" && (
                         <div className="absolute top-3 right-3 w-6 h-6 bg-[#006699] rounded-full flex items-center justify-center">
                           <Check className="h-3.5 w-3.5 text-white" />
                         </div>
@@ -1017,10 +1019,10 @@ const StoreRegistrationForm = () => {
 
                     {/* Diocese Network Plan (right) */}
                     <div
-                      className={`border-2 rounded-xl overflow-hidden cursor-pointer transition-all flex flex-col bg-white relative ${formData.subscriptionTier === "elite" ? "border-[#006699] shadow-lg" : "border-gray-200 hover:border-gray-300"}`}
-                      onClick={() => handleSubscriptionChange("elite")}
+                      className={`border-2 rounded-xl overflow-hidden cursor-pointer transition-all flex flex-col bg-white relative ${formData.subscriptionTier === "tier3" ? "border-[#006699] shadow-lg" : "border-gray-200 hover:border-gray-300"}`}
+                      onClick={() => handleSubscriptionChange("tier3")}
                     >
-                      {formData.subscriptionTier === "elite" && (
+                      {formData.subscriptionTier === "tier3" && (
                         <div className="absolute top-3 right-3 z-10 w-6 h-6 bg-[#006699] rounded-full flex items-center justify-center">
                           <Check className="h-3.5 w-3.5 text-white" />
                         </div>
@@ -1137,6 +1139,15 @@ const StoreRegistrationForm = () => {
                       <p className="mt-1 text-xs text-red-500">Logo is required</p>
                     )}
                   </div>
+                  <label className="flex items-center gap-2 mt-2 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={formData.logoHasTransparentBg}
+                      onChange={(e) => setFormData(prev => ({ ...prev, logoHasTransparentBg: e.target.checked }))}
+                      className="w-4 h-4 accent-[#006699]"
+                    />
+                    <span className="text-xs text-gray-600">Logo already has transparent background</span>
+                  </label>
                 </div>
 
                 {/* Banner Upload Section */}
@@ -1257,7 +1268,7 @@ const StoreRegistrationForm = () => {
                     onClick={nextStep}
                     className="bg-[#006699] hover:bg-[#005588] text-white"
                     disabled={
-                      (formData.subscriptionTier === "elite" &&
+                      (formData.subscriptionTier === "tier3" &&
                         (!formData.logo || !formData.organizationName))
                     }
                   >
@@ -1303,12 +1314,12 @@ const StoreRegistrationForm = () => {
                       </h4>
                       <p className="text-gray-600">
                         Subscription:{" "}
-                        {formData.subscriptionTier === "basic"
+                        {formData.subscriptionTier === "tier1"
                           ? "Cause Plan"
-                          : formData.subscriptionTier === "premium"
+                          : formData.subscriptionTier === "tier2"
                             ? "Parish Growth Plan"
                             : "Diocese Network Plan"}
-                        {formData.subscriptionTier !== "elite" && (
+                        {formData.subscriptionTier !== "tier3" && (
                           <span className="text-gray-500"> ({isAnnual ? "Annual" : "Monthly"})</span>
                         )}
                       </p>

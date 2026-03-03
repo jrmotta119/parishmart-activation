@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import { query, getClient } from '../db/connection';
 import S3Service from './s3Service';
 import { EmailRegistrationService } from './emailRegistrationService';
+import { sanitizeStoreFormData, sanitizeVendorFormData } from '../utils/inputSanitizer';
 
 
 interface VendorFormData {
@@ -30,13 +31,15 @@ interface VendorFormData {
   } | string;
   businessZipCode: string;
   websiteLinks?: string;
-  subscriptionType: 'basic' | 'premium' | 'elite';
+  subscriptionType: 'tier1' | 'tier2' | 'tier3';
   contactEmail: string;
   contactPhone: string;
   products?: any[];
   participateInCampaigns: boolean;
   reach: string;
   contactForOpportunities?: boolean;
+  logoHasTransparentBg?: string | boolean;
+  bannerMode?: string;
 }
 
 interface StoreFormData {
@@ -44,6 +47,7 @@ interface StoreFormData {
   adminFirstName: string;
   adminLastName: string;
   email: string;
+  adminRole?: string;
   streetAddress: string;
   city: string;
   state?: string;
@@ -63,13 +67,19 @@ interface StoreFormData {
   slogan?: string;
   primaryColor?: string;
   secondaryColor?: string;
-  subscriptionTier: 'basic' | 'premium' | 'elite';
+  subscriptionTier: 'tier1' | 'tier2' | 'tier3';
   needsConsultation?: boolean;
   collectsDonations?: boolean;
   donationPlatform?: string;
   otherDonationPlatform?: string;
   otherOrganizationType?: string;
   hasTaxExemptStatus?: string;
+  referredBy?: string;
+  otherReferredBy?: string;
+  referralAssociateName?: string;
+  socialMediaPlatform?: string;
+  logoHasTransparentBg?: string | boolean;
+  bannerMode?: string;
   products?: any[];
 }
 
@@ -81,11 +91,15 @@ export class RegistrationService {
     formData: VendorFormData,
     files: { [fieldname: string]: Express.Multer.File[] }
   ) {
+    // Sanitize and validate all text input before touching the DB.
+    // Throws with a descriptive message on XSS content or oversized fields.
+    formData = sanitizeVendorFormData(formData) as VendorFormData;
+
     const client = await getClient();
-    
+
     try {
       await client.query('BEGIN');
-      
+
       // 1. Generate secure password
       const tempPassword = crypto.randomBytes(12).toString('hex');
       const hashedPassword = await bcrypt.hash(tempPassword, 10);
@@ -104,7 +118,16 @@ export class RegistrationService {
           businessImageResults.push(result);
         }
       }
-      
+
+      // 3b. Upload collage banner images to S3 (public bucket) — "collage" banner mode
+      const bannerImageResults = [];
+      if (files.bannerImages) {
+        for (const image of files.bannerImages) {
+          const result = await S3Service.uploadFile(image, 'media');
+          bannerImageResults.push(result);
+        }
+      }
+
       // 4. Create vendor record (names already split in frontend)
       const vendorResult = await client.query(`
         INSERT INTO vendors (
@@ -149,8 +172,9 @@ export class RegistrationService {
           vendor_id, business_name, business_description, business_policy,
           business_address, business_city, business_state, business_country, business_zip_code,
           business_reach, what_makes_unique, business_type,
-          website_links, contact_email, contact_phone, current_subscription_type, created_at, updated_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, NOW(), NOW())
+          website_links, contact_email, contact_phone, current_subscription_type,
+          logo_has_transparent_bg, banner_mode, created_at, updated_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, NOW(), NOW())
         RETURNING business_id
       `, [
         vendorId,
@@ -168,7 +192,9 @@ export class RegistrationService {
         formData.websiteLinks || null,
         formData.contactEmail,
         formData.contactPhone,
-        formData.subscriptionType
+        formData.subscriptionType,
+        formData.logoHasTransparentBg === 'true' || formData.logoHasTransparentBg === true,
+        formData.bannerMode || 'collage'
       ]);
       
       const businessId = businessResult.rows[0].business_id;
@@ -190,7 +216,7 @@ export class RegistrationService {
         ]);
       }
       
-      // 7. Save business images for banner creation
+      // 7. Save business images (legacy field — stored as banner)
       for (let i = 0; i < businessImageResults.length; i++) {
         const image = businessImageResults[i];
         await client.query(`
@@ -208,9 +234,28 @@ export class RegistrationService {
           image.mimeType
         ]);
       }
-      
+
+      // 7b. Save collage banner images (bannerImages field — collage mode)
+      for (let i = 0; i < bannerImageResults.length; i++) {
+        const image = bannerImageResults[i];
+        await client.query(`
+          INSERT INTO businessmedia (
+            business_id, media_url, media_type, media_order, bucket_type,
+            bucket_name, media_key, file_size, mime_type, created_at
+          ) VALUES ($1, $2, 'banner', $3, 'public', $4, $5, $6, $7, NOW())
+        `, [
+          businessId,
+          image.directUrl,
+          i + 1,
+          image.bucketName,
+          image.fileKey,
+          image.size,
+          image.mimeType
+        ]);
+      }
+
       // 8. Process products if subscription allows
-      if (formData.subscriptionType !== 'basic') {
+      if (formData.subscriptionType !== 'tier1') {
         // Parse products from JSON string if needed
         let products = formData.products;
         if (typeof formData.products === 'string') {
@@ -272,8 +317,11 @@ export class RegistrationService {
     formData: StoreFormData,
     files: { [fieldname: string]: Express.Multer.File[] }
   ) {
+    // Sanitize and validate all text input before touching the DB.
+    formData = sanitizeStoreFormData(formData) as StoreFormData;
+
     const client = await getClient();
-    
+
     try {
       await client.query('BEGIN');
       
@@ -293,7 +341,16 @@ export class RegistrationService {
         bannerResult = await S3Service.uploadFile(files.banner[0], 'media');
       }
       
-      // 4. Upload tax exemption form to S3 (private bucket)
+      // 4. Upload collage banner images to S3 (public bucket) — "collage" banner mode
+      const bannerImageResults = [];
+      if (files.bannerImages) {
+        for (const image of files.bannerImages) {
+          const result = await S3Service.uploadFile(image, 'media');
+          bannerImageResults.push(result);
+        }
+      }
+
+      // 5. Upload tax exemption form to S3 (private bucket)
       let taxFormResult = null;
       if (files.taxExemptionForm && files.taxExemptionForm[0]) {
         taxFormResult = await S3Service.uploadFile(files.taxExemptionForm[0], 'documents');
@@ -304,8 +361,9 @@ export class RegistrationService {
         INSERT INTO organizations (
           name, organization_type, description, impact, since_year, slogan,
           is_tax_exempt, collect_donations, donations_platform,
-          current_subscription_type, created_at, updated_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW())
+          needs_consultation, current_subscription_type,
+          logo_has_transparent_bg, banner_mode, created_at, updated_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW(), NOW())
         RETURNING organization_id
       `, [
         formData.organizationName,
@@ -317,10 +375,10 @@ export class RegistrationService {
         formData.hasTaxExemptStatus === 'yes',
         formData.collectsDonations || false,
         formData.donationPlatform === 'other' ? formData.otherDonationPlatform : formData.donationPlatform || null,
-        // formData.primaryColor || null,
-        // formData.secondaryColor || null,
-        // Map frontend subscription tiers to database enum values
-        formData.subscriptionTier === 'premium' ? 'elite' : formData.subscriptionTier
+        formData.needsConsultation || false,
+        formData.subscriptionTier,
+        formData.logoHasTransparentBg === 'true' || formData.logoHasTransparentBg === true,
+        formData.bannerMode || 'collage'
       ]);
       
       const organizationId = orgResult.rows[0].organization_id;
@@ -339,8 +397,10 @@ export class RegistrationService {
       const adminResult = await client.query(`
         INSERT INTO administrators (
           organization_id, first_name, last_name, email, password_hash,
-          street_address, city, state, country, zip_code, phone_number, approval_status, created_at, updated_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'pending', NOW(), NOW())
+          street_address, city, state, country, zip_code, phone_number,
+          role, referred_by, referral_associate_name, social_media_platform,
+          approval_status, created_at, updated_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, 'pending', NOW(), NOW())
         RETURNING admin_id
       `, [
         organizationId,
@@ -353,7 +413,11 @@ export class RegistrationService {
         (typeof formData.location === 'object' && formData.location?.subdivision) || formData.state,
         (typeof formData.location === 'object' && formData.location?.country) || formData.country,
         formData.zipCode,
-        formData.phoneNumber || null
+        formData.phoneNumber || null,
+        formData.adminRole || null,
+        formData.referredBy === 'other' ? (formData.otherReferredBy || null) : (formData.referredBy || null),
+        formData.referralAssociateName || null,
+        formData.referredBy === 'social' ? (formData.socialMediaPlatform || null) : null
       ]);
       
       const adminId = adminResult.rows[0].admin_id;
@@ -390,7 +454,26 @@ export class RegistrationService {
           bannerResult.mimeType
         ]);
       }
-      
+
+      // Save collage banner images (bannerMode === "collage")
+      for (let i = 0; i < bannerImageResults.length; i++) {
+        const image = bannerImageResults[i];
+        await client.query(`
+          INSERT INTO storemedia (
+            organization_id, media_url, media_type, media_order, bucket_type,
+            bucket_name, media_key, file_size, mime_type, created_at
+          ) VALUES ($1, $2, 'banner', $3, 'public', $4, $5, $6, $7, NOW())
+        `, [
+          organizationId,
+          image.directUrl,
+          i + (bannerResult ? 2 : 1),
+          image.bucketName,
+          image.fileKey,
+          image.size,
+          image.mimeType
+        ]);
+      }
+
       // 8. Save tax exemption form if provided
       if (taxFormResult) {
         const taxFormId = await client.query(`
@@ -416,7 +499,7 @@ export class RegistrationService {
       }
       
       // 9. Process products if elite subscription
-      if (formData.subscriptionTier === 'elite') {
+      if (formData.subscriptionTier === 'tier3') {
         // Parse products from JSON string if needed
         let products = formData.products;
         if (typeof formData.products === 'string') {
@@ -458,7 +541,7 @@ export class RegistrationService {
         organizationName: formData.organizationName,
         organizationType: formData.organizationType === 'other' ? (formData.otherOrganizationType || formData.organizationType) : formData.organizationType,
         email: formData.email,
-        subscriptionTier: formData.subscriptionTier === 'premium' ? 'elite' : formData.subscriptionTier,
+        subscriptionTier: formData.subscriptionTier,
         description: formData.description,
         impact: formData.impact,
         foundingYear: formData.foundingYear,
