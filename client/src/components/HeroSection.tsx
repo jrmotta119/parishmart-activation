@@ -1,177 +1,73 @@
-import React, { useState } from "react";
+import React from "react";
 import { Button } from "./ui/button";
-import { ArrowRight } from "lucide-react";
-import { motion } from "framer-motion";
+import { Check } from "lucide-react";
 
-interface HeroSectionProps {
-  logo?: string;
-  tagline?: string;
-  ctaText?: string;
-  backgroundImage?: string;
-  onCtaClick?: () => void;
-}
-
-const slides = [
-  {
-    key: "join",
-    backgroundImage: "https://images.pexels.com/photos/3280130/pexels-photo-3280130.jpeg", // Example image, replace as needed
-    content: (
-      <div className="flex flex-col justify-center h-full pl-10">
-        <p className="text-white text-lg md:text-xl mb-2">Become a part of ParishMart</p>
-        <h2 className="text-4xl md:text-6xl font-bold mb-4" style={{ color: '#006699' }}>JOIN OUR COMMUNITY</h2>
-        <p className="text-white text-xl md:text-3xl font-medium">Sell with us or support a cause. Make a difference today!</p>
-      </div>
-    ),
-    // image: "https://cdn-icons-png.flaticon.com/512/3135/3135715.png", // Example icon, optional
-    // imageAlt: "Join Community Icon",
-    // imageRight: true,
-  },
-  {
-    key: "main",
-    backgroundImage: "https://s3-us-west-2.amazonaws.com/tota-images/1280px-sainte-ch-f916f606d44074ce.jpg",
-    content: (
-      <div className="flex flex-col justify-center h-full pl-10">
-        <p className="text-white text-lg md:text-xl mb-2">Discover products that make a difference</p>
-        <h2 className="text-4xl md:text-6xl font-bold mb-4" style={{ color: '#006699' }}>SHOP WITH PURPOSE.</h2>
-        <p className="text-white text-xl md:text-3xl font-medium">Every purchase supports community initiatives and charitable causes.</p>
-      </div>
-    ),
-    imageRight: true,
-  },
+const trustItems = [
+  "Built for the Catholic Community",
+  "Mission-Aligned Commerce",
+  "Sustainable Revenue Growth",
+  "No Operational Burden",
 ];
 
 const HeroSection = () => {
-  const [current, setCurrent] = useState(0);
-  const total = slides.length;
-  const [direction, setDirection] = useState(0); // for animation
-
-  const goTo = (idx: number, dir = 0) => {
-    setDirection(dir);
-    setCurrent((idx + total) % total);
-  };
-  const next = () => goTo(current + 1, 1);
-  const prev = () => goTo(current - 1, -1);
-
-  const slide = slides[current];
-
-  // Handler for slide click
-  const handleSlideClick = () => {
-    if (current === 0) {
-      const el = document.getElementById('grow-with-us');
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth' });
-      }
-    } else if (current === 1) {
-      window.location.href = 'https://parishmart.com';
-    }
-  };
-
-  // Animation variants for swipe
-  const variants = {
-    enter: (dir: number) => ({
-      x: dir > 0 ? 300 : -300,
-      opacity: 0,
-      position: 'absolute' as const,
-    }),
-    center: {
-      x: 0,
-      opacity: 1,
-      position: 'relative' as const,
-    },
-    exit: (dir: number) => ({
-      x: dir < 0 ? 300 : -300,
-      opacity: 0,
-      position: 'absolute' as const,
-    }),
-  };
-
-  // Swipe detection threshold
-  const swipeConfidenceThreshold = 100;
-  const handleDragEnd = (event: any, info: any) => {
-    if (info.offset.x < -swipeConfidenceThreshold) {
-      next();
-    } else if (info.offset.x > swipeConfidenceThreshold) {
-      prev();
-    }
-  };
-
   return (
-    <div className="max-w-7xl mx-auto">
-      <section className="relative w-full mt-8 rounded-2xl overflow-hidden bg-white shadow-lg flex items-center min-h-[320px] md:min-h-[400px] lg:min-h-[480px] px-4 md:px-8 lg:px-16">
-        {/* Background */}
+    <>
+      {/* Hero Banner */}
+      <section className="relative w-full min-h-[500px] md:min-h-[580px] flex items-center">
+        {/* Background image */}
         <div className="absolute inset-0 z-0">
           <img
-            src={slide.backgroundImage}
-            alt="Slide background"
+            src="https://images.pexels.com/photos/3280130/pexels-photo-3280130.jpeg"
+            alt="Community"
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-[#1a2341]/90" />
+          <div className="absolute inset-0 bg-[#1a2341]/65" />
         </div>
-        {/* Left Arrow - now inside the card */}
-        <button
-          aria-label="Previous slide"
-          onClick={prev}
-          className="absolute z-20 text-white/80 hover:text-white hover:bg-white/20 bg-black/20 backdrop-blur-sm transition-all duration-200 rounded-full w-10 h-10 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-white/30 left-4 top-1/2 -translate-y-1/2"
-        >
-          <span className="text-2xl font-normal">‹</span>
-        </button>
-        {/* Slide Content - swipeable and clickable */}
-        <motion.div
-          key={current}
-          className="relative z-10 flex flex-1 flex-row items-center justify-between px-12 py-12 cursor-pointer"
-          onClick={handleSlideClick}
-          role="button"
-          tabIndex={0}
-          onKeyPress={e => { if (e.key === 'Enter' || e.key === ' ') handleSlideClick(); }}
-          style={{ outline: 'none' }}
-          drag="x"
-          dragConstraints={{ left: 0, right: 0 }}
-          onDragEnd={handleDragEnd}
-          custom={direction}
-          variants={variants}
-          initial="enter"
-          animate="center"
-          exit="exit"
-          transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        >
-          {/* Text */}
-          <div className="flex-1 min-w-0">
-            {current === 0 ? (
-              <div className="flex flex-col justify-center h-full pl-10">
-                <p className="text-white text-lg md:text-xl mb-2">Become a part of ParishMart</p>
-                <h2 className="text-4xl md:text-6xl font-bold mb-4" style={{ color: '#006699' }}>JOIN OUR COMMUNITY</h2>
-                <p className="text-white text-xl md:text-3xl font-medium">Sell with us or support a cause. Make a difference today!</p>
-              </div>
-            ) : (
-              <div className="flex flex-col justify-center h-full pl-10">
-                <p className="text-white text-lg md:text-xl mb-2">Discover products that make a difference</p>
-                <h2 className="text-4xl md:text-6xl font-bold mb-4" style={{ color: '#006699' }}>SHOP WITH PURPOSE.</h2>
-                <p className="text-white text-xl md:text-3xl font-medium">When you make a purchase, a portion of the sale supports a mission.</p>
-              </div>
-            )}
+
+        {/* Content */}
+        <div className="relative z-10 w-full max-w-7xl mx-auto px-6 md:px-12 lg:px-16 py-20 text-left">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6 max-w-4xl">
+            Purpose-Driven Commerce that Strengthens your Community
+          </h1>
+          <p className="text-lg md:text-xl text-white/85 max-w-2xl mb-10">
+            ParishMart is the first Catholic marketplace that helps parishes, dioceses, ministries,
+            and local businesses grow together — with every purchase supporting a mission.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-start">
+            <Button
+              onClick={() => (window.location.href = "./why-register")}
+              className="bg-white text-[#006699] hover:bg-black/80 font-semibold px-8 py-3 text-base h-auto"
+            >
+              Launch your Store
+            </Button>
+            <Button
+              onClick={() => (window.location.href = "./sell-with-us")}
+              variant="outline"
+              className="bg-[#006699] text-white hover:bg-white/70 font-semibold px-8 py-3 text-base h-auto"
+            >
+              Start Selling with Purpose
+            </Button>
           </div>
-          {/* No image rendering here */}
-        </motion.div>
-        {/* Right Arrow - now inside the card */}
-        <button
-          aria-label="Next slide"
-          onClick={next}
-          className="absolute z-20 text-white/80 hover:text-white hover:bg-white/20 bg-black/20 backdrop-blur-sm transition-all duration-200 rounded-full w-10 h-10 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-white/30 right-4 top-1/2 -translate-y-1/2"
-        >
-          <span className="text-2xl font-normal">›</span>
-        </button>
-        {/* Dots */}
-        <div className="absolute left-0 right-0 bottom-6 flex justify-center z-30">
-          {slides.map((_, idx) => (
-            <span
-              key={idx}
-              className={`inline-block mx-1 w-4 h-2 rounded-full transition-all duration-300 ${idx === current ? 'bg-white' : 'bg-white/40'}`}
-              style={{ minWidth: '22px' }}
-            />
-          ))}
         </div>
       </section>
-    </div>
+
+      {/* Trust Bar */}
+      <div className="bg-neutral-300 border-b border-gray-100 py-4 px-6">
+        <div className="max-w-7xl mx-auto flex flex-nowrap justify-center items-center overflow-x-auto">
+          {trustItems.map((item, idx) => (
+            <React.Fragment key={item}>
+              <div className="flex items-center gap-1.5 text-gray-700 text-sm font-medium px-3 whitespace-nowrap">
+                <Check className="w-4 h-4 text-[#006699] flex-shrink-0" />
+                <span>{item}</span>
+              </div>
+              {idx < trustItems.length - 1 && (
+                <div className="w-px h-5 bg-gray-200 flex-shrink-0" />
+              )}
+            </React.Fragment>
+          ))}
+        </div>
+      </div>
+    </>
   );
 };
 

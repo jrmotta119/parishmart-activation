@@ -23,6 +23,7 @@ import vendorRoutes from './routes/vendors';
 import registrationRoutes from './routes/registration';
 import adminRoutes from './routes/admin';
 import emailTestRoutes from './routes/emailTest';
+import webhookRoutes from './routes/webhooks';
 
 // Import middleware
 import { errorHandler } from './middleware/errorHandler';
@@ -54,7 +55,7 @@ app.use(helmet({
 
 // CORS
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+  origin: process.env.CORS_ORIGINS || 'http://localhost:3000',
   credentials: true,
 }));
 
@@ -135,6 +136,7 @@ app.use('/api/vendors', vendorRoutes);
 app.use('/api/registration', registrationRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/email-test', emailTestRoutes);
+app.use('/api/webhook', webhookRoutes);
 
 // Serve client build files in production
 if (process.env.NODE_ENV === 'production') {

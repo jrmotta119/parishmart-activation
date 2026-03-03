@@ -8,7 +8,6 @@ import SellWithUs from "./components/SellWithUs";
 import ProductsPage from "./components/ProductsPage";
 import ShopPage from "./components/ShopPage";
 import MarketplacePage from "./components/MarketplacePage";
-import DonationsPage from "./components/DonationsPage";
 import Login from "./components/auth/Login";
 import Signup from "./components/auth/Signup";
 import { AuthProvider } from "./components/auth/AuthContext";
@@ -52,7 +51,6 @@ function App() {
             <Route path="/products" element={<ProductsPage />} />
             <Route path="/products/:category" element={<ProductsPage />} />
             <Route path="/products/:category/:subcategory" element={<ProductsPage />} />
-            <Route path="/donations" element={<DonationsPage />} />
             <Route path="/about-us" element={<AboutUs />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />

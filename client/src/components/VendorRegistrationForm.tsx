@@ -4,37 +4,15 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Textarea } from "./ui/textarea";
 import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "./ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "./ui/select";
-import {
   Upload,
   ArrowRight,
-  CheckCircle,
-  XCircle,
   Info,
-  Plus,
+  Check,
 } from "lucide-react";
 import Header from "./Header";
 import Footer from "./Footer";
 import AnnouncementStrip from "./AnnouncementStrip";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "./ui/tooltip";
 import CountryStateSelector from "./CountryStateSelector";
 
 interface Mission {
@@ -65,25 +43,14 @@ interface FormData {
   };
   businessZipCode: string;
   logo: File | null;
-  businessImages: (File | null)[];
   websiteLinks: string;
-  subscriptionType: "basic" | "premium" | "elite";
+  subscriptionType: "tier1" | "tier2" | "tier3";
   contactEmail: string;
   contactPhone: string;
-  products: {
-    name: string;
-    category: string;
-    description: string;
-    images: File[];
-    videos: File[];
-    promotionalHook: string;
-    pricingInfo: string;
-    otherCategory?: string;
-  }[];
   participateInCampaigns: boolean;
 
   reach: "local" | "regional" | "national" | "global" | "";
-  contactForOpportunities: boolean | null;
+  logoHasTransparentBg: boolean;
 }
 
 const VendorRegistrationForm = () => {
@@ -108,28 +75,21 @@ const VendorRegistrationForm = () => {
     },
     businessZipCode: "",
     logo: null,
-    businessImages: [null, null, null],
     websiteLinks: "",
-    subscriptionType: "basic",
+    subscriptionType: "tier1",
     contactEmail: "",
     contactPhone: "",
-    products: [],
     participateInCampaigns: true,
-    
+
     reach: "",
-    contactForOpportunities: null,
+    logoHasTransparentBg: false,
   });
 
   const [logoPreview, setLogoPreview] = useState<string>("");
-  const [productImagePreviews, setProductImagePreviews] = useState<{
-    [key: number]: string[];
-  }>({});
-  const [productVideoPreviews, setProductVideoPreviews] = useState<{
-    [key: number]: string;
-  }>({});
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const [step, setStep] = useState(1);
+  const [isAnnual, setIsAnnual] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [attemptedSteps, setAttemptedSteps] = useState<number[]>([]);
   const [parishSearch, setParishSearch] = useState("");
@@ -139,10 +99,16 @@ const VendorRegistrationForm = () => {
   const [missionsLoading, setMissionsLoading] = useState(true);
   const [missionsError, setMissionsError] = useState<string | null>(null);
   const [emailError, setEmailError] = useState<string>("");
+  const [phoneError, setPhoneError] = useState<string>("");
+  const [zipCodeError, setZipCodeError] = useState<string>("");
 
   const [showAnnouncement, setShowAnnouncement] = useState(true);
 
-  const [businessImagePreviews, setBusinessImagePreviews] = useState([null, null, null]);
+  const [banner, setBanner] = useState<File | null>(null);
+  const [bannerPreview, setBannerPreview] = useState<string>("");
+  const [bannerMode, setBannerMode] = useState<"full" | "collage">("full");
+  const [bannerImages, setBannerImages] = useState<File[]>([]);
+  const [bannerImagesPreviews, setBannerImagesPreviews] = useState<string[]>([]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -202,27 +168,23 @@ const VendorRegistrationForm = () => {
 
   // Missions are now loaded dynamically from the API
 
-  const productCategories = [
-    "Clothing & Apparel",
-    "Food & Beverages",
-    "Educational Resources",
-    "Home & Living",
-    "Religious Items",
-    "Services",
-    "Technology & Electronics",
-    "Beauty & Personal Care",
-    "Sports, Fun & Travel",
-    "Health & Wellness",
-    "Pet Supplies",
-    "Gifts & Seasonal Items",
-    "Custom Merchandise",
-    "Other",
-  ];
-
   // Email validation function
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     return emailRegex.test(email);
+  };
+
+  // Phone validation function
+  const validatePhone = (phone: string): boolean => {
+    const cleaned = phone.replace(/[\s\-().]/g, "");
+    const phoneRegex = /^\+?\d{7,15}$/;
+    return phoneRegex.test(cleaned);
+  };
+
+  // Zip code validation function
+  const validateZipCode = (zip: string): boolean => {
+    const zipRegex = /^\d{5}(-\d{4})?$/;
+    return zipRegex.test(zip);
   };
 
   const handleInputChange = (
@@ -241,6 +203,24 @@ const VendorRegistrationForm = () => {
         setEmailError('');
       }
     }
+
+    // Phone validation
+    if (name === 'phone') {
+      if (value && !validatePhone(value)) {
+        setPhoneError('Please enter a valid phone number');
+      } else {
+        setPhoneError('');
+      }
+    }
+
+    // Zip code validation
+    if (name === 'businessZipCode') {
+      if (value && !validateZipCode(value)) {
+        setZipCodeError('Please enter a valid ZIP code (e.g. 12345 or 12345-6789)');
+      } else {
+        setZipCodeError('');
+      }
+    }
   };
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -251,174 +231,32 @@ const VendorRegistrationForm = () => {
     }
   };
 
-  const handleProductImagesChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    productIndex: number,
-  ) => {
+  const handleBannerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setBanner(file);
+      setBannerPreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleBannerImagesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      const filesArray = Array.from(e.target.files).slice(0, 5);
-      const updatedProducts = [...formData.products];
-
-      if (!updatedProducts[productIndex].images) {
-        updatedProducts[productIndex].images = [];
-      }
-
-      updatedProducts[productIndex].images = [
-        ...updatedProducts[productIndex].images,
-        ...filesArray,
-      ].slice(0, 5);
-      setFormData({
-        ...formData,
-        products: updatedProducts,
-      });
-
-      const newPreviews = filesArray.map((file) => URL.createObjectURL(file));
-      setProductImagePreviews((prev) => {
-        const currentPreviews = prev[productIndex] || [];
-        return {
-          ...prev,
-          [productIndex]: [...currentPreviews, ...newPreviews].slice(0, 5),
-        };
-      });
-    }
-  };
-
-  const handleProductVideoChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    productIndex: number,
-  ) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      
-      // Check file size (50MB limit)
-      if (file.size > 50 * 1024 * 1024) {
-        alert('Video file size must be less than 50MB');
-        e.target.value = '';
+      const files = Array.from(e.target.files);
+      const totalImages = bannerImages.length + files.length;
+      if (totalImages > 5) {
+        alert("You can upload a maximum of 5 images.");
         return;
       }
-      
-      // Check file type
-      if (!file.type.startsWith('video/')) {
-        alert('Please upload a valid video file');
-        e.target.value = '';
-        return;
-      }
-
-      const updatedProducts = [...formData.products];
-      if (!updatedProducts[productIndex].videos) {
-        updatedProducts[productIndex].videos = [];
-      }
-      updatedProducts[productIndex].videos = [file]; // Only allow one video
-      setFormData({
-        ...formData,
-        products: updatedProducts,
-      });
-      
-      const videoPreview = URL.createObjectURL(file);
-      setProductVideoPreviews((prev) => ({
-        ...prev,
-        [productIndex]: videoPreview,
-      }));
+      const newImages = [...bannerImages, ...files];
+      setBannerImages(newImages);
+      setBannerImagesPreviews(newImages.map((f) => URL.createObjectURL(f)));
     }
   };
 
-  const handleBulkUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      // TODO: implement CSV parsing logic
-      // For now, just show a message that the file was received
-      const file = e.target.files[0];
-      setToastMessage(`CSV file received: ${file.name}`);
-      setShowToast(true);
-      setTimeout(() => setShowToast(false), 3000);
-    }
-  };
-
-  const removeProductImage = (productIndex: number, imageIndex: number) => {
-    const updatedProducts = [...formData.products];
-    updatedProducts[productIndex].images.splice(imageIndex, 1);
-    setFormData({
-      ...formData,
-      products: updatedProducts,
-    });
-
-    setProductImagePreviews((prev) => {
-      const updatedPreviews = { ...prev };
-      if (updatedPreviews[productIndex]) {
-        const previewsArray = [...updatedPreviews[productIndex]];
-        previewsArray.splice(imageIndex, 1);
-        updatedPreviews[productIndex] = previewsArray;
-      }
-      return updatedPreviews;
-    });
-  };
-
-  const removeProductVideo = (productIndex: number) => {
-    const updatedProducts = [...formData.products];
-    updatedProducts[productIndex].videos = [];
-    setFormData({
-      ...formData,
-      products: updatedProducts,
-    });
-    setProductVideoPreviews((prev) => {
-      const updatedPreviews = { ...prev };
-      delete updatedPreviews[productIndex];
-      return updatedPreviews;
-    });
-  };
-
-  const addProduct = () => {
-    if (
-      formData.subscriptionType === "premium" &&
-      formData.products.length >= 3
-    ) {
-      setToastMessage("You can only add 3 products with the Premium package");
-      setShowToast(true);
-      setTimeout(() => setShowToast(false), 3000);
-      return;
-    }
-
-    setFormData({
-      ...formData,
-      products: [
-        ...formData.products,
-        {
-          name: "",
-          category: "",
-          description: "",
-          images: [],
-          videos: [],
-          promotionalHook: "",
-          pricingInfo: "",
-        },
-      ],
-    });
-  };
-
-  const removeProduct = (index: number) => {
-    const updatedProducts = [...formData.products];
-    updatedProducts.splice(index, 1);
-    setFormData({
-      ...formData,
-      products: updatedProducts,
-    });
-
-    setProductImagePreviews((prev) => {
-      const updatedPreviews = { ...prev };
-      delete updatedPreviews[index];
-      return updatedPreviews;
-    });
-  };
-
-  const updateProduct = (index: number, field: string, value: any) => {
-    const updatedProducts = [...formData.products];
-    updatedProducts[index] = {
-      ...updatedProducts[index],
-      [field]: value,
-    };
-    setFormData({
-      ...formData,
-      products: updatedProducts,
-    });
+  const removeBannerImage = (index: number) => {
+    const newImages = bannerImages.filter((_, i) => i !== index);
+    setBannerImages(newImages);
+    setBannerImagesPreviews(newImages.map((f) => URL.createObjectURL(f)));
   };
 
   const handleRadioChange = (name: string, value: any) => {
@@ -426,47 +264,21 @@ const VendorRegistrationForm = () => {
   };
 
   // Handle subscription type change
-  const handleSubscriptionChange = (type: "basic" | "premium" | "elite") => {
-    // Always update the subscription type first
-    let updatedProducts = [...formData.products];
-    let message = "";
-
-    if (type === "basic") {
-      // Basic subscription doesn't allow products
-      if (formData.products.length > 0) {
-        updatedProducts = [];
-        message = "Basic subscription doesn't include product listings";
-      }
-    } else if (type === "premium") {
-      // Premium subscription allows max 3 products
-      if (formData.products.length > 3) {
-        updatedProducts = formData.products.slice(0, 3);
-        message = "Premium subscription allows up to 3 products";
-      }
-    }
-
-    // Update form data with new subscription type and adjusted products
+  const handleSubscriptionChange = (type: "tier1" | "tier2" | "tier3") => {
     setFormData({
       ...formData,
       subscriptionType: type,
-      products: updatedProducts,
     });
-
-    // Show toast message if needed
-    if (message) {
-      setToastMessage(message);
-      setShowToast(true);
-      setTimeout(() => setShowToast(false), 3000);
-    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Mark all steps as attempted for validation
-    setAttemptedSteps([1, 2, 3, 4, 5]);
+    setAttemptedSteps([1, 2, 3, 4]);
 
     // Validate all required fields before submission
+    const bannerValid = bannerMode === "full" ? !!banner : bannerImages.length >= 3;
     if (
       !formData.firstName ||
       !formData.lastName ||
@@ -475,6 +287,7 @@ const VendorRegistrationForm = () => {
       !formData.businessName ||
       !formData.businessDescription ||
       !formData.logo ||
+      !bannerValid ||
       !formData.reach ||
       !formData.businessAddress ||
       !formData.businessCity ||
@@ -486,30 +299,6 @@ const VendorRegistrationForm = () => {
       setShowToast(true);
       setTimeout(() => setShowToast(false), 3000);
       return;
-    }
-
-    // Validate basic subscription specific requirements
-    if (formData.subscriptionType === "basic" && formData.contactForOpportunities === null) {
-      setToastMessage("Please indicate if you would like to be contacted for opportunities");
-      setShowToast(true);
-      setTimeout(() => setShowToast(false), 3000);
-      return;
-    }
-
-    // Validate products if not basic subscription
-    if (formData.subscriptionType !== "basic" && formData.products.length > 0) {
-      const invalidProducts = formData.products.filter(
-        (product) => !product.name || !product.category || (product.category === 'Other' && !product.otherCategory) || !product.description || !product.pricingInfo
-      );
-
-      if (invalidProducts.length > 0) {
-        setToastMessage(
-          "Please complete all product information before submitting",
-        );
-        setShowToast(true);
-        setTimeout(() => setShowToast(false), 3000);
-        return;
-      }
     }
 
     setIsSubmitting(true);
@@ -528,46 +317,31 @@ const VendorRegistrationForm = () => {
       
       submitData.append('parishAffiliation', finalParishAffiliation);
       
-      // Add all form fields (except parishAffiliation which we handled above)
+      // Add all form fields (except those handled separately below)
       Object.entries(formData).forEach(([key, value]) => {
-        if (key === 'parishAffiliation') {
-          // Skip - already handled above
+        if (key === 'parishAffiliation' || key === 'contactEmail' || key === 'contactPhone') {
+          // Skip - handled separately (parishAffiliation above, contactEmail/contactPhone below with fallback logic)
           return;
         } else if (key === 'logo' && value) {
           submitData.append('logo', value);
-        } else if (key === 'businessImages' && value && Array.isArray(value)) {
-          value.forEach((image, index) => {
-            if (image) {
-              submitData.append('businessImages', image);
-            }
-          });
         } else if (key === 'businessLocation' && value && typeof value === 'object') {
           // Handle businessLocation object
           submitData.append('businessLocation', JSON.stringify(value));
-        } else if (key === 'products') {
-          // Handle products array
-          submitData.append('products', JSON.stringify(value));
-          
-          // Handle product files
-          if (value && Array.isArray(value)) {
-            value.forEach((product, productIndex) => {
-              if (product.images && product.images.length > 0) {
-                product.images.forEach((image: File, imageIndex: number) => {
-                  submitData.append(`productImages_${productIndex}`, image);
-                });
-              }
-              if (product.videos && product.videos.length > 0) {
-                product.videos.forEach((video: File, videoIndex: number) => {
-                  submitData.append(`productVideos_${productIndex}`, video);
-                });
-              }
-            });
-          }
         } else if (typeof value === 'boolean' || typeof value === 'string' || typeof value === 'number') {
           submitData.append(key, value.toString());
         }
       });
       
+      // Add banner image(s)
+      submitData.append('bannerMode', bannerMode);
+      if (bannerMode === "full" && banner) {
+        submitData.append('banner', banner);
+      } else if (bannerMode === "collage") {
+        bannerImages.forEach((img) => {
+          submitData.append('bannerImages', img);
+        });
+      }
+
       // Add business contact info (use personal info if business contact not provided)
       submitData.append('contactEmail', formData.contactEmail || formData.email);
       submitData.append('contactPhone', formData.contactPhone || formData.phone);
@@ -605,7 +379,7 @@ const VendorRegistrationForm = () => {
     }
 
     // Validate current step before proceeding
-    if (step === 1) {
+    if (step === 2) {
       if (!formData.firstName || !formData.lastName || !formData.email || !formData.phone) {
         setToastMessage("Please fill in all required fields");
         setShowToast(true);
@@ -620,11 +394,21 @@ const VendorRegistrationForm = () => {
         setTimeout(() => setShowToast(false), 3000);
         return;
       }
-    } else if (step === 2) {
+      // Phone format validation
+      if (formData.phone && !validatePhone(formData.phone)) {
+        setPhoneError('Please enter a valid phone number');
+        setToastMessage("Please enter a valid phone number");
+        setShowToast(true);
+        setTimeout(() => setShowToast(false), 3000);
+        return;
+      }
+    } else if (step === 3) {
+      const bannerValid = bannerMode === "full" ? !!banner : bannerImages.length >= 3;
       if (
         !formData.businessName ||
         !formData.businessDescription ||
         !formData.logo ||
+        !bannerValid ||
         !formData.reach ||
         !formData.businessAddress ||
         !formData.businessCity ||
@@ -632,31 +416,18 @@ const VendorRegistrationForm = () => {
         !formData.businessLocation.subdivision ||
         !formData.businessZipCode
       ) {
-        setToastMessage("Please fill in all required fields and upload a logo");
+        setToastMessage("Please fill in all required fields, upload a logo, and upload a banner");
         setShowToast(true);
         setTimeout(() => setShowToast(false), 3000);
         return;
       }
-    } else if (step === 4) {
-      if (formData.subscriptionType === "basic" && formData.contactForOpportunities === null) {
-        setToastMessage("Please indicate if you would like to be contacted for opportunities");
+      // Zip code format validation
+      if (formData.businessZipCode && !validateZipCode(formData.businessZipCode)) {
+        setZipCodeError('Please enter a valid ZIP code (e.g. 12345 or 12345-6789)');
+        setToastMessage("Please enter a valid ZIP code");
         setShowToast(true);
         setTimeout(() => setShowToast(false), 3000);
         return;
-      }
-
-      // Only validate products if they exist and subscription is not basic
-      if (formData.subscriptionType !== "basic" && formData.products.length > 0) {
-        const invalidProducts = formData.products.filter(
-          (product) => !product.name || !product.category || (product.category === 'Other' && !product.otherCategory) || !product.description || !product.pricingInfo
-        );
-
-        if (invalidProducts.length > 0) {
-          setToastMessage("Please complete all product information");
-          setShowToast(true);
-          setTimeout(() => setShowToast(false), 3000);
-          return;
-        }
       }
     }
 
@@ -699,7 +470,7 @@ const VendorRegistrationForm = () => {
           <Header />
         </div>
         <div className="pt-36 pb-16 relative z-10">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className={`${step === 1 ? 'max-w-7xl' : 'max-w-4xl'} mx-auto px-4 sm:px-6 lg:px-8`}>
             <div className="text-center mb-10">
               <h1 className="text-3xl md:text-4xl font-bold text-[#006699]">
                 Vendor Registration
@@ -722,7 +493,7 @@ const VendorRegistrationForm = () => {
                     1
                   </div>
                   <span className="mt-2 text-sm font-medium">
-                    Personal Info
+                    Subscriptions
                   </span>
                 </div>
                 <div
@@ -737,7 +508,7 @@ const VendorRegistrationForm = () => {
                     2
                   </div>
                   <span className="mt-2 text-sm font-medium">
-                    Business Info
+                    Personal Info
                   </span>
                 </div>
                 <div
@@ -752,7 +523,7 @@ const VendorRegistrationForm = () => {
                     3
                   </div>
                   <span className="mt-2 text-sm font-medium">
-                    Subscriptions
+                    Business Info
                   </span>
                 </div>
                 <div
@@ -766,29 +537,14 @@ const VendorRegistrationForm = () => {
                   >
                     4
                   </div>
-                  <span className="mt-2 text-sm font-medium">
-                    Products & Services
-                  </span>
-                </div>
-                <div
-                  className={`flex-1 h-1 mx-4 ${step >= 5 ? "bg-[#006699]" : "bg-gray-200"}`}
-                ></div>
-                <div
-                  className={`flex flex-col items-center ${step >= 5 ? "text-[#006699]" : "text-gray-400"}`}
-                >
-                  <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center ${step >= 5 ? "bg-[#006699] text-white" : "bg-gray-200 text-gray-500"}`}
-                  >
-                    5
-                  </div>
                   <span className="mt-2 text-sm font-medium">Submission</span>
                 </div>
               </div>
             </div>
 
             <form onSubmit={handleSubmit}>
-              {/* Step 1: Personal Information */}
-              {step === 1 && (
+              {/* Step 2: Personal Information */}
+              {step === 2 && (
                 <div className="bg-white p-6 rounded-lg shadow-md mb-8">
                   <h2 className="text-xl font-semibold text-gray-900 mb-6">
                     Personal Information
@@ -808,6 +564,7 @@ const VendorRegistrationForm = () => {
                         value={formData.firstName}
                         onChange={handleInputChange}
                         required
+                        maxLength={250}
                         className={`w-full ${!formData.firstName && attemptedSteps.includes(step) && "border-red-300"}`}
                       />
                       {!formData.firstName && attemptedSteps.includes(step) && (
@@ -829,6 +586,7 @@ const VendorRegistrationForm = () => {
                         value={formData.lastName}
                         onChange={handleInputChange}
                         required
+                        maxLength={250}
                         className={`w-full ${!formData.lastName && attemptedSteps.includes(step) && "border-red-300"}`}
                       />
                       {!formData.lastName && attemptedSteps.includes(step) && (
@@ -854,6 +612,7 @@ const VendorRegistrationForm = () => {
                         value={formData.email}
                         onChange={handleInputChange}
                         required
+                        maxLength={250}
                         className={`w-full ${(!formData.email && attemptedSteps.includes(step)) || emailError ? "border-red-300" : ""}`}
                       />
                       {!formData.email && attemptedSteps.includes(step) && (
@@ -881,11 +640,18 @@ const VendorRegistrationForm = () => {
                         value={formData.phone}
                         onChange={handleInputChange}
                         required
-                        className={`w-full ${!formData.phone && attemptedSteps.includes(step) && "border-red-300"}`}
+                        maxLength={20}
+                        placeholder="e.g. +1 (555) 123-4567"
+                        className={`w-full ${(!formData.phone && attemptedSteps.includes(step)) || phoneError ? "border-red-300" : ""}`}
                       />
                       {!formData.phone && attemptedSteps.includes(step) && (
                         <p className="mt-1 text-sm text-red-600">
                           Phone number is required
+                        </p>
+                      )}
+                      {phoneError && (
+                        <p className="mt-1 text-sm text-red-600">
+                          {phoneError}
                         </p>
                       )}
                     </div>
@@ -973,6 +739,7 @@ const VendorRegistrationForm = () => {
                           value={customParish}
                           onChange={e => setCustomParish(e.target.value)}
                           className="w-full"
+                          maxLength={250}
                           placeholder="Type the mission or non-profit name"
                         />
                       </div>
@@ -992,6 +759,7 @@ const VendorRegistrationForm = () => {
                       value={formData.ownerDescription}
                       onChange={handleInputChange}
                       className="w-full mb-3"
+                      maxLength={250}
                       placeholder="Tell us about yourself as a business owner..."
                     />
                   </div>
@@ -1010,11 +778,20 @@ const VendorRegistrationForm = () => {
                       value={formData.communityEfforts}
                       onChange={handleInputChange}
                       className="w-full"
+                      maxLength={250}
                       placeholder="Share any community efforts or causes..."
                     />
                   </div>
 
-                  <div className="flex justify-end">
+                  <div className="flex justify-between">
+                    <Button
+                      type="button"
+                      onClick={prevStep}
+                      variant="outline"
+                      className="border-[#006699] text-[#006699]"
+                    >
+                      Previous
+                    </Button>
                     <Button
                       type="button"
                       onClick={nextStep}
@@ -1027,8 +804,8 @@ const VendorRegistrationForm = () => {
                 </div>
               )}
 
-              {/* Step 2: Business Information */}
-              {step === 2 && (
+              {/* Step 3: Business Information */}
+              {step === 3 && (
                 <div className="bg-white p-6 rounded-lg shadow-md mb-8">
                   <h2 className="text-xl font-semibold text-gray-900 mb-6">
                     Business Information
@@ -1047,6 +824,7 @@ const VendorRegistrationForm = () => {
                       value={formData.businessName}
                       onChange={handleInputChange}
                       required
+                      maxLength={250}
                       className={`w-full ${!formData.businessName && attemptedSteps.includes(step) && "border-red-300"}`}
                     />
                     {!formData.businessName && attemptedSteps.includes(step) && (
@@ -1150,6 +928,7 @@ const VendorRegistrationForm = () => {
                       value={formData.businessDescription}
                       onChange={handleInputChange}
                       required
+                      maxLength={250}
                       className={`w-full h-32 ${!formData.businessDescription && attemptedSteps.includes(step) && "border-red-300"}`}
                       placeholder="Describe your business in detail..."
                     />
@@ -1173,6 +952,7 @@ const VendorRegistrationForm = () => {
                       name="businessPolicy"
                       value={formData.businessPolicy}
                       onChange={handleInputChange}
+                      maxLength={250}
                       className="w-full h-32"
                       placeholder="Describe your business policies regarding returns, shipping, etc..."
                     />
@@ -1189,6 +969,7 @@ const VendorRegistrationForm = () => {
                       name="businessUnique"
                       value={formData.businessUnique}
                       onChange={handleInputChange}
+                      maxLength={250}
                       className="w-full mb-3"
                       placeholder="What makes your business unique?"
                     />
@@ -1206,6 +987,7 @@ const VendorRegistrationForm = () => {
                       value={formData.businessAddress}
                       onChange={handleInputChange}
                       required
+                      maxLength={250}
                       className={`w-full ${!formData.businessAddress && attemptedSteps.includes(step) && "border-red-300"}`}
                       placeholder="Street address, P.O. box"
                     />
@@ -1230,6 +1012,7 @@ const VendorRegistrationForm = () => {
                         value={formData.businessCity}
                         onChange={handleInputChange}
                         required
+                        maxLength={250}
                         className={`w-full ${!formData.businessCity && attemptedSteps.includes(step) && "border-red-300"}`}
                         placeholder="City"
                       />
@@ -1264,690 +1047,394 @@ const VendorRegistrationForm = () => {
                       value={formData.businessZipCode}
                       onChange={handleInputChange}
                       required
-                      className={`w-full ${!formData.businessZipCode && attemptedSteps.includes(step) && "border-red-300"}`}
-                      placeholder="ZIP/Postal code"
-                      pattern="[0-9]*"
-                      title="Please enter a valid ZIP/Postal code"
+                      maxLength={10}
+                      className={`w-full ${(!formData.businessZipCode && attemptedSteps.includes(step)) || zipCodeError ? "border-red-300" : ""}`}
+                      placeholder="e.g. 12345 or 12345-6789"
+                      pattern="[0-9\-]*"
+                      title="Please enter a valid ZIP code"
                     />
                     {!formData.businessZipCode && attemptedSteps.includes(step) && (
                       <p className="mt-1 text-sm text-red-600">
                         ZIP/Postal code is required
                       </p>
                     )}
+                    {zipCodeError && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {zipCodeError}
+                      </p>
+                    )}
                   </div>
 
                   {/* Logo Upload */}
-                  <div className="mb-6">
-                    <div className="flex flex-row items-start gap-10 w-full">
-                      <div className="flex flex-col items-center">
-                        <div className="text-center font-medium mb-2">Upload Logo *</div>
-                        <div className={`w-32 h-32 border-2 border-dashed ${!formData.logo && attemptedSteps.includes(step) ? "border-red-500" : "border-gray-300"} rounded-lg flex items-center justify-center text-center cursor-pointer hover:bg-gray-50 transition-colors mb-2`}>
-                          <input
-                            type="file"
-                            id="logo"
-                            accept="image/*"
-                            onChange={handleLogoChange}
-                            className="hidden"
-                            required={!formData.logo}
-                          />
-                          <label htmlFor="logo" className="cursor-pointer flex flex-col items-center w-full h-full justify-center">
-                            {logoPreview ? (
-                              <img src={logoPreview} alt="Logo preview" className="w-full h-full object-contain" />
-                            ) : (
-                              <>
-                                <Upload className="h-8 w-8 text-gray-400 mb-2 mx-auto" />
-                                <span className="text-xs text-gray-500">Click to upload your logo</span>
-                                <span className="text-xs text-gray-400 mt-1">PNG, JPG, GIF up to 5MB</span>
-                              </>
-                            )}
-                          </label>
-                        </div>
-                        <div className="text-xs text-gray-500 mt-1">Ideal size: 230x340 px</div>
-                        {!formData.logo && attemptedSteps.includes(step) && (
-                          <p className="mt-1 text-xs text-red-600">Logo is required</p>
-                        )}
+                  <div className="mb-8">
+                    <span className="block text-sm font-medium text-gray-700 mb-2">Upload Logo *</span>
+                    <div className="flex flex-col items-center w-44">
+                      <div className={`w-44 h-44 border-2 border-dashed ${!formData.logo && attemptedSteps.includes(step) ? "border-red-500" : "border-gray-300"} rounded-lg flex items-center justify-center text-center cursor-pointer hover:bg-gray-50 transition-colors mb-2`}>
+                        <input
+                          type="file"
+                          id="logo"
+                          accept="image/*"
+                          onChange={handleLogoChange}
+                          className="hidden"
+                        />
+                        <label htmlFor="logo" className="cursor-pointer flex flex-col items-center w-full h-full justify-center">
+                          {logoPreview ? (
+                            <img src={logoPreview} alt="Logo preview" className="w-full h-full object-contain" />
+                          ) : (
+                            <>
+                              <Upload className="h-8 w-8 text-gray-400 mb-2 mx-auto" />
+                              <span className="text-xs text-gray-500">Click to upload your logo</span>
+                              <span className="text-xs text-gray-400 mt-1">PNG, JPG, GIF up to 5MB</span>
+                            </>
+                          )}
+                        </label>
                       </div>
-                      
-                      {/* Business Banner Upload (Single Image) */}
-                      <div className="flex flex-col items-center flex-1">
-                        <div className="text-center font-medium mb-2">Upload Business Banner</div>
-                        <div className="flex flex-col items-center">
-                          <div className={`w-96 h-32 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center text-center cursor-pointer hover:bg-gray-50 transition-colors mb-2`}>
+                      <div className="text-xs text-gray-500 mt-1">Ideal size: 230x340 px</div>
+                      {!formData.logo && attemptedSteps.includes(step) && (
+                        <p className="mt-1 text-xs text-red-500">Logo is required</p>
+                      )}
+                    </div>
+                    <label className="flex items-center gap-2 mt-2 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={formData.logoHasTransparentBg}
+                        onChange={(e) => setFormData(prev => ({ ...prev, logoHasTransparentBg: e.target.checked }))}
+                        className="w-4 h-4 accent-[#006699]"
+                      />
+                      <span className="text-xs text-gray-600">Logo already has transparent background</span>
+                    </label>
+                  </div>
+
+                  {/* Banner Upload */}
+                  <div className="mb-6">
+                    <span className="block text-sm font-medium text-gray-700 mb-2">Upload Business Banner *</span>
+
+                    {/* Toggle */}
+                    <div className="flex items-center gap-2 mb-4">
+                      <button
+                        type="button"
+                        onClick={() => setBannerMode("full")}
+                        className={`px-4 py-2 text-sm rounded-l-md border transition-colors ${bannerMode === "full" ? "bg-[#006699] text-white border-[#006699]" : "bg-white text-gray-600 border-gray-300 hover:bg-gray-50"}`}
+                      >
+                        Full Banner
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setBannerMode("collage")}
+                        className={`px-4 py-2 text-sm rounded-r-md border transition-colors ${bannerMode === "collage" ? "bg-[#006699] text-white border-[#006699]" : "bg-white text-gray-600 border-gray-300 hover:bg-gray-50"}`}
+                      >
+                        Image Collage
+                      </button>
+                    </div>
+
+                    {bannerMode === "full" ? (
+                      <div>
+                        <p className="text-xs text-gray-500 mb-2">Upload a single pre-made banner image for your storefront.</p>
+                        <div className="flex flex-col items-start">
+                          <div className={`w-full max-w-[500px] h-44 border-2 border-dashed ${!banner && attemptedSteps.includes(step) ? "border-red-500" : "border-gray-300"} rounded-lg flex items-center justify-center text-center cursor-pointer hover:bg-gray-50 transition-colors mb-2`}>
                             <input
                               type="file"
-                              id="business-banner"
+                              id="vendor-banner-image"
                               accept="image/*"
-                              onChange={(e) => {
-                                if (e.target.files && e.target.files[0]) {
-                                  const file = e.target.files[0];
-                                  // Create a preview URL and update state
-                                  const newPreviews = [URL.createObjectURL(file), null, null];
-                                  setBusinessImagePreviews(newPreviews);
-
-                                  // Update the actual file in formData (only first slot)
-                                  const newBusinessImages = [file, null, null];
-                                  setFormData({ ...formData, businessImages: newBusinessImages });
-                                }
-                              }}
+                              onChange={handleBannerChange}
                               className="hidden"
                             />
-                            <label htmlFor="business-banner" className="cursor-pointer flex flex-col items-center w-full h-full justify-center">
-                              {businessImagePreviews[0] ? (
-                                <img src={businessImagePreviews[0]} alt="Business banner preview" className="w-full h-full object-cover rounded-lg" />
+                            <label htmlFor="vendor-banner-image" className="cursor-pointer flex flex-col items-center w-full h-full justify-center">
+                              {bannerPreview ? (
+                                <img src={bannerPreview} alt="Banner preview" className="w-full h-full object-cover rounded-lg" />
                               ) : (
                                 <>
-                                  <Upload className="h-8 w-8 text-gray-400 mb-2 mx-auto" />
-                                  <span className="text-sm text-gray-500">Click to upload banner</span>
-                                  <span className="text-xs text-gray-400">PNG, JPG, GIF up to 5MB</span>
+                                  <Upload className="h-5 w-20 text-gray-400 mb-2 mx-auto" />
+                                  <span className="text-xs text-gray-500">Banner Image</span>
+                                  <span className="text-xs text-gray-400">PNG, JPG, GIF</span>
                                 </>
                               )}
                             </label>
                           </div>
-                        </div>
-                        <div className="text-xs text-gray-500 mt-1">Ideal size: 2489x500 px</div>
-                        <p className="text-xs text-gray-500 mt-1">This image will be used as your business banner</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-between">
-                    <Button
-                      type="button"
-                      onClick={prevStep}
-                      variant="outline"
-                      className="border-[#006699] text-[#006699]"
-                    >
-                      Previous
-                    </Button>
-                    <Button
-                      type="button"
-                      onClick={nextStep}
-                      className="bg-[#006699] hover:bg-[#005588] text-white"
-                    >
-                      Next Step
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              )}
-
-              {/* Step 3: Subscription Selection */}
-              {step === 3 && (
-                <div className="bg-white p-6 rounded-lg shadow-md mb-8">
-                  <h2 className="text-xl font-semibold text-gray-900 mb-6">
-                    Choose Your Subscription Plan
-                  </h2>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    {/* Basic Tier */}
-                    <div
-                      className={`border-2 rounded-lg p-6 cursor-pointer transition-all ${formData.subscriptionType === "basic" ? "border-[#006699] shadow-md" : "border-gray-200"}`}
-                      onClick={() => handleSubscriptionChange("basic")}
-                    >
-                      <h3 className="text-lg font-semibold">Basic</h3>
-                      <div className="mb-2">
-                        <p className="text-3xl font-bold text-green-600 mb-1">$0<span className="text-sm font-normal">/month</span></p>
-                        <p className="text-lg text-gray-500 line-through">$49.99<span className="text-sm font-normal">/month</span></p>
-                      </div>
-                      <ul className="space-y-2 text-sm">
-                        <li className="flex items-center">
-                          <span className="text-[#006699] font-bold mr-2">✓</span> Promotional listing
-                        </li>
-                        
-                        <li className="flex items-center text-gray-400">
-                          <span className="mr-2">✗</span> Product listings
-                        </li>
-                        <li className="flex items-center text-gray-400">
-                          <span className="mr-2">✗</span> Featured Placement
-                        </li>
-                        <li className="flex items-center text-gray-400">
-                          <span className="mr-2">✗</span> API integration available **
-                        </li>
-                      </ul>
-                    </div>
-                    {/* Premium Tier */}
-                    <div
-                      className={`border-2 rounded-lg p-6 cursor-pointer transition-all ${formData.subscriptionType === "premium" ? "border-[#006699] shadow-md" : "border-gray-200"}`}
-                      onClick={() => handleSubscriptionChange("premium")}
-                    >
-                      <h3 className="text-lg font-semibold">Premium</h3>
-                      <div className="mb-2">
-                        <p className="text-3xl font-bold text-green-600 mb-1">$0<span className="text-sm font-normal">/month</span></p>
-                        <p className="text-lg text-gray-500 line-through">$79.99<span className="text-sm font-normal">/month</span></p>
-                      </div>
-                      <ul className="space-y-2 text-sm">
-                        <li className="flex items-center">
-                          <span className="text-[#006699] font-bold mr-2">✓</span> Promotional listing
-                        </li>
-                
-                        <li className="flex items-center">
-                          <span className="text-[#006699] font-bold mr-2">✓</span> Up to 3 product listings *
-                        </li>
-                        <li className="flex items-center text-gray-400">
-                          <span className="mr-2">✗</span> Featured Placement
-                        </li>
-                        <li className="flex items-center text-gray-400">
-                          <span className="mr-2">✗</span> API integration available **
-                        </li>
-                      </ul>
-                    </div>
-                    {/* Elite Tier */}
-                    <div
-                      className={`border-2 rounded-lg p-6 cursor-pointer transition-all ${formData.subscriptionType === "elite" ? "border-[#006699] shadow-md" : "border-gray-200"}`}
-                      onClick={() => handleSubscriptionChange("elite")}
-                    >
-                      <h3 className="text-lg font-semibold">Elite</h3>
-                      <div className="mb-2">
-                        <p className="text-3xl font-bold text-green-600 mb-1">$0<span className="text-sm font-normal">/month</span></p>
-                        <p className="text-lg text-gray-500 line-through">$99.99<span className="text-sm font-normal">/month</span></p>
-                      </div>
-                      <ul className="space-y-2 text-sm">
-                        <li className="flex items-center">
-                          <span className="text-[#006699] font-bold mr-2">✓</span> Promotional listing
-                        </li>
-                    
-                        <li className="flex items-center">
-                          <span className="text-[#006699] font-bold mr-2">✓</span> Unlimited product listings*
-                        </li>
-                        <li className="flex items-center">
-                          <span className="text-[#006699] font-bold mr-2">✓</span> Featured placement
-                        </li>
-                        <li className="flex items-center">
-                          <span className="text-[#006699] font-bold mr-2">✓</span> API integration available **
-                        </li>
-                      </ul>
-                    </div>
-                  </div>
-                  <div className="mt-4 text-sm text-gray-600">
-                    <p>
-                      * Transactional fees apply. Please review our full
-                      policy for details.
-                    </p>
-                    <p>** One-time set-up fee may apply.</p>
-                  </div>
-
-                  <div className="flex justify-between">
-                    <Button
-                      type="button"
-                      onClick={prevStep}
-                      variant="outline"
-                      className="border-[#006699] text-[#006699]"
-                    >
-                      Previous
-                    </Button>
-                    <Button
-                      type="button"
-                      onClick={nextStep}
-                      className="bg-[#006699] hover:bg-[#005588] text-white"
-                    >
-                      Next Step
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              )}
-
-              {/* Step 4: Products & Services */}
-              {step === 4 && (
-                <div className="bg-white p-6 rounded-lg shadow-md mb-8">
-                  <h2 className="text-xl font-semibold text-gray-900 mb-6">
-                    Products & Services
-                  </h2>
-
-                  {/* Contact for Opportunities Question */}
-                  {formData.subscriptionType === "basic" && (
-                    <div className="mb-6">
-                      <Label className="block text-sm font-medium text-gray-700 mb-2">
-                        Would you like to be contacted to explore more opportunities to grow with Parishmart?
-                      </Label>
-                      <div className="flex space-x-4">
-                        <Button
-                          type="button"
-                          className={`px-4 py-2 rounded ${formData.contactForOpportunities === true ? 'bg-[#006699] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
-                          onClick={() => setFormData({ ...formData, contactForOpportunities: true })}
-                        >
-                          Yes
-                        </Button>
-                        <Button
-                          type="button"
-                          className={`px-4 py-2 rounded ${formData.contactForOpportunities === false ? 'bg-[#006699] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
-                          onClick={() => setFormData({ ...formData, contactForOpportunities: false })}
-                        >
-                          No
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-
-                  {formData.subscriptionType === "basic" ? (
-                    <div className="bg-gray-50 p-4 rounded-lg mb-6">
-                      <p className="text-gray-700">
-                        Based on the current subscription selected, you are only
-                        eligible to list your business. Upgrade to Premium if
-                        you would like to add any products.
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="mb-6">
-                      <div className="flex items-center justify-between mb-4">
-                        
-                        <div className="flex space-x-2">
-                          {formData.subscriptionType === "elite" && (
-                            <label className="relative cursor-pointer">
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                className="border-[#006699] text-[#006699] flex items-center"
-                              >
-                                <Upload className="h-4 w-4 mr-1" />
-                                Upload in bulk (CSV file)
-                              </Button>
-                              <input
-                                type="file"
-                                accept=".csv"
-                                onChange={handleBulkUpload}
-                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                              />
-                            </label>
+                          <div className="text-xs text-gray-500 mt-1">Ideal size: 1498x337 px</div>
+                          {!banner && attemptedSteps.includes(step) && (
+                            <p className="mt-1 text-xs text-red-500">Banner image is required</p>
                           )}
-                          <Button
-                            type="button"
-                            onClick={addProduct}
-                            size="sm"
-                            className="bg-[#006699] hover:bg-[#005588] text-white"
-                          >
-                            Add Product
-                          </Button>
                         </div>
                       </div>
-
-                      {formData.products.length === 0 ? (
-                        <div className="bg-gray-50 p-4 rounded-lg mb-6 text-center">
-                          <p className="text-gray-500">
-                            No products added yet. Click "Add Product" to get
-                            started.
-                          </p>
-                        </div>
-                      ) : (
-                        <div className="space-y-8">
-                          {formData.products.map((product, productIndex) => (
-                            <div
-                              key={productIndex}
-                              className="border border-gray-200 rounded-lg p-4"
-                            >
-                              <div className="flex justify-between items-center mb-4">
-                                <h4 className="font-medium">
-                                  Listing {productIndex + 1}
-                                </h4>
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => removeProduct(productIndex)}
-                                  className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                                >
-                                  Remove
-                                </Button>
-                              </div>
-
-                              <div className="mb-4">
-                                <Label
-                                  htmlFor={`product-name-${productIndex}`}
-                                  className="block text-sm font-medium text-gray-700 mb-1"
-                                >
-                                  Product/Service Name *
-                                </Label>
-                                <Input
-                                  id={`product-name-${productIndex}`}
-                                  value={product.name}
-                                  onChange={(e) =>
-                                    updateProduct(
-                                      productIndex,
-                                      "name",
-                                      e.target.value,
-                                    )
-                                  }
-                                  required
-                                  className={`w-full ${!product.name && attemptedSteps.includes(step) && "border-red-300"}`}
-                                />
-                                {!product.name &&
-                                  attemptedSteps.includes(step) && (
-                                    <p className="mt-1 text-sm text-red-600">
-                                      Product name is required
-                                    </p>
-                                  )}
-                              </div>
-
-                              <div className="mb-4">
-                                <Label
-                                  htmlFor={`product-category-${productIndex}`}
-                                  className="block text-sm font-medium text-gray-700 mb-1"
-                                >
-                                  Category of Your Product/Service *
-                                </Label>
-                                <Select
-                                  onValueChange={(value) =>
-                                    updateProduct(
-                                      productIndex,
-                                      "category",
-                                      value,
-                                    )
-                                  }
-                                  value={product.category}
-                                >
-                                  <SelectTrigger
-                                    className={`w-full ${!product.category && attemptedSteps.includes(step) && "border-red-300"}`}
+                    ) : (
+                      <div>
+                        <p className="text-xs text-gray-500 mb-2">Upload 3 to 5 images in the same order you would like them displayed and we'll create a collage banner for your storefront.</p>
+                        <div className="grid grid-cols-5 gap-3">
+                          {Array.from({ length: Math.max(3, bannerImages.length + (bannerImages.length < 5 ? 1 : 0)) }).map((_, index) => {
+                            if (index < bannerImages.length) {
+                              return (
+                                <div key={index} className="relative w-full aspect-square">
+                                  <img src={bannerImagesPreviews[index]} alt={`Banner image ${index + 1}`} className="w-full h-full object-cover rounded-lg border border-gray-200" />
+                                  <button
+                                    type="button"
+                                    onClick={() => removeBannerImage(index)}
+                                    className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600"
                                   >
-                                    <SelectValue placeholder="Select a category" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {productCategories.map((category) => (
-                                      <SelectItem
-                                        key={category}
-                                        value={category}
-                                      >
-                                        {category}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                                {!product.category &&
-                                  attemptedSteps.includes(step) && (
-                                    <p className="mt-1 text-sm text-red-600">
-                                      Category is required
-                                    </p>
-                                  )}
-                                {product.category === "Other" && (
-                                  <div className="mt-2">
-                                    <Label htmlFor={`other-category-${productIndex}`} className="block text-sm font-medium text-gray-700 mb-1">
-                                      Please specify the category
-                                    </Label>
-                                    <Input
-                                      id={`other-category-${productIndex}`}
-                                      value={product.otherCategory || ""}
-                                      onChange={e => updateProduct(productIndex, "otherCategory", e.target.value)}
-                                      className={`w-full${!product.otherCategory && attemptedSteps.includes(step) ? " border-red-300" : ""}`}
-                                      placeholder="Enter the category"
-                                      required
-                                    />
-                                    {!product.otherCategory && attemptedSteps.includes(step) && (
-                                      <p className="mt-1 text-sm text-red-600">Category is required</p>
-                                    )}
-                                  </div>
-                                )}
-                              </div>
-
-                              <div className="mb-4">
-                                <Label
-                                  htmlFor={`product-description-${productIndex}`}
-                                  className="block text-sm font-medium text-gray-700 mb-1"
-                                >
-                                  Description of Product/Service *
-                                </Label>
-                                <Textarea
-                                  id={`product-description-${productIndex}`}
-                                  value={product.description}
-                                  onChange={(e) =>
-                                    updateProduct(
-                                      productIndex,
-                                      "description",
-                                      e.target.value,
-                                    )
-                                  }
-                                  required
-                                  className={`w-full h-32 ${!product.description && attemptedSteps.includes(step) && "border-red-300"}`}
-                                  placeholder="Describe your product or service in detail..."
-                                />
-                                {!product.description &&
-                                  attemptedSteps.includes(step) && (
-                                    <p className="mt-1 text-sm text-red-600">
-                                      Description is required
-                                    </p>
-                                  )}
-                              </div>
-
-                              {/* Product Media Upload */}
-                              <div className="mb-4">
-                                <Label className="block text-sm font-medium text-gray-700 mb-2">
-                                  Upload Product/Service Media *
-                                </Label>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                  {/* Video Upload - Left Side */}
-                                  <div>
-                                    <Label className="block text-sm font-medium text-gray-600 mb-2">
-                                      Video (Optional)
-                                    </Label>
-                                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:bg-gray-50 transition-colors mb-4">
-                                      <input
-                                        type="file"
-                                        id={`product-video-${productIndex}`}
-                                        accept="video/*"
-                                        onChange={(e) =>
-                                          handleProductVideoChange(e, productIndex)
-                                        }
-                                        className="hidden"
-                                      />
-                                      <label
-                                        htmlFor={`product-video-${productIndex}`}
-                                        className="cursor-pointer flex flex-col items-center"
-                                      >
-                                        <svg
-                                          className="h-8 w-8 text-gray-400 mb-2"
-                                          fill="none"
-                                          stroke="currentColor"
-                                          viewBox="0 0 24 24"
-                                          xmlns="http://www.w3.org/2000/svg"
-                                        >
-                                          <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={2}
-                                            d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
-                                          />
-                                        </svg>
-                                        <span className="text-sm text-gray-500">
-                                          Click to upload video
-                                        </span>
-                                        <span className="text-xs text-gray-400 mt-1">
-                                          MP4, MOV, AVI up to 50MB (1 video only)
-                                        </span>
-                                      </label>
-                                    </div>
-                                    {productVideoPreviews[productIndex] && (
-                                      <div className="relative group">
-                                        <div className="w-full h-24 border rounded-lg overflow-hidden">
-                                          <video
-                                            src={productVideoPreviews[productIndex]}
-                                            className="w-full h-full object-cover"
-                                            controls
-                                          />
-                                        </div>
-                                        <button
-                                          type="button"
-                                          onClick={() =>
-                                            removeProductVideo(productIndex)
-                                          }
-                                          className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                                        >
-                                          <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            className="h-4 w-4"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke="currentColor"
-                                          >
-                                            <path
-                                              strokeLinecap="round"
-                                              strokeLinejoin="round"
-                                              strokeWidth={2}
-                                              d="M6 18L18 6M6 6l12 12"
-                                            />
-                                          </svg>
-                                        </button>
-                                      </div>
-                                    )}
-                                  </div>
-
-                                  {/* Image Upload - Right Side */}
-                                  <div>
-                                    <Label className="block text-sm font-medium text-gray-600 mb-2">
-                                      Images (Required)
-                                    </Label>
-                                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:bg-gray-50 transition-colors mb-4">
-                                      <input
-                                        type="file"
-                                        id={`product-images-${productIndex}`}
-                                        accept="image/*"
-                                        multiple
-                                        onChange={(e) =>
-                                          handleProductImagesChange(e, productIndex)
-                                        }
-                                        className="hidden"
-                                      />
-                                      <label
-                                        htmlFor={`product-images-${productIndex}`}
-                                        className="cursor-pointer flex flex-col items-center"
-                                      >
-                                        <Upload className="h-8 w-8 text-gray-400 mb-2" />
-                                        <span className="text-sm text-gray-500">
-                                          Click to upload images
-                                        </span>
-                                        <span className="text-xs text-gray-400 mt-1">
-                                          PNG, JPG, GIF up to 5MB each (max 5 images)
-                                        </span>
-                                      </label>
-                                    </div>
-
-                                    {productImagePreviews[productIndex] &&
-                                      productImagePreviews[productIndex].length >
-                                        0 && (
-                                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                                          {productImagePreviews[productIndex].map(
-                                            (preview, imageIndex) => (
-                                              <div
-                                                key={imageIndex}
-                                                className="relative group"
-                                              >
-                                                <div className="w-full h-20 border rounded-lg overflow-hidden">
-                                                  <img
-                                                    src={preview}
-                                                    alt={`Listing ${productIndex + 1} Image ${imageIndex + 1}`}
-                                                    className="w-full h-full object-cover"
-                                                  />
-                                                </div>
-                                                <button
-                                                  type="button"
-                                                  onClick={() =>
-                                                    removeProductImage(
-                                                      productIndex,
-                                                      imageIndex,
-                                                    )
-                                                  }
-                                                  className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                                                >
-                                                  <svg
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    className="h-3 w-3"
-                                                    fill="none"
-                                                    viewBox="0 0 24 24"
-                                                    stroke="currentColor"
-                                                  >
-                                                    <path
-                                                      strokeLinecap="round"
-                                                      strokeLinejoin="round"
-                                                      strokeWidth={2}
-                                                      d="M6 18L18 6M6 6l12 12"
-                                                    />
-                                                  </svg>
-                                                </button>
-                                              </div>
-                                            ),
-                                          )}
-                                        </div>
-                                      )}
-                                  </div>
+                                    ×
+                                  </button>
                                 </div>
+                              );
+                            }
+                            if (index === bannerImages.length && bannerImages.length < 5) {
+                              return (
+                                <div key={index} className={`w-full aspect-square border-2 border-dashed ${bannerImages.length < 3 && attemptedSteps.includes(step) ? "border-red-500" : "border-gray-300"} rounded-lg flex items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors`}>
+                                  <input
+                                    type="file"
+                                    id="banner-collage-images"
+                                    accept="image/*"
+                                    multiple
+                                    onChange={handleBannerImagesChange}
+                                    className="hidden"
+                                  />
+                                  <label htmlFor="banner-collage-images" className="cursor-pointer flex flex-col items-center justify-center w-full h-full">
+                                    <Upload className="h-6 w-6 text-gray-400 mb-1" />
+                                    <span className="text-xs text-gray-500">Add</span>
+                                  </label>
+                                </div>
+                              );
+                            }
+                            return (
+                              <div key={index} className={`w-full aspect-square border-2 border-dashed ${bannerImages.length < 3 && attemptedSteps.includes(step) ? "border-red-500" : "border-gray-300"} rounded-lg flex items-center justify-center`}>
+                                <span className="text-xs text-gray-400">{index + 1}</span>
                               </div>
-
-                              <div className="mb-4">
-                                <Label
-                                  htmlFor={`promotional-hook-${productIndex}`}
-                                  className="block text-sm font-medium text-gray-700 mb-1"
-                                >
-                                  Promotional Hook Offer
-                                </Label>
-                                <Input
-                                  id={`promotional-hook-${productIndex}`}
-                                  value={product.promotionalHook}
-                                  onChange={(e) =>
-                                    updateProduct(
-                                      productIndex,
-                                      "promotionalHook",
-                                      e.target.value,
-                                    )
-                                  }
-                                  className="w-full"
-                                  placeholder="e.g., 10% off first purchase"
-                                />
-                                <p className="mt-1 text-sm text-gray-500">
-                                  Optional: Add a special offer to attract
-                                  customers
-                                </p>
-                              </div>
-
-                              <div className="mb-4">
-                                <Label
-                                  htmlFor={`pricing-info-${productIndex}`}
-                                  className="block text-sm font-medium text-gray-700 mb-1"
-                                >
-                                  Pricing Information *
-                                </Label>
-                                <Input
-                                  id={`pricing-info-${productIndex}`}
-                                  value={product.pricingInfo}
-                                  onChange={(e) =>
-                                    updateProduct(
-                                      productIndex,
-                                      "pricingInfo",
-                                      e.target.value,
-                                    )
-                                  }
-                                  className={`w-full${!product.pricingInfo && attemptedSteps.includes(step) ? " border-red-300" : ""}`}
-                                  placeholder="e.g., $19.99 per item, $50-100 per service, Starting at $29.99"
-                                  required
-                                />
-                                {!product.pricingInfo && attemptedSteps.includes(step) && (
-                                  <p className="mt-1 text-sm text-red-600">Pricing information is required</p>
-                                )}
-                              </div>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
-                      )}
+                        <div className="text-xs text-gray-500 mt-2">{bannerImages.length}/5 images uploaded (minimum 3)</div>
+                        {bannerImages.length < 3 && attemptedSteps.includes(step) && (
+                          <p className="mt-1 text-xs text-red-500">Please upload at least 3 images</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
 
-                      {formData.subscriptionType === "premium" &&
-                        formData.products.length >= 3 && (
-                          <div className="bg-amber-50 border-l-4 border-amber-500 p-4 mt-4">
-                            <p className="text-amber-700">
-                              You have reached the maximum of 3 products allowed
-                              with the Premium package. Upgrade to Elite for
-                              unlimited products.
-                            </p>
+                  <div className="flex justify-between">
+                    <Button
+                      type="button"
+                      onClick={prevStep}
+                      variant="outline"
+                      className="border-[#006699] text-[#006699]"
+                    >
+                      Previous
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={nextStep}
+                      className="bg-[#006699] hover:bg-[#005588] text-white"
+                    >
+                      Next Step
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Step 1: Subscription Selection */}
+              {step === 1 && (
+                <div className="mb-8">
+                  <div className="text-center mb-8">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                      Grow Your Business with ParishMart
+                    </h2>
+                    <p className="text-gray-600">Choose the plan that fits your business needs</p>
+
+                    {/* Monthly/Annual Toggle */}
+                    <div className="flex items-center justify-center gap-3 mt-6">
+                      <span className={`text-sm font-medium ${!isAnnual ? 'text-gray-900' : 'text-gray-500'}`}>Monthly</span>
+                      <button
+                        type="button"
+                        onClick={() => setIsAnnual(!isAnnual)}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${isAnnual ? 'bg-[#006699]' : 'bg-gray-300'}`}
+                      >
+                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isAnnual ? 'translate-x-6' : 'translate-x-1'}`} />
+                      </button>
+                      <span className={`text-sm font-medium ${isAnnual ? 'text-gray-900' : 'text-gray-500'}`}>Annual <span className="text-green-600 text-xs font-semibold">(Save ~17%)</span></span>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col xl:flex-row gap-6">
+                    {/* Subscription Cards */}
+                    <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-5">
+                      {/* Basic Listing */}
+                      <div
+                        className={`relative border-2 rounded-xl p-6 cursor-pointer transition-all bg-white ${formData.subscriptionType === "tier1" ? "border-[#006699] shadow-lg" : "border-gray-200 hover:border-gray-300"}`}
+                        onClick={() => handleSubscriptionChange("tier1")}
+                      >
+                        {formData.subscriptionType === "tier1" && (
+                          <div className="absolute top-3 right-3 bg-[#006699] rounded-full p-1">
+                            <Check className="h-4 w-4 text-white" />
                           </div>
                         )}
-                    </div>
-                  )}
+                        <div className="inline-block bg-amber-100 text-amber-800 text-xs font-semibold px-3 py-1 rounded-full mb-4">
+                          BASIC LISTING
+                        </div>
+                        <div className="mb-4">
+                          <p className="text-3xl font-bold text-gray-900">
+                            {isAnnual ? "$390" : "$39"}
+                            <span className="text-base font-normal text-gray-500">/{isAnnual ? "year" : "month"}</span>
+                          </p>
+                          {isAnnual ? (
+                            <p className="text-xs text-green-600 mt-1">$32.50/mo — Save $78/year</p>
+                          ) : (
+                            <>
+                              <p className="text-xs text-gray-500 mt-1">or <span className="text-green-600 font-medium">$390</span> / year</p>
+                              <p className="text-xs text-green-600 font-medium">Save ~17%</p>
+                            </>
+                          )}
+                        </div>
+                        <ul className="space-y-3 text-sm">
+                          <li className="flex items-start">
+                            <span className="text-[#006699] font-bold mr-2 mt-0.5">✓</span>
+                            <span>Business profile</span>
+                          </li>
+                          <li className="flex items-start">
+                            <span className="text-[#006699] font-bold mr-2 mt-0.5">✓</span>
+                            <span>Up to 10 Products or 5 Services</span>
+                          </li>
+                          <li className="flex items-start">
+                            <span className="text-[#006699] font-bold mr-2 mt-0.5">✓</span>
+                            <span>Contact or Get a Quote CTA</span>
+                          </li>
+                          <li className="flex items-start">
+                            <span className="text-[#006699] font-bold mr-2 mt-0.5">✓</span>
+                            <span>Listed in ParishMart Directory</span>
+                          </li>
+                        </ul>
+                      </div>
 
-                  <div className="flex justify-between">
-                    <Button
-                      type="button"
-                      onClick={prevStep}
-                      variant="outline"
-                      className="border-[#006699] text-[#006699]"
-                    >
-                      Previous
-                    </Button>
+                      {/* Commerce */}
+                      <div
+                        className={`relative border-2 rounded-xl p-6 cursor-pointer transition-all bg-white ${formData.subscriptionType === "tier2" ? "border-[#006699] shadow-lg" : "border-gray-200 hover:border-gray-300"}`}
+                        onClick={() => handleSubscriptionChange("tier2")}
+                      >
+                        {formData.subscriptionType === "tier2" && (
+                          <div className="absolute top-3 right-3 bg-[#006699] rounded-full p-1">
+                            <Check className="h-4 w-4 text-white" />
+                          </div>
+                        )}
+                        <div className="inline-block bg-[#1a365d] text-white text-xs font-semibold px-3 py-1 rounded-full mb-4">
+                          COMMERCE — MOST POPULAR
+                        </div>
+                        <div className="mb-4">
+                          <p className="text-3xl font-bold text-gray-900">
+                            {isAnnual ? "$790" : "$79"}
+                            <span className="text-base font-normal text-gray-500">/{isAnnual ? "year" : "month"}</span>
+                          </p>
+                          {isAnnual ? (
+                            <p className="text-xs text-green-600 mt-1">$65.83/mo — Save $158/year</p>
+                          ) : (
+                            <>
+                              <p className="text-xs text-gray-500 mt-1">or <span className="text-green-600 font-medium">$790</span> / year</p>
+                              <p className="text-xs text-green-600 font-medium">Save ~17%</p>
+                            </>
+                          )}
+                        </div>
+                        <ul className="space-y-3 text-sm">
+                          <li className="flex items-start">
+                            <span className="text-[#006699] font-bold mr-2 mt-0.5">✓</span>
+                            <span>Up to 50 Products or Services</span>
+                          </li>
+                          <li className="flex items-start">
+                            <span className="text-[#006699] font-bold mr-2 mt-0.5">✓</span>
+                            <span>Book Now or Buy Now CTAs</span>
+                          </li>
+                          <li className="flex items-start">
+                            <span className="text-[#006699] font-bold mr-2 mt-0.5">✓</span>
+                            <span>Integrated Payments & Booking</span>
+                          </li>
+                          <li className="flex items-start">
+                            <span className="text-[#006699] font-bold mr-2 mt-0.5">✓</span>
+                            <span>Analytics & Engagement Tools</span>
+                          </li>
+                        </ul>
+                      </div>
+
+                      {/* Featured Partner */}
+                      <div
+                        className={`relative border-2 rounded-xl p-6 cursor-pointer transition-all bg-white ${formData.subscriptionType === "tier3" ? "border-[#006699] shadow-lg" : "border-gray-200 hover:border-gray-300"}`}
+                        onClick={() => handleSubscriptionChange("tier3")}
+                      >
+                        {formData.subscriptionType === "tier3" && (
+                          <div className="absolute top-3 right-3 bg-[#006699] rounded-full p-1">
+                            <Check className="h-4 w-4 text-white" />
+                          </div>
+                        )}
+                        <div className="inline-block bg-amber-100 text-amber-800 text-xs font-semibold px-3 py-1 rounded-full mb-4">
+                          FEATURED PARTNER
+                        </div>
+                        <div className="mb-4">
+                          <p className="text-3xl font-bold text-gray-900">
+                            {isAnnual ? "$1,490" : "$149"}
+                            <span className="text-base font-normal text-gray-500">/{isAnnual ? "year" : "month"}</span>
+                          </p>
+                          {isAnnual ? (
+                            <p className="text-xs text-green-600 mt-1">$124.17/mo — Save $298/year</p>
+                          ) : (
+                            <>
+                              <p className="text-xs text-gray-500 mt-1">or <span className="text-green-600 font-medium">$1,490</span> / year</p>
+                              <p className="text-xs text-green-600 font-medium">Save ~17%</p>
+                            </>
+                          )}
+                        </div>
+                        <ul className="space-y-3 text-sm">
+                          <li className="flex items-start">
+                            <span className="text-[#006699] font-bold mr-2 mt-0.5">✓</span>
+                            <span>Unlimited Products & Services</span>
+                          </li>
+                          <li className="flex items-start">
+                            <span className="text-[#006699] font-bold mr-2 mt-0.5">✓</span>
+                            <span>Priority Featured Placement</span>
+                          </li>
+                          <li className="flex items-start">
+                            <span className="text-[#006699] font-bold mr-2 mt-0.5">✓</span>
+                            <span>Highlighted Banner Ads</span>
+                          </li>
+                          <li className="flex items-start">
+                            <span className="text-[#006699] font-bold mr-2 mt-0.5">✓</span>
+                            <span>Top Category Placement</span>
+                          </li>
+                          <li className="flex items-start">
+                            <span className="text-[#006699] font-bold mr-2 mt-0.5">✓</span>
+                            <span>Advanced Reporting Dashboard</span>
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+
+                    {/* What's Included Sidebar */}
+                    <div className="xl:w-56 flex-shrink-0">
+                      <div className="bg-gray-50 rounded-xl p-5 h-full">
+                        <h3 className="font-semibold text-gray-900 text-sm mb-4">What's included in every plan</h3>
+                        <ul className="space-y-3 text-xs text-gray-600">
+                          <li className="flex items-start">
+                            <span className="text-[#006699] font-bold mr-2 mt-0.5">✓</span>
+                            <span>Business profile page</span>
+                          </li>
+                          <li className="flex items-start">
+                            <span className="text-[#006699] font-bold mr-2 mt-0.5">✓</span>
+                            <span>ParishMart directory listing</span>
+                          </li>
+                          <li className="flex items-start">
+                            <span className="text-[#006699] font-bold mr-2 mt-0.5">✓</span>
+                            <span>Community exposure</span>
+                          </li>
+                          <li className="flex items-start">
+                            <span className="text-[#006699] font-bold mr-2 mt-0.5">✓</span>
+                            <span>Secure checkout via Stripe</span>
+                          </li>
+                          <li className="flex items-start">
+                            <span className="text-[#006699] font-bold mr-2 mt-0.5">✓</span>
+                            <span>Dedicated support</span>
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-gray-400 mt-4 text-center">All transactions are secured through Stripe. Transactional fees may apply.</p>
+
+                  <div className="flex justify-end mt-6">
                     <Button
                       type="button"
                       onClick={nextStep}
@@ -1960,8 +1447,8 @@ const VendorRegistrationForm = () => {
                 </div>
               )}
 
-              {/* Step 5: Final Submission */}
-              {step === 5 && (
+              {/* Step 4: Final Submission */}
+              {step === 4 && (
                 <div className="bg-white p-6 rounded-lg shadow-md mb-8">
                   <h2 className="text-xl font-semibold text-gray-900 mb-6">
                     Final Submission
@@ -1986,9 +1473,27 @@ const VendorRegistrationForm = () => {
 
                     <div className="space-y-4">
                       <div>
-                        <h4 
+                        <h4
                           className="font-medium text-gray-700 cursor-pointer hover:text-[#006699] transition-colors flex items-center"
                           onClick={() => setStep(1)}
+                        >
+                          Subscription (Edit)
+                          <ArrowRight className="ml-2 h-4 w-4 rotate-180" />
+                        </h4>
+                        <p className="text-gray-600">
+                          Subscription:{" "}
+                          {formData.subscriptionType === "tier1"
+                            ? "Basic Listing"
+                            : formData.subscriptionType === "tier2"
+                              ? "Commerce"
+                              : "Featured Partner"}
+                        </p>
+                      </div>
+
+                      <div>
+                        <h4
+                          className="font-medium text-gray-700 cursor-pointer hover:text-[#006699] transition-colors flex items-center"
+                          onClick={() => setStep(2)}
                         >
                           Personal Information (Edit)
                           <ArrowRight className="ml-2 h-4 w-4 rotate-180" />
@@ -2000,28 +1505,29 @@ const VendorRegistrationForm = () => {
                         <p className="text-gray-600">Phone: {formData.phone}</p>
                         {formData.parishAffiliation && (
                           <p className="text-gray-600">
-                            Parish Affiliation: {formData.parishAffiliation === "Other" && customParish.trim() 
-                              ? customParish.trim() 
+                            Parish Affiliation: {formData.parishAffiliation === "Other" && customParish.trim()
+                              ? customParish.trim()
                               : formData.parishAffiliation}
-                          </p>
-                        )}
-                        {formData.contactForOpportunities !== null && (
-                          <p className="text-gray-600">
-                            Would like to be contacted for more opportunities: {formData.contactForOpportunities ? 'Yes' : 'No'}
                           </p>
                         )}
                       </div>
 
                       <div>
-                        <h4 
+                        <h4
                           className="font-medium text-gray-700 cursor-pointer hover:text-[#006699] transition-colors flex items-center"
-                          onClick={() => setStep(2)}
+                          onClick={() => setStep(3)}
                         >
                           Business Information (Edit)
                           <ArrowRight className="ml-2 h-4 w-4 rotate-180" />
                         </h4>
                         <p className="text-gray-600">
                           Business Name: {formData.businessName}
+                        </p>
+                        <p className="text-gray-600">
+                          Logo: {formData.logo ? "✓ Uploaded" : "✗ Not uploaded"}
+                        </p>
+                        <p className="text-gray-600">
+                          Banner: {bannerMode === "full" ? (banner ? "✓ Uploaded" : "✗ Not uploaded") : `✓ ${bannerImages.length} image${bannerImages.length !== 1 ? "s" : ""} (collage)`}
                         </p>
                         <p className="text-gray-600">
                           Business Type:{" "}
@@ -2032,56 +1538,6 @@ const VendorRegistrationForm = () => {
                               : "Both"}
                         </p>
                       </div>
-
-                      <div>
-                        <h4 
-                          className="font-medium text-gray-700 cursor-pointer hover:text-[#006699] transition-colors flex items-center"
-                          onClick={() => setStep(3)}
-                        >
-                          Subscription (Edit)
-                          <ArrowRight className="ml-2 h-4 w-4 rotate-180" />
-                        </h4>
-                        <p className="text-gray-600">
-                          Subscription:{" "}
-                          {formData.subscriptionType === "basic"
-                            ? "Basic"
-                            : formData.subscriptionType === "premium"
-                              ? "Premium"
-                              : "Elite"}
-                        </p>
-                      </div>
-
-                      {formData.products.length > 0 && (
-                        <div>
-                          <h4 
-                            className="font-medium text-gray-700 cursor-pointer hover:text-[#006699] transition-colors flex items-center"
-                            onClick={() => setStep(4)}
-                          >
-                            Products/Services Information (Edit)
-                            <ArrowRight className="ml-2 h-4 w-4 rotate-180" />
-                          </h4>
-                          <p className="text-gray-600">
-                            Number of Products: {formData.products.length}
-                          </p>
-                          {formData.products.map((product, index) => (
-                            <div key={index} className="mt-2">
-                              <p className="text-gray-600 font-medium">
-                                Listing {index + 1}: {product.name}
-                              </p>
-                              {product.category && (
-                                <p className="text-gray-600 text-sm">
-                                  Category: {product.category}
-                                </p>
-                              )}
-                              {product.pricingInfo && (
-                                <p className="text-gray-600 text-sm">
-                                  Pricing: {product.pricingInfo}
-                                </p>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      )}
                     </div>
                   </div>
 

@@ -1,6 +1,16 @@
 import fs from 'fs';
 import path from 'path';
 
+function vendorTierName(tier: string): string {
+  const map: Record<string, string> = { tier1: 'Basic Listing', tier2: 'Commerce', tier3: 'Featured Partner' };
+  return map[tier] ?? tier;
+}
+
+function storeTierName(tier: string): string {
+  const map: Record<string, string> = { tier1: 'Cause Plan', tier2: 'Parish Growth Plan', tier3: 'Diocese Network Plan' };
+  return map[tier] ?? tier;
+}
+
 interface TemplateData {
   [key: string]: string | number | boolean | undefined;
 }
@@ -115,7 +125,7 @@ export class EmailTemplates {
       lastName: userData.lastName,
       businessName: userData.businessName,
       email: userData.email,
-      subscriptionType: userData.subscriptionType,
+      subscriptionType: vendorTierName(userData.subscriptionType),
       businessType: userData.businessType || 'N/A',
       parishAffiliation: userData.parishAffiliation || 'Not specified',
       reach: userData.reach || 'Not specified'
@@ -138,7 +148,7 @@ export class EmailTemplates {
       organizationName: userData.organizationName,
       organizationType: userData.organizationType,
       email: userData.email,
-      subscriptionTier: userData.subscriptionTier,
+      subscriptionTier: storeTierName(userData.subscriptionTier),
       description: userData.description || 'Not provided',
       impact: userData.impact || 'Not specified',
       foundingYear: userData.foundingYear || 'Not specified',
@@ -162,7 +172,7 @@ export class EmailTemplates {
       businessName: userData.businessName,
       email: userData.email,
       phone: userData.phone,
-      subscriptionType: userData.subscriptionType,
+      subscriptionType: vendorTierName(userData.subscriptionType),
       businessType: userData.businessType || 'N/A',
       businessDescription: userData.businessDescription || 'Not provided',
       parishAffiliation: userData.parishAffiliation || 'Not specified',
@@ -192,7 +202,7 @@ export class EmailTemplates {
       organizationName: userData.organizationName,
       organizationType: userData.organizationType,
       email: userData.email,
-      subscriptionTier: userData.subscriptionTier,
+      subscriptionTier: storeTierName(userData.subscriptionTier),
       description: userData.description || 'Not provided',
       impact: userData.impact || 'Not specified',
       foundingYear: userData.foundingYear || 'Not specified',
@@ -222,7 +232,7 @@ export class EmailTemplates {
       firstName: userData.firstName,
       businessName: userData.businessName,
       email: userData.email,
-      subscriptionType: userData.subscriptionType,
+      subscriptionType: vendorTierName(userData.subscriptionType),
       loginUrl: `${process.env.BASE_URL || 'http://localhost:3001'}/login`,
       dashboardUrl: `${process.env.BASE_URL || 'http://localhost:3001'}/vendor/dashboard`,
       supportUrl: `${process.env.BASE_URL || 'http://localhost:3001'}/support`
@@ -243,7 +253,7 @@ export class EmailTemplates {
       adminFirstName: userData.adminFirstName,
       organizationName: userData.organizationName,
       email: userData.email,
-      subscriptionTier: userData.subscriptionTier,
+      subscriptionTier: storeTierName(userData.subscriptionTier),
       loginUrl: `${process.env.BASE_URL || 'http://localhost:3001'}/login`,
       dashboardUrl: `${process.env.BASE_URL || 'http://localhost:3001'}/store/dashboard`,
       supportUrl: `${process.env.BASE_URL || 'http://localhost:3001'}/support`
