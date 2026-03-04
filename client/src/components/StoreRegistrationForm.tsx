@@ -1011,7 +1011,6 @@ const StoreRegistrationForm = () => {
                           <li className="flex items-start"><Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" /> Sell Products & Services</li>
                           <li className="flex items-start"><Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" /> Featured Exposure in Marketplace</li>
                           <li className="flex items-start"><Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" /> Impact Dashboard & Reporting</li>
-                          <li className="flex items-start"><Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" /> ParishSoft Integration</li>
                           <li className="flex items-start"><Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" /> Secure Stripe Connect Setup</li>
                         </ul>
                       </div>
