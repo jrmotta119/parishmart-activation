@@ -122,8 +122,11 @@ router.get('/schema', async (req: Request, res: Response) => {
   }
 });
 
-// POST /api/vendors/update-missions - Update missions and responsible data from PDF
+// POST /api/vendors/update-missions - Update missions and responsible data from PDF (dev only)
 router.post('/update-missions', async (req: Request, res: Response) => {
+  if (process.env.NODE_ENV === 'production') {
+    return res.status(404).json({ success: false, error: 'Not found' });
+  }
   try {
     console.log('🔄 Updating missions and responsible data from PDF...');
 
@@ -167,8 +170,11 @@ router.post('/update-missions', async (req: Request, res: Response) => {
   }
 });
 
-// POST /api/vendors/add-remaining-parishes - Add all remaining parishes from complete PDF analysis
+// POST /api/vendors/add-remaining-parishes - Add all remaining parishes from complete PDF analysis (dev only)
 router.post('/add-remaining-parishes', async (req: Request, res: Response) => {
+  if (process.env.NODE_ENV === 'production') {
+    return res.status(404).json({ success: false, error: 'Not found' });
+  }
   try {
     console.log('🔄 Adding remaining parishes, Eastern Rite churches, and hospitals from PDF...');
 

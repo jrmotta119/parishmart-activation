@@ -14,7 +14,6 @@ interface VendorFormData {
   phone: string;
   parishAffiliation?: string;
   ownerDescription?: string;
-  businessUnique?: string;
   communityEfforts?: string;
   // Business Information
   businessName: string;
@@ -40,6 +39,8 @@ interface VendorFormData {
   contactForOpportunities?: boolean;
   logoHasTransparentBg?: string | boolean;
   bannerMode?: string;
+  billingCycle?: string;
+  subscriptionAmount?: number;
 }
 
 interface StoreFormData {
@@ -81,6 +82,9 @@ interface StoreFormData {
   logoHasTransparentBg?: string | boolean;
   bannerMode?: string;
   products?: any[];
+  parishCount?: number;
+  billingCycle?: string;
+  subscriptionAmount?: number;
 }
 
 export class RegistrationService {
@@ -171,10 +175,10 @@ export class RegistrationService {
         INSERT INTO businesses (
           vendor_id, business_name, business_description, business_policy,
           business_address, business_city, business_state, business_country, business_zip_code,
-          business_reach, what_makes_unique, business_type,
+          business_reach, business_type,
           website_links, contact_email, contact_phone, current_subscription_type,
-          logo_has_transparent_bg, banner_mode, created_at, updated_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, NOW(), NOW())
+          logo_has_transparent_bg, banner_mode, subscription_amount, billing_cycle, created_at, updated_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, NOW(), NOW())
         RETURNING business_id
       `, [
         vendorId,
@@ -187,14 +191,15 @@ export class RegistrationService {
         (typeof formData.businessLocation === 'object' && formData.businessLocation?.country) || formData.businessCountry,
         formData.businessZipCode,
         formData.reach || null,
-        formData.businessUnique || null,
         formData.businessType,
         formData.websiteLinks || null,
         formData.contactEmail,
         formData.contactPhone,
         formData.subscriptionType,
         formData.logoHasTransparentBg === 'true' || formData.logoHasTransparentBg === true,
-        formData.bannerMode || 'collage'
+        formData.bannerMode || 'collage',
+        formData.subscriptionAmount || null,
+        formData.billingCycle || null
       ]);
       
       const businessId = businessResult.rows[0].business_id;
@@ -362,8 +367,8 @@ export class RegistrationService {
           name, organization_type, description, impact, since_year, slogan,
           is_tax_exempt, collect_donations, donations_platform,
           needs_consultation, current_subscription_type,
-          logo_has_transparent_bg, banner_mode, created_at, updated_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW(), NOW())
+          logo_has_transparent_bg, banner_mode, subscription_amount, billing_cycle, parish_count, created_at, updated_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, NOW(), NOW())
         RETURNING organization_id
       `, [
         formData.organizationName,
@@ -378,7 +383,10 @@ export class RegistrationService {
         formData.needsConsultation || false,
         formData.subscriptionTier,
         formData.logoHasTransparentBg === 'true' || formData.logoHasTransparentBg === true,
-        formData.bannerMode || 'collage'
+        formData.bannerMode || 'collage',
+        formData.subscriptionAmount || null,
+        formData.billingCycle || null,
+        formData.parishCount || null
       ]);
       
       const organizationId = orgResult.rows[0].organization_id;

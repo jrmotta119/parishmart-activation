@@ -158,7 +158,6 @@ export class TokenUtils {
             b.business_country,
             b.business_zip_code,
             b.business_reach,
-            b.what_makes_unique,
             b.website_links,
             b.contact_email,
             b.contact_phone,
@@ -195,6 +194,99 @@ export class TokenUtils {
 
     } catch (error) {
       console.error('❌ Error getting user data by token:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Fetch user data directly by type and ID without re-validating a token.
+   * Use this after claimToken() so the already-marked token doesn't block the lookup.
+   */
+  static async getUserById(userType: 'vendor' | 'administrator', userId: number): Promise<UserData | null> {
+    try {
+      let userData = null;
+
+      if (userType === 'vendor') {
+        const result = await query(`
+          SELECT
+            v.*,
+            b.business_name,
+            b.business_description,
+            b.business_type,
+            b.business_policy,
+            b.business_address,
+            b.business_city,
+            b.business_state,
+            b.business_country,
+            b.business_zip_code,
+            b.business_reach,
+            b.website_links,
+            b.contact_email,
+            b.contact_phone,
+            b.current_subscription_type
+          FROM vendors v
+          LEFT JOIN businesses b ON v.vendor_id = b.vendor_id
+          WHERE v.vendor_id = $1
+        `, [userId]);
+        userData = result.rows[0] || null;
+      } else if (userType === 'administrator') {
+        const result = await query(`
+          SELECT
+            a.*,
+            o.name as organization_name,
+            o.organization_type,
+            o.description,
+            o.impact,
+            o.since_year,
+            o.slogan,
+            o.is_tax_exempt,
+            o.collect_donations,
+            o.donations_platform,
+            o.current_subscription_type
+          FROM administrators a
+          LEFT JOIN organizations o ON a.organization_id = o.organization_id
+          WHERE a.admin_id = $1
+        `, [userId]);
+        userData = result.rows[0] || null;
+      }
+
+      return userData ? { userData } : null;
+
+    } catch (error) {
+      console.error('❌ Error fetching user data by ID:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Atomically claim a token: validates and marks it as used in a single UPDATE.
+   * Returns token data if successfully claimed, null if already used/expired/missing.
+   * Eliminates the race condition between validateToken() and markTokenAsUsed().
+   */
+  static async claimToken(token: string): Promise<ValidatedTokenResult | null> {
+    try {
+      const result = await query(`
+        UPDATE approval_tokens
+        SET is_used = true, used_at = NOW()
+        WHERE token = $1
+          AND is_used = false
+          AND expires_at > NOW()
+        RETURNING user_type, user_id, action_type
+      `, [token]);
+
+      if (result.rows.length === 0) {
+        return null; // Already used, expired, or not found
+      }
+
+      const row = result.rows[0];
+      return {
+        isValid: true,
+        user_type: row.user_type,
+        user_id: row.user_id,
+        action_type: row.action_type,
+      };
+    } catch (error) {
+      console.error('❌ Token claim error:', error);
       return null;
     }
   }

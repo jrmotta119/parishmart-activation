@@ -44,7 +44,7 @@ export class EmailService {
         pass: process.env.EMAIL_PASS // Gmail App Password (16 digits)
       },
       tls: {
-        rejectUnauthorized: false // For development only
+        rejectUnauthorized: process.env.NODE_ENV === 'production'
       },
       pool: true, // Use connection pooling
       maxConnections: 5, // Limit concurrent connections
@@ -60,6 +60,15 @@ export class EmailService {
   private static getTransporter(): Transporter {
     if (!this.transporter) {
       this.transporter = this.createTransporter();
+      // With pool:true, SMTP socket errors (e.g. ECONNRESET) are emitted as 'error'
+      // events on the pool rather than rejecting the sendMail() promise.
+      // Attaching a listener here prevents Node from treating them as uncaught
+      // exceptions that crash the process.
+      (this.transporter as any).on('error', (err: Error) => {
+        console.error('📧 Email transport pool error (connection dropped):', err.message);
+        // Discard the broken transporter so the next send recreates a fresh one
+        this.transporter = null;
+      });
     }
     return this.transporter;
   }

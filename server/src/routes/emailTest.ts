@@ -249,9 +249,12 @@ router.get('/templates', (req: Request, res: Response) => {
 
 /**
  * GET /api/email-test/config
- * Get email configuration status (without sensitive data)
+ * Get email configuration status (without sensitive data) — dev only
  */
 router.get('/config', (req: Request, res: Response) => {
+  if (process.env.NODE_ENV === 'production') {
+    return res.status(404).json({ success: false, error: 'Not found' });
+  }
   const config = {
     emailHost: process.env.EMAIL_HOST || 'Not configured',
     emailPort: process.env.EMAIL_PORT || 'Not configured',

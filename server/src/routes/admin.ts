@@ -423,18 +423,18 @@ router.get('/approve/:token', async (req: Request, res: Response) => {
   
   try {
     console.log(`🔍 Processing approval request with token: ${token.substring(0, 8)}...`);
-    
-    // Validate token
-    const validation = await TokenUtils.validateToken(token);
-    if (!validation.isValid || !validation.user_type || !validation.user_id || !validation.action_type) {
-      console.error(`❌ Invalid token for approval`);
+
+    // Atomically claim the token (validates + marks used in one UPDATE — no race condition)
+    const validation = await TokenUtils.claimToken(token);
+    if (!validation || !validation.user_type || !validation.user_id) {
+      console.error(`❌ Invalid, expired, or already-used token for approval`);
       return res.status(HTTP_STATUS.BAD_REQUEST).send(
-        renderAdminActionPage('approved', validation.user_type || 'vendor', false, 'Invalid or expired token')
+        renderAdminActionPage('approved', 'vendor', false, 'Invalid or expired token')
       );
     }
 
     const { user_type, user_id, action_type } = validation;
-    
+
     // Verify this is an approval token
     if (action_type !== 'approve') {
       console.error(`❌ Token is not an approval token: ${action_type}`);
@@ -444,12 +444,12 @@ router.get('/approve/:token', async (req: Request, res: Response) => {
     }
 
     const client = await getClient();
-    
+
     try {
       await client.query('BEGIN');
-      
-      // Get user data before updating status
-      const userData = await TokenUtils.getUserByToken(token);
+
+      // Fetch user data directly by ID — token is already claimed so getUserByToken would reject it
+      const userData = await TokenUtils.getUserById(user_type, user_id);
       if (!userData || !userData.userData) {
         await client.query('ROLLBACK');
         return res.status(HTTP_STATUS.NOT_FOUND).send(
@@ -461,15 +461,11 @@ router.get('/approve/:token', async (req: Request, res: Response) => {
       if (user_type === 'vendor') {
         await activateVendorApproval(client, user_id, userData.userData, token, req.ip, req.get('User-Agent'));
       } else {
-        // For administrator, we approve the administrator
         await activateStoreApproval(client, user_id, userData.userData, token, req.ip, req.get('User-Agent'));
       }
 
-      // Mark token as used
-      const tokenMarked = await TokenUtils.markTokenAsUsed(token);
-      if (!tokenMarked) {
-        console.warn(`⚠️  Failed to mark token as used: ${token}`);
-      }
+      // Invalidate all remaining tokens for this user (e.g. the sibling reject token)
+      await TokenUtils.invalidateUserTokens(user_type, user_id);
 
       await client.query('COMMIT');
       
@@ -537,18 +533,18 @@ router.get('/reject/:token', async (req: Request, res: Response) => {
   
   try {
     console.log(`🔍 Processing rejection request with token: ${token.substring(0, 8)}...`);
-    
-    // Validate token
-    const validation = await TokenUtils.validateToken(token);
-    if (!validation.isValid || !validation.user_type || !validation.user_id || !validation.action_type) {
-      console.error(`❌ Invalid token for rejection`);
+
+    // Atomically claim the token (validates + marks used in one UPDATE — no race condition)
+    const validation = await TokenUtils.claimToken(token);
+    if (!validation || !validation.user_type || !validation.user_id) {
+      console.error(`❌ Invalid, expired, or already-used token for rejection`);
       return res.status(HTTP_STATUS.BAD_REQUEST).send(
-        renderAdminActionPage('rejected', validation.user_type || 'vendor', false, 'Invalid or expired token')
+        renderAdminActionPage('rejected', 'vendor', false, 'Invalid or expired token')
       );
     }
 
     const { user_type, user_id, action_type } = validation;
-    
+
     // Verify this is a rejection token
     if (action_type !== 'reject') {
       console.error(`❌ Token is not a rejection token: ${action_type}`);
@@ -558,19 +554,18 @@ router.get('/reject/:token', async (req: Request, res: Response) => {
     }
 
     const client = await getClient();
-    
+
     try {
       await client.query('BEGIN');
-      
-      // Get user data before updating status
-      const userData = await TokenUtils.getUserByToken(token);
+
+      // Fetch user data directly by ID — token is already claimed so getUserByToken would reject it
+      const userData = await TokenUtils.getUserById(user_type, user_id);
       if (!userData || !userData.userData) {
         await client.query('ROLLBACK');
         return res.status(HTTP_STATUS.NOT_FOUND).send(
           renderAdminActionPage('rejected', user_type, false, 'User not found')
         );
       }
-
 
       // Update rejection status in database
       if (user_type === 'vendor') {
@@ -579,11 +574,8 @@ router.get('/reject/:token', async (req: Request, res: Response) => {
         await rejectStoreApplication(client, user_id, userData.userData.rejection_reason, token, req.ip, req.get('User-Agent'));
       }
 
-      // Mark token as used
-      const tokenMarked = await TokenUtils.markTokenAsUsed(token);
-      if (!tokenMarked) {
-        console.warn(`⚠️  Failed to mark token as used: ${token}`);
-      }
+      // Invalidate all remaining tokens for this user (e.g. the sibling approve token)
+      await TokenUtils.invalidateUserTokens(user_type, user_id);
 
       await client.query('COMMIT');
       
@@ -748,7 +740,7 @@ router.get('/approval-stats', async (req: Request, res: Response) => {
 router.get('/products/vendor/:vendorId', async (req: Request, res: Response) => {
   try {
     const vendorId = parseInt(req.params.vendorId);
-    if (isNaN(vendorId)) {
+    if (isNaN(vendorId) || vendorId <= 0) {
       return res.status(HTTP_STATUS.BAD_REQUEST).json({
         success: false,
         error: 'Invalid vendor ID'
@@ -805,7 +797,7 @@ router.get('/products/vendor/:vendorId', async (req: Request, res: Response) => 
 router.get('/products/store/:organizationId', async (req: Request, res: Response) => {
   try {
     const organizationId = parseInt(req.params.organizationId);
-    if (isNaN(organizationId)) {
+    if (isNaN(organizationId) || organizationId <= 0) {
       return res.status(HTTP_STATUS.BAD_REQUEST).json({
         success: false,
         error: 'Invalid organization ID'

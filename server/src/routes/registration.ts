@@ -1,9 +1,19 @@
 import express, { Request, Response } from 'express';
 import multer from 'multer';
+import rateLimit from 'express-rate-limit';
 import { RegistrationService } from '../services/registrationService';
 import { HTTP_STATUS } from '@parishmart/shared';
 
 const router = express.Router();
+
+// Max 5 registration submissions per IP per hour
+const registrationLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 5,
+  message: { success: false, error: 'Too many registration attempts. Please try again in an hour.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 // Configure multer for memory storage
 const storage = multer.memoryStorage();
@@ -24,7 +34,7 @@ const upload = multer({
  * POST /api/registration
  * Handle both vendor and store registrations with file uploads
  */
-router.post('/', upload, async (req: Request, res: Response) => {
+router.post('/', registrationLimiter, upload, async (req: Request, res: Response) => {
   try {
     const { registrationType, ...formData } = req.body;
     

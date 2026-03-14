@@ -45,6 +45,9 @@ interface FormData {
   referralAssociateName?: string;
   socialMediaPlatform?: string;
   logoHasTransparentBg: boolean;
+  parishCount: number;
+  billingCycle: "monthly" | "annual";
+  subscriptionAmount: number;
 }
 
 // Tooltip component
@@ -90,6 +93,9 @@ const StoreRegistrationForm = () => {
     referralAssociateName: "",
     socialMediaPlatform: "",
     logoHasTransparentBg: false,
+    parishCount: 1,
+    billingCycle: "monthly",
+    subscriptionAmount: 29,
   });
   // primaryColor: "#006699",
   // secondaryColor: "#ffffff",
@@ -277,12 +283,34 @@ const StoreRegistrationForm = () => {
 
   const orgTypeByTier: Record<string, string> = { tier1: "cause", tier2: "parish", tier3: "diocese" };
   const handleSubscriptionChange = (tier: "tier1" | "tier2" | "tier3") => {
-    setFormData({ ...formData, subscriptionTier: tier, organizationType: orgTypeByTier[tier] });
+    setFormData({
+      ...formData,
+      subscriptionTier: tier,
+      organizationType: orgTypeByTier[tier],
+      parishCount: tier === 'tier3' ? Math.max(5, formData.parishCount) : formData.parishCount,
+    });
   };
 
   const handleConsultationChange = (needsConsultation: boolean) => {
     setFormData({ ...formData, needsConsultation });
   };
+
+  const STORE_PRICES: Record<string, { monthly: number; annual: number }> = {
+    tier1: { monthly: 29,  annual: 279  },
+    tier2: { monthly: 149, annual: 1430 },
+    tier3: { monthly: 119, annual: 1150 }, // per parish
+  };
+
+  useEffect(() => {
+    const prices = STORE_PRICES[formData.subscriptionTier];
+    const count = formData.subscriptionTier === 'tier3' ? (formData.parishCount || 1) : 1;
+    const amount = isAnnual ? prices.annual * count : prices.monthly * count;
+    setFormData(prev => ({
+      ...prev,
+      billingCycle: isAnnual ? 'annual' : 'monthly',
+      subscriptionAmount: amount,
+    }));
+  }, [isAnnual, formData.subscriptionTier, formData.parishCount]);
 
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -402,7 +430,9 @@ const StoreRegistrationForm = () => {
 
     // Validate current step before proceeding
     if (step === 1) {
-      // Subscription step - no required fields to validate beyond selection
+      if (formData.subscriptionTier === 'tier3' && formData.parishCount < 5) {
+        return; // Error shown inline
+      }
     } else if (step === 2) {
       if (!formData.adminFirstName || !formData.adminLastName || !formData.adminRole || !formData.email || !formData.phoneNumber ||
           !formData.streetAddress || !formData.city || !formData.location.country || !formData.location.subdivision || !formData.zipCode ||
@@ -1084,6 +1114,39 @@ const StoreRegistrationForm = () => {
                   </div>
                 </div>
 
+                {formData.subscriptionTier === 'tier3' && (
+                  <div className="mt-6 mb-6 p-5 bg-blue-50 border border-blue-200 rounded-lg">
+                    <label className="block text-sm font-semibold text-gray-800 mb-2">
+                      How many parishes will register under this Diocese?
+                    </label>
+                    <input
+                      type="number"
+                      min={5}
+                      value={formData.parishCount}
+                      onChange={e => setFormData(prev => ({ ...prev, parishCount: Math.max(1, parseInt(e.target.value) || 1) }))}
+                      className={`w-32 border rounded-md px-3 py-2 text-center text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 ${formData.parishCount < 5 ? 'border-red-400 bg-red-50' : 'border-gray-300'}`}
+                    />
+                    {formData.parishCount < 5 && (
+                      <p className="mt-2 text-sm text-red-600 font-medium">
+                        A minimum of 5 parishes is required for the Diocese Network Plan.
+                      </p>
+                    )}
+                    <p className="mt-3 text-sm text-gray-700">
+                      Estimated charge:{' '}
+                      <span className="font-semibold text-blue-800">
+                        ${isAnnual
+                          ? (1150 * formData.parishCount).toLocaleString() + '/year'
+                          : (119 * formData.parishCount).toLocaleString() + '/month'}
+                      </span>{' '}
+                      ({formData.parishCount} {formData.parishCount === 1 ? 'parish' : 'parishes'} ×{' '}
+                      {isAnnual ? '$1,150/year' : '$119/month'} each)
+                    </p>
+                    <p className="mt-1 text-xs text-gray-500">
+                      This number can be changed later in your dashboard.
+                    </p>
+                  </div>
+                )}
+
                 <p className="text-center text-xs text-gray-500 mb-8">
                   All funds are processed securely through Stripe. ParishMart never holds or controls your donations.
                 </p>
@@ -1318,9 +1381,13 @@ const StoreRegistrationForm = () => {
                           : formData.subscriptionTier === "tier2"
                             ? "Parish Growth Plan"
                             : "Diocese Network Plan"}
-                        {formData.subscriptionTier !== "tier3" && (
-                          <span className="text-gray-500"> ({isAnnual ? "Annual" : "Monthly"})</span>
+                        {formData.subscriptionTier === "tier3" && (
+                          <span className="text-gray-500"> — {formData.parishCount} {formData.parishCount === 1 ? 'parish' : 'parishes'}</span>
                         )}
+                        <span className="text-gray-500"> ({isAnnual ? "Annual" : "Monthly"})</span>
+                      </p>
+                      <p className="text-gray-600">
+                        Estimated charge: <span className="font-semibold">${formData.subscriptionAmount.toLocaleString()}/{formData.billingCycle === 'annual' ? 'year' : 'month'}</span>
                       </p>
                     </div>
 

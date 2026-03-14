@@ -29,7 +29,6 @@ interface FormData {
   phone: string;
   parishAffiliation: string;
   ownerDescription: string;
-  businessUnique: string;
   communityEfforts: string;
   businessName: string;
   businessType: "product" | "service" | "both";
@@ -51,6 +50,8 @@ interface FormData {
 
   reach: "local" | "regional" | "national" | "global" | "";
   logoHasTransparentBg: boolean;
+  billingCycle: "monthly" | "annual";
+  subscriptionAmount: number;
 }
 
 const VendorRegistrationForm = () => {
@@ -61,7 +62,6 @@ const VendorRegistrationForm = () => {
     phone: "",
     parishAffiliation: "",
     ownerDescription: "",
-    businessUnique: "",
     communityEfforts: "",
     businessName: "",
     businessType: "product",
@@ -83,6 +83,8 @@ const VendorRegistrationForm = () => {
 
     reach: "",
     logoHasTransparentBg: false,
+    billingCycle: "monthly",
+    subscriptionAmount: 39,
   });
 
   const [logoPreview, setLogoPreview] = useState<string>("");
@@ -270,6 +272,21 @@ const VendorRegistrationForm = () => {
       subscriptionType: type,
     });
   };
+
+  const VENDOR_PRICES: Record<string, { monthly: number; annual: number }> = {
+    tier1: { monthly: 39,  annual: 390  },
+    tier2: { monthly: 79,  annual: 790  },
+    tier3: { monthly: 149, annual: 1490 },
+  };
+
+  useEffect(() => {
+    const prices = VENDOR_PRICES[formData.subscriptionType];
+    setFormData(prev => ({
+      ...prev,
+      billingCycle: isAnnual ? 'annual' : 'monthly',
+      subscriptionAmount: isAnnual ? prices.annual : prices.monthly,
+    }));
+  }, [isAnnual, formData.subscriptionType]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -959,23 +976,6 @@ const VendorRegistrationForm = () => {
                   </div>
                   <div className="mb-6">
                     <Label
-                      htmlFor="businessUnique"
-                      className="block text-sm font-medium text-gray-700 mb-1"
-                    >
-                      What makes your business unique?
-                    </Label>
-                    <Textarea
-                      id="businessUnique"
-                      name="businessUnique"
-                      value={formData.businessUnique}
-                      onChange={handleInputChange}
-                      maxLength={250}
-                      className="w-full mb-3"
-                      placeholder="What makes your business unique?"
-                    />
-                  </div>    
-                  <div className="mb-6">
-                    <Label
                       htmlFor="businessAddress"
                       className="block text-sm font-medium text-gray-700 mb-1"
                     >
@@ -1487,6 +1487,10 @@ const VendorRegistrationForm = () => {
                             : formData.subscriptionType === "tier2"
                               ? "Commerce"
                               : "Featured Partner"}
+                          <span className="text-gray-500"> ({isAnnual ? "Annual" : "Monthly"})</span>
+                        </p>
+                        <p className="text-gray-600">
+                          Estimated charge: <span className="font-semibold">${formData.subscriptionAmount.toLocaleString()}/{formData.billingCycle === 'annual' ? 'year' : 'month'}</span>
                         </p>
                       </div>
 
