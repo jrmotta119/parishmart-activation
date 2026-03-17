@@ -13,6 +13,7 @@ interface VendorFormData {
   email: string;
   phone: string;
   parishAffiliation?: string;
+  customParish?: string;
   ownerDescription?: string;
   communityEfforts?: string;
   // Business Information
@@ -114,10 +115,11 @@ export class RegistrationService {
         logoResult = await S3Service.uploadFile(files.logo[0], 'media');
       }
       
-      // 3. Upload business images to S3 (public bucket)
+      // 3. Upload full banner image to S3 (bannerMode === "full")
       const businessImageResults = [];
-      if (files.businessImages) {
-        for (const image of files.businessImages) {
+      const fullBannerFiles = files.banner || files.businessImages;
+      if (fullBannerFiles) {
+        for (const image of fullBannerFiles) {
           const result = await S3Service.uploadFile(image, 'media');
           businessImageResults.push(result);
         }
@@ -146,7 +148,7 @@ export class RegistrationService {
         hashedPassword,
         formData.firstName,
         formData.lastName,
-        formData.parishAffiliation || null,
+        (formData.parishAffiliation === 'Other' && formData.customParish) ? formData.customParish : (formData.parishAffiliation || null),
         formData.ownerDescription || null,
         formData.communityEfforts || null,
         formData.participateInCampaigns,

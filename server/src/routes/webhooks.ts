@@ -44,24 +44,26 @@ function pythonJsonDumps(obj: any): string {
 router.post('/image-processing', async (req: Request, res: Response) => {
   // Verify HMAC-SHA256 signature sent by ImaMod
   const secret = process.env.IMAMOD_WEBHOOK_SECRET;
-  if (secret) {
-    const signature = req.headers['x-webhook-signature'] as string;
-    if (!signature) {
-      console.warn('ImaMod webhook: missing X-Webhook-Signature header');
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
-    // Re-serialize exactly as Python's json.dumps(payload, sort_keys=True)
-    const canonicalBody = pythonJsonDumps(req.body);
-    const expectedBuf = Buffer.from(
-      crypto.createHmac('sha256', secret).update(canonicalBody).digest('hex')
-    );
-    const sigBuf = Buffer.from(signature);
-    const valid = sigBuf.length === expectedBuf.length &&
-      crypto.timingSafeEqual(sigBuf, expectedBuf);
-    if (!valid) {
-      console.warn('ImaMod webhook: rejected request with invalid signature');
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
+  if (!secret) {
+    console.error('FATAL: IMAMOD_WEBHOOK_SECRET is not configured — rejecting webhook request');
+    return res.status(500).json({ error: 'Webhook not configured' });
+  }
+  const signature = req.headers['x-webhook-signature'] as string;
+  if (!signature) {
+    console.warn('ImaMod webhook: missing X-Webhook-Signature header');
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  // Re-serialize exactly as Python's json.dumps(payload, sort_keys=True)
+  const canonicalBody = pythonJsonDumps(req.body);
+  const expectedBuf = Buffer.from(
+    crypto.createHmac('sha256', secret).update(canonicalBody).digest('hex')
+  );
+  const sigBuf = Buffer.from(signature);
+  const valid = sigBuf.length === expectedBuf.length &&
+    crypto.timingSafeEqual(sigBuf, expectedBuf);
+  if (!valid) {
+    console.warn('ImaMod webhook: rejected request with invalid signature');
+    return res.status(401).json({ error: 'Unauthorized' });
   }
 
   // Acknowledge immediately so ImaMod doesn't retry

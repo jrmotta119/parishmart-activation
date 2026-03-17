@@ -328,11 +328,10 @@ const VendorRegistrationForm = () => {
       submitData.append('registrationType', 'vendor');
       
       // Handle parish affiliation with custom parish override
-      const finalParishAffiliation = formData.parishAffiliation === "Other" && customParish.trim()
-        ? customParish.trim()
-        : formData.parishAffiliation || "";
-      
-      submitData.append('parishAffiliation', finalParishAffiliation);
+      submitData.append('parishAffiliation', formData.parishAffiliation || "");
+      if (customParish.trim()) {
+        submitData.append('customParish', customParish.trim());
+      }
       
       // Add all form fields (except those handled separately below)
       Object.entries(formData).forEach(([key, value]) => {

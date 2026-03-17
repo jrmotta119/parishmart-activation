@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import React, { Suspense } from "react";
 import { useRoutes, Routes, Route, Navigate } from "react-router-dom";
 import Home from "./components/home";
 import StoreRegistration from "./components/StoreRegistration";
@@ -13,6 +13,9 @@ import Signup from "./components/auth/Signup";
 import { AuthProvider } from "./components/auth/AuthContext";
 import VendorProfilePage from "./components/VendorProfilePage";
 import AboutUs from "./components/AboutUs";
+import { AdminProvider, useAdmin } from "./components/admin/AdminContext";
+import AdminLogin from "./components/admin/AdminLogin";
+import AdminDashboard from "./components/admin/AdminDashboard";
 
 // Conditional import for tempo routes
 let routes: any = [];
@@ -24,48 +27,66 @@ if (import.meta.env.VITE_TEMPO === "true") {
   }
 }
 
+function ProtectedAdminRoute({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated } = useAdmin();
+  return isAuthenticated ? <>{children}</> : <Navigate to="/admin/login" replace />;
+}
+
 function App() {
   return (
     <AuthProvider>
-      <Suspense fallback={<p>Loading...</p>}>
-        <>
-          {/* For the tempo routes */}
-          {import.meta.env.VITE_TEMPO === "true" && routes.length > 0 && useRoutes(routes)}
+      <AdminProvider>
+        <Suspense fallback={<p>Loading...</p>}>
+          <>
+            {/* For the tempo routes */}
+            {import.meta.env.VITE_TEMPO === "true" && routes.length > 0 && useRoutes(routes)}
 
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/why-register" element={<StoreRegistration />} />
-            <Route
-              path="/store-registration"
-              element={<StoreRegistrationForm />}
-            />
-            <Route
-              path="/vendor-registration-form"
-              element={<VendorRegistrationForm />}
-            />
-            <Route path="/sell-with-us" element={<SellWithUs />} />
-            <Route path="/shop" element={<ShopPage />} />
-            <Route path="/marketplace" element={<MarketplacePage />} />
-            <Route path="/marketplace/:category" element={<MarketplacePage />} />
-            <Route path="/marketplace/:category/:subcategory" element={<MarketplacePage />} />
-            <Route path="/products" element={<ProductsPage />} />
-            <Route path="/products/:category" element={<ProductsPage />} />
-            <Route path="/products/:category/:subcategory" element={<ProductsPage />} />
-            <Route path="/about-us" element={<AboutUs />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/marketplace/vendor/:vendorId" element={<VendorProfilePage />} />
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/why-register" element={<StoreRegistration />} />
+              <Route
+                path="/store-registration"
+                element={<StoreRegistrationForm />}
+              />
+              <Route
+                path="/vendor-registration-form"
+                element={<VendorRegistrationForm />}
+              />
+              <Route path="/sell-with-us" element={<SellWithUs />} />
+              <Route path="/shop" element={<ShopPage />} />
+              <Route path="/marketplace" element={<MarketplacePage />} />
+              <Route path="/marketplace/:category" element={<MarketplacePage />} />
+              <Route path="/marketplace/:category/:subcategory" element={<MarketplacePage />} />
+              <Route path="/products" element={<ProductsPage />} />
+              <Route path="/products/:category" element={<ProductsPage />} />
+              <Route path="/products/:category/:subcategory" element={<ProductsPage />} />
+              <Route path="/about-us" element={<AboutUs />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
+              <Route path="/marketplace/vendor/:vendorId" element={<VendorProfilePage />} />
 
-            {/* Add this before any catchall route */}
-            {import.meta.env.VITE_TEMPO === "true" && (
-              <Route path="/tempobook/*" element={<></>} />
-            )}
+              {/* Admin routes */}
+              <Route path="/admin/login" element={<AdminLogin />} />
+              <Route
+                path="/admin/dashboard"
+                element={
+                  <ProtectedAdminRoute>
+                    <AdminDashboard />
+                  </ProtectedAdminRoute>
+                }
+              />
 
-            {/* Fallback route */}
-            <Route path="*" element={<Navigate to="/" />} />
-          </Routes>
-        </>
-      </Suspense>
+              {/* Add this before any catchall route */}
+              {import.meta.env.VITE_TEMPO === "true" && (
+                <Route path="/tempobook/*" element={<></>} />
+              )}
+
+              {/* Fallback route */}
+              <Route path="*" element={<Navigate to="/" />} />
+            </Routes>
+          </>
+        </Suspense>
+      </AdminProvider>
     </AuthProvider>
   );
 }

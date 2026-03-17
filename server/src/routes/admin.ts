@@ -7,6 +7,7 @@ import { query, getClient } from '../db/connection';
 import { HTTP_STATUS } from '@parishmart/shared';
 import rateLimit from 'express-rate-limit';
 import { ImageProcessingService } from '../services/imageProcessingService';
+import { requireSuperAdminAuth } from '../middleware/adminAuth';
 
 interface VendorData {
   business_name: string;
@@ -215,9 +216,10 @@ async function activateVendorApproval(client: PoolClient, vendorId: number, user
           console.log(`✅ Full banner stored directly (no ImaMod needed) for V-${businessId}`);
         }
 
-        // Only send to ImaMod if there's logo work to do OR collage banners to composite
+        // Call ImaMod whenever there's a logo (returns merch images) or collage banners to composite.
+        // ImaMod accepts empty images_for_banner when only logo processing is needed.
         const imagesForBanner = bannerMode === 'collage' ? bannerRows.map((r: MediaRow) => r.media_url) : [];
-        const needsImaMod = (logoRow && !skipBgRemoval) || bannerMode === 'collage';
+        const needsImaMod = !!logoRow || (bannerMode === 'collage' && bannerRows.length > 0);
 
         if (needsImaMod) {
           const jobId = await ImageProcessingService.submitJob({
@@ -314,9 +316,10 @@ async function activateStoreApproval(client: PoolClient, adminId: number, userDa
             console.log(`✅ Full banner stored directly (no ImaMod needed) for S-${organizationId}`);
           }
 
-          // Only send to ImaMod if there's logo work to do OR collage banners to composite
+          // Call ImaMod whenever there's a logo (returns merch images) or collage banners to composite.
+          // ImaMod accepts empty images_for_banner when only logo processing is needed.
           const imagesForBanner = bannerMode === 'collage' ? bannerRows.map((r: MediaRow) => r.media_url) : [];
-          const needsImaMod = (logoRow && !skipBgRemoval) || bannerMode === 'collage';
+          const needsImaMod = !!logoRow || (bannerMode === 'collage' && bannerRows.length > 0);
 
           if (needsImaMod) {
             const jobId = await ImageProcessingService.submitJob({
@@ -638,7 +641,7 @@ router.get('/reject/:token', async (req: Request, res: Response) => {
  * GET /api/admin/tokens/stats
  * Get token statistics for monitoring (admin only)
  */
-router.get('/tokens/stats', async (req: Request, res: Response) => {
+router.get('/tokens/stats', requireSuperAdminAuth, async (req: Request, res: Response) => {
   try {
     const stats = await TokenUtils.getTokenStats();
     
@@ -659,7 +662,7 @@ router.get('/tokens/stats', async (req: Request, res: Response) => {
  * POST /api/admin/tokens/cleanup
  * Manually trigger token cleanup (admin only)
  */
-router.post('/tokens/cleanup', async (req: Request, res: Response) => {
+router.post('/tokens/cleanup', requireSuperAdminAuth, async (req: Request, res: Response) => {
   try {
     const deletedCount = await TokenUtils.cleanupExpiredTokens();
     
@@ -681,7 +684,7 @@ router.post('/tokens/cleanup', async (req: Request, res: Response) => {
  * GET /api/admin/health
  * Admin system health check
  */
-router.get('/health', async (req: Request, res: Response) => {
+router.get('/health', requireSuperAdminAuth, async (req: Request, res: Response) => {
   try {
     const emailHealth = await EmailService.getHealthStatus();
     const tokenStats = await TokenUtils.getTokenStats();
@@ -710,7 +713,7 @@ router.get('/health', async (req: Request, res: Response) => {
  * GET /api/admin/approval-stats
  * Get approval statistics for dashboard
  */
-router.get('/approval-stats', async (req: Request, res: Response) => {
+router.get('/approval-stats', requireSuperAdminAuth, async (req: Request, res: Response) => {
   try {
     const vendorStats = await query('SELECT * FROM get_vendor_approval_stats()');
     const orgStats = await query('SELECT * FROM get_organization_approval_stats()');
@@ -737,7 +740,7 @@ router.get('/approval-stats', async (req: Request, res: Response) => {
  * GET /api/admin/products/vendor/:vendorId
  * Get all products for a vendor from database
  */
-router.get('/products/vendor/:vendorId', async (req: Request, res: Response) => {
+router.get('/products/vendor/:vendorId', requireSuperAdminAuth, async (req: Request, res: Response) => {
   try {
     const vendorId = parseInt(req.params.vendorId);
     if (isNaN(vendorId) || vendorId <= 0) {
@@ -794,7 +797,7 @@ router.get('/products/vendor/:vendorId', async (req: Request, res: Response) => 
  * GET /api/admin/products/store/:organizationId
  * Get all products for a store from database
  */
-router.get('/products/store/:organizationId', async (req: Request, res: Response) => {
+router.get('/products/store/:organizationId', requireSuperAdminAuth, async (req: Request, res: Response) => {
   try {
     const organizationId = parseInt(req.params.organizationId);
     if (isNaN(organizationId) || organizationId <= 0) {
@@ -844,6 +847,143 @@ router.get('/products/store/:organizationId', async (req: Request, res: Response
       success: false,
       error: 'Failed to retrieve store products'
     });
+  }
+});
+
+/**
+ * GET /api/admin/dashboard/vendors
+ * Returns all vendors + business details for manual marketplace onboarding.
+ * Updates last_dashboard_view for the requesting super admin.
+ */
+router.get('/dashboard/vendors', requireSuperAdminAuth, async (req: Request, res: Response) => {
+  const superAdminId = (req as any).superAdminId as number;
+
+  try {
+    // Fetch last_dashboard_view for this admin to compute is_new
+    const adminResult = await query(
+      'SELECT last_dashboard_view FROM super_admins WHERE super_admin_id = $1',
+      [superAdminId]
+    );
+    const lastView: Date | null = adminResult.rows[0]?.last_dashboard_view ?? null;
+
+    const result = await query(`
+      SELECT
+        v.vendor_id,
+        v.first_name,
+        v.last_name,
+        v.email,
+        v.phone,
+        v.approval_status,
+        v.created_at,
+        b.business_name,
+        b.business_type,
+        b.business_description,
+        b.business_policy,
+        b.business_address,
+        b.business_city,
+        b.business_state,
+        b.business_zip_code,
+        b.business_country,
+        b.business_reach,
+        b.website_links,
+        b.contact_email,
+        b.contact_phone,
+        b.current_subscription_type,
+        b.subscription_amount,
+        b.billing_cycle,
+        v.about_you,
+        v.community_contribution,
+        v.mission_affiliation,
+        (SELECT bm.processed_media_url FROM businessmedia bm WHERE bm.business_id = b.business_id AND bm.media_type = 'logo' AND bm.processed_media_url IS NOT NULL ORDER BY bm.media_order LIMIT 1) AS logo_processed_url,
+        (SELECT bm.media_url FROM businessmedia bm WHERE bm.business_id = b.business_id AND bm.media_type = 'logo' ORDER BY bm.media_order LIMIT 1) AS logo_raw_url,
+        (SELECT bm.processed_media_url FROM businessmedia bm WHERE bm.business_id = b.business_id AND bm.media_type = 'banner' AND bm.processed_media_url IS NOT NULL ORDER BY bm.media_order LIMIT 1) AS banner_processed_url,
+        (SELECT json_agg(bm.media_url ORDER BY bm.media_order) FROM businessmedia bm WHERE bm.business_id = b.business_id AND bm.media_type = 'banner') AS banner_images,
+        b.processed_results
+      FROM vendors v
+      LEFT JOIN businesses b ON b.vendor_id = v.vendor_id
+      ORDER BY v.created_at DESC
+    `);
+
+    const vendors = result.rows.map(row => ({
+      ...row,
+      is_new: lastView === null || new Date(row.created_at) > new Date(lastView),
+    }));
+
+    return res.json({ success: true, data: vendors });
+
+  } catch (error) {
+    console.error('❌ Failed to fetch vendor dashboard data:', error);
+    return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, error: 'Failed to retrieve vendor data' });
+  }
+});
+
+/**
+ * GET /api/admin/dashboard/stores
+ * Returns all store administrators + organization details for manual marketplace onboarding.
+ * Updates last_dashboard_view for the requesting super admin.
+ */
+router.get('/dashboard/stores', requireSuperAdminAuth, async (req: Request, res: Response) => {
+  const superAdminId = (req as any).superAdminId as number;
+
+  try {
+    // Fetch last_dashboard_view for this admin to compute is_new
+    const adminResult = await query(
+      'SELECT last_dashboard_view FROM super_admins WHERE super_admin_id = $1',
+      [superAdminId]
+    );
+    const lastView: Date | null = adminResult.rows[0]?.last_dashboard_view ?? null;
+
+    const result = await query(`
+      SELECT
+        a.admin_id,
+        a.first_name,
+        a.last_name,
+        a.email,
+        a.phone_number,
+        a.street_address,
+        a.city,
+        a.state,
+        a.country,
+        a.zip_code,
+        a.approval_status,
+        a.created_at,
+        o.name AS organization_name,
+        o.organization_type,
+        o.description,
+        o.impact,
+        o.since_year,
+        o.slogan,
+        o.is_tax_exempt,
+        o.collect_donations,
+        o.donations_platform,
+        o.current_subscription_type,
+        o.subscription_amount,
+        o.billing_cycle,
+        o.parish_count,
+        a.role,
+        a.referred_by,
+        a.referral_associate_name,
+        a.social_media_platform,
+        (SELECT sm.processed_media_url FROM storemedia sm WHERE sm.organization_id = o.organization_id AND sm.media_type = 'logo' AND sm.processed_media_url IS NOT NULL ORDER BY sm.media_order LIMIT 1) AS logo_processed_url,
+        (SELECT sm.media_url FROM storemedia sm WHERE sm.organization_id = o.organization_id AND sm.media_type = 'logo' ORDER BY sm.media_order LIMIT 1) AS logo_raw_url,
+        (SELECT sm.processed_media_url FROM storemedia sm WHERE sm.organization_id = o.organization_id AND sm.media_type = 'banner' AND sm.processed_media_url IS NOT NULL ORDER BY sm.media_order LIMIT 1) AS banner_processed_url,
+        (SELECT json_agg(sm.media_url ORDER BY sm.media_order) FROM storemedia sm WHERE sm.organization_id = o.organization_id AND sm.media_type = 'banner') AS banner_images,
+        o.processed_results
+      FROM administrators a
+      LEFT JOIN organizations o ON o.organization_id = a.organization_id
+      ORDER BY a.created_at DESC
+    `);
+
+    const stores = result.rows.map(row => ({
+      ...row,
+      is_new: lastView === null || new Date(row.created_at) > new Date(lastView),
+    }));
+
+    return res.json({ success: true, data: stores });
+
+  } catch (error) {
+    console.error('❌ Failed to fetch store dashboard data:', error);
+    return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, error: 'Failed to retrieve store data' });
   }
 });
 

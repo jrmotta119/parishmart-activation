@@ -108,7 +108,9 @@ export class EmailTemplates {
       supportEmail: process.env.SUPPORT_EMAIL_ADDRESS || 'support@parishmart.com',
       companyName: 'ParishMart',
       baseUrl: process.env.BASE_URL || 'http://localhost:3001',
-      logoUrl: `${process.env.BASE_URL || 'http://localhost:3001'}/images/parishmart-logo.png`
+      logoUrl: `${process.env.BASE_URL || 'http://localhost:3001'}/images/parishmart-logo.png`,
+      marketplaceUrl: 'https://shop.parishmart.com',
+      aboutUrl: 'https://home.parishmart.com/about-us',
     };
   }
 
@@ -225,7 +227,7 @@ export class EmailTemplates {
    */
   static renderVendorApproved(userData: VendorData): string {
     const fullName = userData.fullName || `${userData.firstName} ${userData.lastName}`;
-    
+
     const templateData: TemplateData = {
       ...this.getCommonData(),
       userName: fullName,
@@ -233,9 +235,6 @@ export class EmailTemplates {
       businessName: userData.businessName,
       email: userData.email,
       subscriptionType: vendorTierName(userData.subscriptionType),
-      loginUrl: `${process.env.BASE_URL || 'http://localhost:3001'}/login`,
-      dashboardUrl: `${process.env.BASE_URL || 'http://localhost:3001'}/vendor/dashboard`,
-      supportUrl: `${process.env.BASE_URL || 'http://localhost:3001'}/support`
     };
 
     return this.renderTemplate('vendor-approved', templateData);
@@ -246,7 +245,7 @@ export class EmailTemplates {
    */
   static renderStoreApproved(userData: StoreData): string {
     const adminFullName = userData.adminFullName || `${userData.adminFirstName} ${userData.adminLastName}`;
-    
+
     const templateData: TemplateData = {
       ...this.getCommonData(),
       adminName: adminFullName,
@@ -254,9 +253,9 @@ export class EmailTemplates {
       organizationName: userData.organizationName,
       email: userData.email,
       subscriptionTier: storeTierName(userData.subscriptionTier),
-      loginUrl: `${process.env.BASE_URL || 'http://localhost:3001'}/login`,
-      dashboardUrl: `${process.env.BASE_URL || 'http://localhost:3001'}/store/dashboard`,
-      supportUrl: `${process.env.BASE_URL || 'http://localhost:3001'}/support`
+      dioceseNote: userData.subscriptionTier === 'tier3'
+        ? ' Additionally, a member of our team may reach out to you to help establish and connect the parishes under your diocese.'
+        : '',
     };
 
     return this.renderTemplate('store-approved', templateData);
@@ -275,7 +274,7 @@ export class EmailTemplates {
       businessName: userData.businessName,
       email: userData.email,
       reapplyUrl: `${process.env.BASE_URL || 'http://localhost:3001'}/vendor/register`,
-      contactUrl: `${process.env.BASE_URL || 'http://localhost:3001'}/contact`
+      contactUrl: 'mailto:info@parishmart.com'
     };
 
     return this.renderTemplate('vendor-rejected', templateData);
@@ -294,7 +293,7 @@ export class EmailTemplates {
       organizationName: userData.organizationName,
       email: userData.email,
       reapplyUrl: `${process.env.BASE_URL || 'http://localhost:3001'}/store/register`,
-      contactUrl: `${process.env.BASE_URL || 'http://localhost:3001'}/contact`
+      contactUrl: 'mailto:info@parishmart.com'
     };
 
     return this.renderTemplate('store-rejected', templateData);
