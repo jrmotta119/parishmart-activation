@@ -397,9 +397,205 @@ function StoresTable({ stores, newIds, dismissedIds, onDismiss }: { stores: Stor
   );
 }
 
+// ─── Admins Panel ─────────────────────────────────────────────────────────────
+
+interface AdminAccount {
+  super_admin_id: number;
+  email: string;
+  first_name: string;
+  last_name: string;
+  role: string;
+  is_active: boolean;
+  last_login: string | null;
+  created_at: string;
+  created_by_name: string | null;
+}
+
+function AdminsPanel({ token }: { token: string }) {
+  const [admins, setAdmins] = useState<AdminAccount[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [form, setForm] = useState({ email: '', firstName: '', lastName: '', password: '' });
+  const [showPassword, setShowPassword] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [successMsg, setSuccessMsg] = useState('');
+  const [formError, setFormError] = useState('');
+
+  const loadAdmins = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch('/api/auth/admin/list', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to load admins');
+      setAdmins(data.admins);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unknown error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { loadAdmins(); }, []);
+
+  const handleCreate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormError('');
+    setSuccessMsg('');
+    if (form.password.length < 12) {
+      setFormError('Password must be at least 12 characters.');
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const res = await fetch('/api/auth/admin/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          email: form.email,
+          firstName: form.firstName,
+          lastName: form.lastName,
+          password: form.password,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to create admin');
+      setSuccessMsg(`Account created for ${data.admin.email}`);
+      setForm({ email: '', firstName: '', lastName: '', password: '' });
+      loadAdmins();
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : 'Unknown error');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Existing admins */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="px-4 py-3 border-b border-gray-100">
+          <h2 className="text-sm font-semibold text-gray-700">Admin Accounts</h2>
+        </div>
+        {loading ? (
+          <div className="py-8 text-center text-sm text-gray-400">Loading…</div>
+        ) : error ? (
+          <div className="p-4 text-sm text-red-600">{error}</div>
+        ) : (
+          <table className="min-w-full text-sm">
+            <thead className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wide">
+              <tr>
+                <th className="px-4 py-2 text-left">Name</th>
+                <th className="px-4 py-2 text-left">Email</th>
+                <th className="px-4 py-2 text-left">Role</th>
+                <th className="px-4 py-2 text-left">Status</th>
+                <th className="px-4 py-2 text-left">Last Login</th>
+                <th className="px-4 py-2 text-left">Created</th>
+                <th className="px-4 py-2 text-left">Created By</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {admins.map(a => (
+                <tr key={a.super_admin_id} className="hover:bg-gray-50">
+                  <td className="px-4 py-2 font-medium text-gray-800">{a.first_name} {a.last_name}</td>
+                  <td className="px-4 py-2 text-gray-600">{a.email}</td>
+                  <td className="px-4 py-2 capitalize text-gray-600">{a.role.replace('_', ' ')}</td>
+                  <td className="px-4 py-2">
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${a.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                      {a.is_active ? 'Active' : 'Inactive'}
+                    </span>
+                  </td>
+                  <td className="px-4 py-2 text-gray-500">{a.last_login ? new Date(a.last_login).toLocaleString() : '—'}</td>
+                  <td className="px-4 py-2 text-gray-500">{new Date(a.created_at).toLocaleDateString()}</td>
+                  <td className="px-4 py-2 text-gray-500">{a.created_by_name ?? '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      {/* Create new admin */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="px-4 py-3 border-b border-gray-100">
+          <h2 className="text-sm font-semibold text-gray-700">Add New Admin</h2>
+        </div>
+        <form onSubmit={handleCreate} className="p-4 space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">First Name</label>
+              <input
+                type="text"
+                required
+                value={form.firstName}
+                onChange={e => setForm(f => ({ ...f, firstName: e.target.value }))}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Last Name</label>
+              <input
+                type="text"
+                required
+                value={form.lastName}
+                onChange={e => setForm(f => ({ ...f, lastName: e.target.value }))}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Email</label>
+            <input
+              type="email"
+              required
+              value={form.email}
+              onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Password <span className="text-gray-400 font-normal">(min. 12 characters)</span></label>
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                required
+                value={form.password}
+                onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 pr-20"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(s => !s)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500 hover:text-gray-700"
+              >
+                {showPassword ? 'Hide' : 'Show'}
+              </button>
+            </div>
+            {form.password.length > 0 && (
+              <p className={`text-xs mt-1 ${form.password.length >= 12 ? 'text-green-600' : 'text-red-500'}`}>
+                {form.password.length}/12 characters
+              </p>
+            )}
+          </div>
+          {formError && <p className="text-sm text-red-600">{formError}</p>}
+          {successMsg && <p className="text-sm text-green-600">{successMsg}</p>}
+          <button
+            type="submit"
+            disabled={submitting}
+            className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+          >
+            {submitting ? 'Creating…' : 'Create Admin Account'}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main Dashboard ───────────────────────────────────────────────────────────
 
-type Tab = 'vendors' | 'stores';
+type Tab = 'vendors' | 'stores' | 'team';
 
 export default function AdminDashboard() {
   const { token, adminInfo, logout } = useAdmin();
@@ -505,8 +701,8 @@ export default function AdminDashboard() {
       {/* Tabs */}
       <div className="bg-white border-b border-gray-200 px-6">
         <nav className="flex gap-1">
-          {(['vendors', 'stores'] as Tab[]).map(tab => {
-            const count = tab === 'vendors' ? newVendorCount : newStoreCount;
+          {(['vendors', 'stores', 'team'] as Tab[]).map(tab => {
+            const count = tab === 'vendors' ? newVendorCount : tab === 'stores' ? newStoreCount : 0;
             const isActive = activeTab === tab;
             return (
               <button
@@ -532,6 +728,9 @@ export default function AdminDashboard() {
 
       {/* Content */}
       <main className="p-6">
+        {activeTab === 'team' ? (
+          <AdminsPanel token={token || ''} />
+        ) : (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           {/* Toolbar */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
@@ -573,10 +772,13 @@ export default function AdminDashboard() {
             })} />
           )}
         </div>
+        )}
 
-        <p className="mt-4 text-xs text-gray-400 text-center">
-          Click any row to expand full onboarding details. Blue dot = registered since your last visit.
-        </p>
+        {activeTab !== 'team' && (
+          <p className="mt-4 text-xs text-gray-400 text-center">
+            Click any row to expand full onboarding details. Blue dot = registered since your last visit.
+          </p>
+        )}
       </main>
     </div>
   );

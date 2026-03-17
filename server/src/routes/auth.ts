@@ -169,6 +169,83 @@ router.post('/admin/setup', adminAuthLimiter, async (req, res) => {
 });
 
 /**
+ * POST /api/auth/admin/create
+ * Create an additional super admin account.
+ * Requires an authenticated super admin (JWT). Password must be ≥12 chars.
+ */
+router.post('/admin/create', adminAuthLimiter, requireSuperAdminAuth, async (req, res) => {
+  const { email, password, firstName, lastName } = req.body;
+
+  if (!email || !password || !firstName || !lastName) {
+    return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'email, password, firstName, and lastName are required' });
+  }
+
+  if (typeof password !== 'string' || password.length < 12) {
+    return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'Password must be at least 12 characters' });
+  }
+
+  const emailNormalized = String(email).toLowerCase().trim();
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(emailNormalized)) {
+    return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'Invalid email address' });
+  }
+
+  try {
+    const existing = await query(
+      'SELECT super_admin_id FROM super_admins WHERE email = $1',
+      [emailNormalized]
+    );
+    if (existing.rows.length > 0) {
+      return res.status(HTTP_STATUS.CONFLICT).json({ error: 'An account with that email already exists' });
+    }
+
+    const passwordHash = await bcrypt.hash(password, 12);
+
+    const creatorId = (req as any).superAdminId as number;
+
+    const result = await query(
+      `INSERT INTO super_admins (email, password_hash, first_name, last_name, role, is_active, created_by_admin_id)
+       VALUES ($1, $2, $3, $4, 'super_admin', true, $5)
+       RETURNING super_admin_id, email, first_name, last_name, role`,
+      [emailNormalized, passwordHash, String(firstName).trim(), String(lastName).trim(), creatorId]
+    );
+
+    console.log(`✅ Super admin ${result.rows[0].email} created by admin #${creatorId}`);
+
+    return res.status(HTTP_STATUS.CREATED).json({
+      success: true,
+      message: 'Super admin account created',
+      admin: result.rows[0],
+    });
+
+  } catch (error) {
+    console.error('❌ Admin create error:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * GET /api/auth/admin/list
+ * Returns all super admin accounts (no password hashes). Requires auth.
+ */
+router.get('/admin/list', requireSuperAdminAuth, async (req, res) => {
+  try {
+    const result = await query(
+      `SELECT a.super_admin_id, a.email, a.first_name, a.last_name, a.role, a.is_active,
+              a.last_login, a.created_at,
+              c.first_name || ' ' || c.last_name AS created_by_name
+       FROM super_admins a
+       LEFT JOIN super_admins c ON c.super_admin_id = a.created_by_admin_id
+       ORDER BY a.created_at ASC`
+    );
+    return res.json({ admins: result.rows });
+  } catch (error) {
+    console.error('❌ Admin list error:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
  * POST /api/auth/admin/logout
  * Invalidates the current token by recording last_logout timestamp.
  */
