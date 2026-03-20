@@ -1584,7 +1584,7 @@ const VendorRegistrationForm = () => {
                 <Button
                   variant="outline"
                   className="text-[#006699] border-[#006699]"
-                  onClick={() => window.open("https://parishmart.com/pages/contact", "_blank")}
+                  onClick={() => window.open("https://shop.parishmart.com/contact", "_blank")}
                 >
                   Contact Support
                 </Button>

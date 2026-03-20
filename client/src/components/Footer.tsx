@@ -83,7 +83,7 @@ const Footer = ({
               </li>
               <li>
                 <a
-                  href="https://parishmart.com/collections/all-products"
+                  href="https://shop.parishmart.com/"
                   className="text-gray-600 hover:text-[#006699] transition-colors"
                 >
                   Marketplace
@@ -92,7 +92,7 @@ const Footer = ({
             
               <li>
                 <a
-                  href="https://parishmart.com/pages/contact"
+                  href="https://shop.parishmart.com/contact"
                   className="text-gray-600 hover:text-[#006699] transition-colors"
                 >
                   Contact Us

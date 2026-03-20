@@ -161,7 +161,7 @@ export class S3Service {
         ContentLength: file.size,
         ServerSideEncryption: 'AES256',
         Metadata: {
-          originalName: file.originalname,
+          originalName: Buffer.from(file.originalname, 'utf8').toString('ascii').replace(/[^\x20-\x7E]/g, '_'),
           uploadedBy: userId || 'anonymous',
           uploadedAt: new Date().toISOString(),
           purpose: purpose

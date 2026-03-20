@@ -354,7 +354,7 @@ const AboutUs = () => {
               <Button 
                 variant="outline" 
                 className="bg-white text-[#006699] hover:bg-gray-100 border-white"
-                onClick={() => window.location.href = 'https://parishmart.com'}
+                onClick={() => window.location.href = 'https://shop.parishmart.com'}
               >
                 Support our Mission
               </Button>
