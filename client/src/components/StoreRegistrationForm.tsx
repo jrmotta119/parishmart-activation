@@ -9,6 +9,7 @@ import Header from "./Header";
 import Footer from "./Footer";
 import AnnouncementStrip from "./AnnouncementStrip";
 import CountryStateSelector from "./CountryStateSelector";
+import ParishSelector, { type PreloadedParish } from "./ParishSelector";
 
 interface FormData {
   adminFirstName: string;
@@ -117,6 +118,9 @@ const StoreRegistrationForm = () => {
   const [phoneError, setPhoneError] = useState<string>("");
   const [zipCodeError, setZipCodeError] = useState<string>("");
 
+  const [selectedParish, setSelectedParish] = useState<PreloadedParish | null>(null);
+  const [isManualEntry, setIsManualEntry] = useState(false);
+
   const [customPrimaryColor, setCustomPrimaryColor] = useState("#006699");
   const [customSecondaryColor, setCustomSecondaryColor] = useState("#e6f7ff");
 
@@ -212,6 +216,52 @@ const StoreRegistrationForm = () => {
       // Clear error when user starts typing/selecting
       setDonationPlatformError('');
     }
+  };
+
+  const handleParishSelect = (parish: PreloadedParish) => {
+    setSelectedParish(parish);
+    setIsManualEntry(false);
+    setFormData((prev) => ({
+      ...prev,
+      organizationName: parish.name,
+      description: parish.description ? parish.description.substring(0, 250) : "",
+      foundingYear: parish.founded || "",
+      streetAddress: parish.streetAddress || "",
+      city: parish.city || "",
+      zipCode: parish.zipCode || "",
+      phoneNumber: parish.phone || "",
+      email: parish.email || "",
+      location: {
+        country: "US",
+        subdivision: parish.state ? `US-${parish.state}` : "",
+      },
+    }));
+    setEmailError("");
+    setPhoneError("");
+    setZipCodeError("");
+    setFoundingYearError("");
+  };
+
+  const handleParishClear = () => {
+    setSelectedParish(null);
+    setIsManualEntry(false);
+    setFormData((prev) => ({
+      ...prev,
+      organizationName: "",
+      description: "",
+      foundingYear: "",
+      streetAddress: "",
+      city: "",
+      zipCode: "",
+      phoneNumber: "",
+      email: "",
+      location: { country: "", subdivision: "" },
+    }));
+  };
+
+  const handleManualEntry = () => {
+    setSelectedParish(null);
+    setIsManualEntry(true);
   };
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -368,6 +418,11 @@ const StoreRegistrationForm = () => {
       
       // Add registration type
       submitData.append('registrationType', 'store');
+
+      // Add preloaded parish ID if selected
+      if (selectedParish) {
+        submitData.append('preloadedParishId', selectedParish.id);
+      }
       
       // Add all form fields
       Object.entries(formData).forEach(([key, value]) => {
@@ -588,6 +643,34 @@ const StoreRegistrationForm = () => {
                 <h2 className="text-xl font-semibold text-gray-900 mb-6">
                   Organization & Administrator Information
                 </h2>
+
+                {/* Pre-load Parish Selector */}
+                {(formData.organizationType === "parish" || formData.organizationType === "diocese") && (
+                  <div className="mb-8">
+                    <Label className="block text-sm font-medium text-gray-700 mb-2">
+                      Find your parish to pre-fill information
+                    </Label>
+                    <ParishSelector
+                      onSelect={handleParishSelect}
+                      onManualEntry={handleManualEntry}
+                      selectedParish={selectedParish}
+                      onClear={handleParishClear}
+                    />
+                    {isManualEntry && !selectedParish && (
+                      <div className="mt-2 flex items-center gap-2">
+                        <p className="text-sm text-gray-500">Entering information manually.</p>
+                        <button
+                          type="button"
+                          onClick={() => setIsManualEntry(false)}
+                          className="text-sm text-[#006699] hover:underline"
+                        >
+                          Search again
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   {/* Left: Organization Info */}
                   <div>
