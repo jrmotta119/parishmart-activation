@@ -33,7 +33,7 @@ interface FormData {
   photos: File[];
   // primaryColor: string;
   // secondaryColor: string;
-  subscriptionTier: "tier1" | "tier2" | "tier3";
+  subscriptionTier: "free" | "tier1" | "tier2" | "tier3";
   needsConsultation: boolean;
   taxExemptionForm: File | null;
   collectsDonations: boolean | null;
@@ -110,6 +110,7 @@ const StoreRegistrationForm = () => {
   const [step, setStep] = useState(1);
   const [isAnnual, setIsAnnual] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [attemptedSteps, setAttemptedSteps] = useState<number[]>([]);
   const [emailError, setEmailError] = useState<string>("");
   const [foundingYearError, setFoundingYearError] = useState<string>("");
@@ -281,8 +282,8 @@ const StoreRegistrationForm = () => {
     setPhotosPreviews(updatedPreviews);
   };
 
-  const orgTypeByTier: Record<string, string> = { tier1: "cause", tier2: "parish", tier3: "diocese" };
-  const handleSubscriptionChange = (tier: "tier1" | "tier2" | "tier3") => {
+  const orgTypeByTier: Record<string, string> = { free: "cause", tier1: "cause", tier2: "parish", tier3: "diocese" };
+  const handleSubscriptionChange = (tier: "free" | "tier1" | "tier2" | "tier3") => {
     setFormData({
       ...formData,
       subscriptionTier: tier,
@@ -296,6 +297,7 @@ const StoreRegistrationForm = () => {
   };
 
   const STORE_PRICES: Record<string, { monthly: number; annual: number }> = {
+    free:  { monthly: 0,   annual: 0    },
     tier1: { monthly: 29,  annual: 279  },
     tier2: { monthly: 149, annual: 1430 },
     tier3: { monthly: 119, annual: 1150 }, // per parish
@@ -397,7 +399,10 @@ const StoreRegistrationForm = () => {
           submitData.append('bannerImages', img);
         });
       }
-      
+
+      // Terms acceptance (stored separately from formData state)
+      submitData.append('termsAccepted', acceptedTerms.toString());
+
       // Send form data to API endpoint
       const response = await fetch('/api/registration', {
         method: 'POST',
@@ -437,7 +442,7 @@ const StoreRegistrationForm = () => {
       if (!formData.adminFirstName || !formData.adminLastName || !formData.adminRole || !formData.email || !formData.phoneNumber ||
           !formData.streetAddress || !formData.city || !formData.location.country || !formData.location.subdivision || !formData.zipCode ||
           !formData.organizationName || !formData.description ||
-          !formData.impact || !formData.foundingYear ||
+          !formData.impact || !formData.foundingYear || !formData.referredBy ||
           (formData.referredBy === "ministry_brands" && !formData.referralAssociateName) ||
           (formData.referredBy === "social_media" && !formData.socialMediaPlatform)) {
         return;
@@ -597,11 +602,20 @@ const StoreRegistrationForm = () => {
                     {!formData.organizationName && attemptedSteps.includes(2) && (<p className="mt-1 text-sm text-red-500">Organization name is required</p>)}
                     <Label htmlFor="organizationType" className="text-sm font-medium text-gray-700 mb-1 mt-4 flex items-center gap-2">
                       Organization Type
-                      <Tooltip text="This is automatically set based on the subscription plan you selected in Step 1.">
-                        <Info className="h-4 w-4 text-gray-400 hover:text-[#006699]" />
-                      </Tooltip>
+                      {formData.subscriptionTier !== "free" && (
+                        <Tooltip text="This is automatically set based on the subscription plan you selected in Step 1.">
+                          <Info className="h-4 w-4 text-gray-400 hover:text-[#006699]" />
+                        </Tooltip>
+                      )}
                     </Label>
-                    <select id="organizationType" name="organizationType" value={formData.organizationType} disabled className="w-full rounded-md border border-gray-200 bg-gray-100 py-2 px-3 text-gray-500 cursor-not-allowed">
+                    <select
+                      id="organizationType"
+                      name="organizationType"
+                      value={formData.organizationType}
+                      disabled={formData.subscriptionTier !== "free"}
+                      onChange={handleInputChange}
+                      className={`w-full rounded-md border py-2 px-3 ${formData.subscriptionTier !== "free" ? "border-gray-200 bg-gray-100 text-gray-500 cursor-not-allowed" : "border-gray-300 text-gray-900"}`}
+                    >
                       <option value="cause">Cause/Non-profit</option>
                       <option value="parish">Parish</option>
                       <option value="diocese">Diocese/Archdiocese</option>
@@ -857,7 +871,7 @@ const StoreRegistrationForm = () => {
                           socialMediaPlatform: val === "social_media" ? formData.socialMediaPlatform : "",
                         });
                       }}
-                      className="w-full rounded-md border border-gray-300 py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#006699] focus:border-transparent"
+                      className={`w-full rounded-md border py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#006699] focus:border-transparent ${!formData.referredBy && attemptedSteps.includes(2) ? "border-red-500" : "border-gray-300"}`}
                     >
                       <option value="">Select an option</option>
                       <option value="ministry_brands">Ministry Brands</option>
@@ -865,6 +879,9 @@ const StoreRegistrationForm = () => {
                       <option value="self_discovered">Self-discovered</option>
                       <option value="other">Other</option>
                     </select>
+                    {!formData.referredBy && attemptedSteps.includes(2) && (
+                      <p className="text-red-500 text-xs mt-1">Please select how you heard about us</p>
+                    )}
                     {formData.referredBy === "ministry_brands" && (
                       <div className="mt-2">
                         <Label htmlFor="referralAssociateName" className="block text-sm font-medium text-gray-700 mb-1">
@@ -969,147 +986,173 @@ const StoreRegistrationForm = () => {
                   <span className={`text-sm font-medium ${isAnnual ? 'text-gray-900' : 'text-gray-500'}`}>Annual - Save 20%</span>
                 </div>
 
-                {/* Pricing Cards + What's Included sidebar */}
-                <div className="flex flex-col xl:flex-row gap-6 mb-6">
-                  {/* Pricing Cards */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 flex-1 min-w-0">
-                    {/* Cause Plan (left) */}
-                    <div
-                      className={`border-2 rounded-xl p-6 cursor-pointer transition-all flex flex-col bg-white relative ${formData.subscriptionTier === "tier1" ? "border-[#006699] shadow-lg" : "border-gray-200 hover:border-gray-300"}`}
-                      onClick={() => handleSubscriptionChange("tier1")}
-                    >
-                      {formData.subscriptionTier === "tier1" && (
-                        <div className="absolute top-3 right-3 w-6 h-6 bg-[#006699] rounded-full flex items-center justify-center">
-                          <Check className="h-3.5 w-3.5 text-white" />
-                        </div>
-                      )}
-                      <h3 className="text-xl font-bold text-gray-900 mb-4">Cause Plan</h3>
-                      <div className="mb-4">
-                        {isAnnual ? (
-                          <>
-                            <p className="text-3xl font-bold text-gray-900">$279<span className="text-base font-normal text-gray-500"> / year</span></p>
-                            <p className="text-sm text-green-600 font-medium">Save 20%</p>
-                          </>
-                        ) : (
-                          <>
-                            <p className="text-3xl font-bold text-gray-900">$29<span className="text-base font-normal text-gray-500"> / month</span></p>
-                            <p className="text-sm text-gray-500">or <span className="text-green-600 font-medium">$279</span> / year</p>
-                            <p className="text-sm text-green-600 font-medium">Save 20%</p>
-                          </>
-                        )}
-                      </div>
-                      <div className="border-t border-gray-100 pt-4 flex-grow">
-                        <ul className="space-y-3 text-sm">
-                          <li className="flex items-start"><Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" /> Campaign Storefront</li>
-                          <li className="flex items-start"><Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" /> Accept Donations</li>
-                          <li className="flex items-start"><Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" /> Up to 5 Products</li>
-                          <li className="flex items-start"><Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" /> Basic Dashboard</li>
-                        </ul>
-                      </div>
-                    </div>
+                {/* Pricing Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
 
-                    {/* Parish Growth Plan (middle) - MOST POPULAR */}
-                    <div
-                      className={`border-2 rounded-xl p-6 cursor-pointer transition-all relative flex flex-col bg-white ${formData.subscriptionTier === "tier2" ? "border-[#006699] shadow-lg ring-2 ring-[#006699]/20" : "border-gray-200 hover:border-gray-300"}`}
-                      onClick={() => handleSubscriptionChange("tier2")}
-                    >
-                      <span className="absolute -top-3 left-6 bg-[#1a365d] text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide">Most Popular</span>
-                      {formData.subscriptionTier === "tier2" && (
-                        <div className="absolute top-3 right-3 w-6 h-6 bg-[#006699] rounded-full flex items-center justify-center">
-                          <Check className="h-3.5 w-3.5 text-white" />
-                        </div>
-                      )}
-                      <h3 className="text-xl font-bold text-gray-900 mb-4 mt-2">Parish Growth Plan</h3>
-                      <div className="mb-4">
-                        {isAnnual ? (
-                          <>
-                            <p className="text-3xl font-bold text-gray-900">$1,430<span className="text-base font-normal text-gray-500"> / year</span></p>
-                            <p className="text-sm text-green-600 font-medium">Save 20%</p>
-                          </>
-                        ) : (
-                          <>
-                            <p className="text-3xl font-bold text-gray-900">$149<span className="text-base font-normal text-gray-500"> / month</span></p>
-                            <p className="text-sm text-gray-500">or <span className="text-green-600 font-medium">$1,430</span> / year</p>
-                            <p className="text-sm text-green-600 font-medium">Save 20%</p>
-                          </>
-                        )}
+                  {/* Free — Start Here */}
+                  <div
+                    className={`border-2 rounded-xl p-6 cursor-pointer transition-all flex flex-col bg-white relative ${formData.subscriptionTier === "free" ? "border-[#006699] shadow-lg" : "border-gray-200 hover:border-gray-300"}`}
+                    onClick={() => handleSubscriptionChange("free")}
+                  >
+                    {formData.subscriptionTier === "free" && (
+                      <div className="absolute top-3 right-3 w-6 h-6 bg-[#006699] rounded-full flex items-center justify-center">
+                        <Check className="h-3.5 w-3.5 text-white" />
                       </div>
-                      <div className="border-t border-gray-100 pt-4 flex-grow">
-                        <ul className="space-y-3 text-sm">
-                          <li className="flex items-start"><Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" /> Branded Parish Store</li>
-                          <li className="flex items-start"><Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" /> Unlimited Donations</li>
-                          <li className="flex items-start"><Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" /> Sell Products & Services</li>
-                          <li className="flex items-start"><Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" /> Featured Exposure in Marketplace</li>
-                          <li className="flex items-start"><Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" /> Impact Dashboard & Reporting</li>
-                          <li className="flex items-start"><Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" /> Secure Stripe Connect Setup</li>
-                        </ul>
-                      </div>
+                    )}
+                    <div className="inline-block bg-gray-100 text-gray-700 text-xs font-semibold px-3 py-1 rounded-full mb-4 w-fit">START HERE</div>
+                    <div className="mb-4">
+                      <p className="text-3xl font-bold text-gray-900">$0</p>
+                      <p className="text-xs text-sky-500 mt-1">One month duration</p>
                     </div>
+                    <div className="border-t border-gray-100 pt-4 flex-grow">
+                      <ul className="space-y-3 text-sm">
+                        <li className="flex items-start"><Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" /> Organization profile page</li>
+                        <li className="flex items-start"><Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" /> Accept donations</li>
+                        <li className="flex items-start"><Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" /> Listed in ParishMart directory</li>
+                        <li className="flex items-start"><Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" /> ParishMart support access</li>
+                        <li className="flex items-start"><Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" /> Community visibility</li>
+                      </ul>
+                    </div>
+                    <p className="text-xs text-gray-400 mt-4">No credit card required</p>
+                  </div>
 
-                    {/* Diocese Network Plan (right) */}
-                    <div
-                      className={`border-2 rounded-xl overflow-hidden cursor-pointer transition-all flex flex-col bg-white relative ${formData.subscriptionTier === "tier3" ? "border-[#006699] shadow-lg" : "border-gray-200 hover:border-gray-300"}`}
-                      onClick={() => handleSubscriptionChange("tier3")}
-                    >
-                      {formData.subscriptionTier === "tier3" && (
-                        <div className="absolute top-3 right-3 z-10 w-6 h-6 bg-[#006699] rounded-full flex items-center justify-center">
-                          <Check className="h-3.5 w-3.5 text-white" />
-                        </div>
+                  {/* Cause Plan */}
+                  <div
+                    className={`border-2 rounded-xl p-6 cursor-pointer transition-all flex flex-col bg-white relative ${formData.subscriptionTier === "tier1" ? "border-[#006699] shadow-lg" : "border-gray-200 hover:border-gray-300"}`}
+                    onClick={() => handleSubscriptionChange("tier1")}
+                  >
+                    {formData.subscriptionTier === "tier1" && (
+                      <div className="absolute top-3 right-3 w-6 h-6 bg-[#006699] rounded-full flex items-center justify-center">
+                        <Check className="h-3.5 w-3.5 text-white" />
+                      </div>
+                    )}
+                    <h3 className="text-xl font-bold text-gray-900 mb-4">Cause Plan</h3>
+                    <div className="mb-4">
+                      {isAnnual ? (
+                        <>
+                          <p className="text-3xl font-bold text-gray-900">$279<span className="text-base font-normal text-gray-500"> / year</span></p>
+                          <p className="text-sm text-green-600 font-medium">Save 20%</p>
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-3xl font-bold text-gray-900">$29<span className="text-base font-normal text-gray-500"> / month</span></p>
+                          <p className="text-sm text-gray-500">or <span className="text-green-600 font-medium">$279</span> / year</p>
+                          <p className="text-sm text-green-600 font-medium">Save 20%</p>
+                        </>
                       )}
-                      <div className="bg-[#1a365d] px-6 py-4">
-                        <h3 className="text-xl font-bold text-white">Diocese Network Plan</h3>
-                      </div>
-                      <div className="p-6 flex flex-col flex-grow">
-                        <div className="mb-4">
-                          {isAnnual ? (
-                            <>
-                              <p className="text-3xl font-bold text-gray-900">$1,150<span className="text-base font-normal text-gray-500"> / year per parish</span></p>
-                              <p className="text-sm text-gray-600">(20% savings vs individual)</p>
-                              <p className="text-sm text-green-600 font-medium">Save 20% vs individual</p>
-                            </>
-                          ) : (
-                            <>
-                              <p className="text-3xl font-bold text-gray-900">$119<span className="text-base font-normal text-gray-500"> / month per parish</span></p>
-                              <p className="text-sm text-gray-500">or <span className="text-green-600 font-medium">$1,150</span> / year per parish</p>
-                              <p className="text-sm text-green-600 font-medium">Save 20% vs individual</p>
-                            </>
-                          )}
-                        </div>
-                        <div className="border-t border-gray-100 pt-4 flex-grow">
-                          <ul className="space-y-3 text-sm">
-                            <li className="flex items-start"><Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" /> Centralized Diocese Dashboard</li>
-                            <li className="flex items-start"><Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" /> Consolidated Reporting Across Parishes</li>
-                            <li className="flex items-start"><Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" /> Volume Discount Applied Automatically</li>
-                            <li className="flex items-start"><Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" /> Stripe Visibility Per Parish</li>
-                            <li className="flex items-start"><Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" /> Priority Support</li>
-                          </ul>
-                        </div>
-                      </div>
+                    </div>
+                    <div className="border-t border-gray-100 pt-4 flex-grow">
+                      <ul className="space-y-3 text-sm">
+                        <li className="flex items-start text-gray-400"><span className="mr-2 mt-0.5 font-bold">↑</span><span className="text-gray-400">All features of Free</span></li>
+                        <li className="flex items-start"><Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" /> Campaign Storefront</li>
+                        <li className="flex items-start"><Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" /> Up to 5 Products</li>
+                        <li className="flex items-start"><Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" /> Basic Dashboard</li>
+                        <li className="flex items-start"><Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" /> Visibility inside a Parish Store</li>
+                        <li className="flex items-start"><Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" /> Cause Donation Card</li>
+                      </ul>
                     </div>
                   </div>
 
-                  {/* What's included sidebar */}
-                  <div className="xl:w-56 flex-shrink-0">
-                    <div className="bg-gray-50 rounded-xl p-5 h-full">
-                      <h3 className="text-sm font-semibold text-gray-900 mb-4">What's included in every ParishMart plan:</h3>
-                      <ul className="space-y-3">
-                        <li className="flex items-start">
-                          <Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" />
-                          <span className="text-xs text-gray-600">Secure Stripe-compliant donation processing</span>
-                        </li>
-                        <li className="flex items-start">
-                          <Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" />
-                          <span className="text-xs text-gray-600">Dedicated store inside ParishMart marketplace</span>
-                        </li>
-                        <li className="flex items-start">
-                          <Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" />
-                          <span className="text-xs text-gray-600">Ongoing platform updates</span>
-                        </li>
-                        <li className="flex items-start">
-                          <Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" />
-                          <span className="text-xs text-gray-600">Access to ParishMart support team</span>
-                        </li>
+                  {/* Parish Growth Plan - MOST POPULAR */}
+                  <div
+                    className={`border-2 rounded-xl p-6 cursor-pointer transition-all relative flex flex-col bg-white ${formData.subscriptionTier === "tier2" ? "border-[#006699] shadow-lg ring-2 ring-[#006699]/20" : "border-gray-200 hover:border-gray-300"}`}
+                    onClick={() => handleSubscriptionChange("tier2")}
+                  >
+                    <span className="absolute -top-3 left-6 bg-[#1a365d] text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide">Most Popular</span>
+                    {formData.subscriptionTier === "tier2" && (
+                      <div className="absolute top-3 right-3 w-6 h-6 bg-[#006699] rounded-full flex items-center justify-center">
+                        <Check className="h-3.5 w-3.5 text-white" />
+                      </div>
+                    )}
+                    <h3 className="text-xl font-bold text-gray-900 mb-4 mt-2">Parish Growth Plan</h3>
+                    <div className="mb-4">
+                      {isAnnual ? (
+                        <>
+                          <p className="text-3xl font-bold text-gray-900">$1,430<span className="text-base font-normal text-gray-500"> / year</span></p>
+                          <p className="text-sm text-green-600 font-medium">Save 20%</p>
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-3xl font-bold text-gray-900">$149<span className="text-base font-normal text-gray-500"> / month</span></p>
+                          <p className="text-sm text-gray-500">or <span className="text-green-600 font-medium">$1,430</span> / year</p>
+                          <p className="text-sm text-green-600 font-medium">Save 20%</p>
+                        </>
+                      )}
+                    </div>
+                    <div className="border-t border-gray-100 pt-4 flex-grow">
+                      <ul className="space-y-3 text-sm">
+                        <li className="flex items-start text-gray-400"><span className="mr-2 mt-0.5 font-bold">↑</span><span className="text-gray-400">All features of Cause Plan</span></li>
+                        <li className="flex items-start"><Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" /> Branded Parish Store</li>
+                        <li className="flex items-start"><Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" /> Unlimited Donations</li>
+                        <li className="flex items-start"><Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" /> Sell Products & Services</li>
+                        <li className="flex items-start"><Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" /> Featured Exposure in Marketplace</li>
+                        <li className="flex items-start"><Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" /> Impact Dashboard & Reporting</li>
+                        <li className="flex items-start"><Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" /> Secure Stripe Connect Setup</li>
                       </ul>
+                    </div>
+                  </div>
+
+                  {/* Diocese Network Plan */}
+                  <div
+                    className={`border-2 rounded-xl overflow-hidden cursor-pointer transition-all flex flex-col bg-white relative ${formData.subscriptionTier === "tier3" ? "border-[#006699] shadow-lg" : "border-gray-200 hover:border-gray-300"}`}
+                    onClick={() => handleSubscriptionChange("tier3")}
+                  >
+                    {formData.subscriptionTier === "tier3" && (
+                      <div className="absolute top-3 right-3 z-10 w-6 h-6 bg-[#006699] rounded-full flex items-center justify-center">
+                        <Check className="h-3.5 w-3.5 text-white" />
+                      </div>
+                    )}
+                    <div className="bg-[#1a365d] px-6 py-4">
+                      <h3 className="text-xl font-bold text-white">Diocese Network Plan</h3>
+                    </div>
+                    <div className="p-6 flex flex-col flex-grow">
+                      <div className="mb-4">
+                        {isAnnual ? (
+                          <>
+                            <p className="text-3xl font-bold text-gray-900">$1,150<span className="text-base font-normal text-gray-500"> / year per parish</span></p>
+                            <p className="text-sm text-green-600 font-medium">Save 20% vs individual</p>
+                          </>
+                        ) : (
+                          <>
+                            <p className="text-3xl font-bold text-gray-900">$119<span className="text-base font-normal text-gray-500"> / month per parish</span></p>
+                            <p className="text-sm text-gray-500">or <span className="text-green-600 font-medium">$1,150</span> / year per parish</p>
+                            <p className="text-sm text-green-600 font-medium">Save 20% vs individual</p>
+                          </>
+                        )}
+                      </div>
+                      <div className="border-t border-gray-100 pt-4 flex-grow">
+                        <ul className="space-y-3 text-sm">
+                          <li className="flex items-start text-gray-400"><span className="mr-2 mt-0.5 font-bold">↑</span><span className="text-gray-400">All features of Parish Growth</span></li>
+                          <li className="flex items-start"><Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" /> Centralized Diocese Dashboard</li>
+                          <li className="flex items-start"><Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" /> Consolidated Reporting Across Parishes</li>
+                          <li className="flex items-start"><Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" /> Volume Discount Applied Automatically</li>
+                          <li className="flex items-start"><Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" /> Stripe Visibility Per Parish</li>
+                          <li className="flex items-start"><Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" /> Priority Support</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* What's included in every plan — horizontal strip */}
+                <div className="bg-gray-50 rounded-xl px-6 py-5 mb-6">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide text-center mb-4">Included in every plan</p>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+                    <div className="flex flex-col items-center gap-1">
+                      <span className="text-2xl">🔒</span>
+                      <span className="text-xs text-gray-600">Secure Stripe donation processing</span>
+                    </div>
+                    <div className="flex flex-col items-center gap-1">
+                      <span className="text-2xl">🏛️</span>
+                      <span className="text-xs text-gray-600">Dedicated store in marketplace</span>
+                    </div>
+                    <div className="flex flex-col items-center gap-1">
+                      <span className="text-2xl">🔄</span>
+                      <span className="text-xs text-gray-600">Ongoing platform updates</span>
+                    </div>
+                    <div className="flex flex-col items-center gap-1">
+                      <span className="text-2xl">💬</span>
+                      <span className="text-xs text-gray-600">ParishMart support team</span>
                     </div>
                   </div>
                 </div>
@@ -1376,11 +1419,13 @@ const StoreRegistrationForm = () => {
                       </h4>
                       <p className="text-gray-600">
                         Subscription:{" "}
-                        {formData.subscriptionTier === "tier1"
-                          ? "Cause Plan"
-                          : formData.subscriptionTier === "tier2"
-                            ? "Parish Growth Plan"
-                            : "Diocese Network Plan"}
+                        {formData.subscriptionTier === "free"
+                          ? "Free"
+                          : formData.subscriptionTier === "tier1"
+                            ? "Cause Plan"
+                            : formData.subscriptionTier === "tier2"
+                              ? "Parish Growth Plan"
+                              : "Diocese Network Plan"}
                         {formData.subscriptionTier === "tier3" && (
                           <span className="text-gray-500"> — {formData.parishCount} {formData.parishCount === 1 ? 'parish' : 'parishes'}</span>
                         )}
@@ -1444,6 +1489,28 @@ const StoreRegistrationForm = () => {
                   </div>
                 </div>
 
+                <div className="flex items-start gap-3 mb-6">
+                  <input
+                    type="checkbox"
+                    id="acceptedTerms"
+                    checked={acceptedTerms}
+                    onChange={e => setAcceptedTerms(e.target.checked)}
+                    className="mt-0.5 h-4 w-4 accent-[#006699] cursor-pointer flex-shrink-0"
+                  />
+                  <label htmlFor="acceptedTerms" className="text-sm text-gray-700 cursor-pointer">
+                    I have read and agree to the{" "}
+                    <a
+                      href="https://shop.parishmart.com/terms-of-service"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-[#006699] underline hover:text-[#005588]"
+                    >
+                      Terms and Conditions
+                    </a>
+                    .
+                  </label>
+                </div>
+
                 <div className="flex justify-between">
                   <Button
                     type="button"
@@ -1455,8 +1522,8 @@ const StoreRegistrationForm = () => {
                   </Button>
                   <Button
                     type="submit"
-                    className="bg-[#006699] hover:bg-[#005588] text-white"
-                    disabled={isSubmitting}
+                    className="bg-[#006699] hover:bg-[#005588] text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={isSubmitting || !acceptedTerms}
                   >
                     {isSubmitting ? (
                       <>

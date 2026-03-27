@@ -43,7 +43,7 @@ interface FormData {
   businessZipCode: string;
   logo: File | null;
   websiteLinks: string;
-  subscriptionType: "tier1" | "tier2" | "tier3";
+  subscriptionType: "free" | "tier1" | "tier2" | "tier3";
   contactEmail: string;
   contactPhone: string;
   participateInCampaigns: boolean;
@@ -93,6 +93,7 @@ const VendorRegistrationForm = () => {
   const [step, setStep] = useState(1);
   const [isAnnual, setIsAnnual] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [attemptedSteps, setAttemptedSteps] = useState<number[]>([]);
   const [parishSearch, setParishSearch] = useState("");
   const [customParish, setCustomParish] = useState("");
@@ -266,7 +267,7 @@ const VendorRegistrationForm = () => {
   };
 
   // Handle subscription type change
-  const handleSubscriptionChange = (type: "tier1" | "tier2" | "tier3") => {
+  const handleSubscriptionChange = (type: "free" | "tier1" | "tier2" | "tier3") => {
     setFormData({
       ...formData,
       subscriptionType: type,
@@ -274,9 +275,10 @@ const VendorRegistrationForm = () => {
   };
 
   const VENDOR_PRICES: Record<string, { monthly: number; annual: number }> = {
-    tier1: { monthly: 39,  annual: 390  },
-    tier2: { monthly: 79,  annual: 790  },
-    tier3: { monthly: 149, annual: 1490 },
+    free:  { monthly: 0,  annual: 0   },
+    tier1: { monthly: 39, annual: 390 },
+    tier2: { monthly: 79, annual: 790 },
+    tier3: { monthly: 99, annual: 989 },
   };
 
   useEffect(() => {
@@ -361,6 +363,9 @@ const VendorRegistrationForm = () => {
       // Add business contact info (use personal info if business contact not provided)
       submitData.append('contactEmail', formData.contactEmail || formData.email);
       submitData.append('contactPhone', formData.contactPhone || formData.phone);
+
+      // Terms acceptance (stored separately from formData state)
+      submitData.append('termsAccepted', acceptedTerms.toString());
 
       // Send form data to API endpoint
       const response = await fetch('/api/registration', {
@@ -485,7 +490,7 @@ const VendorRegistrationForm = () => {
         >
           <Header />
         </div>
-        <div className="pt-36 pb-16 relative z-10">
+        <div className="pt-14 pb-16 relative z-10">
           <div className={`${step === 1 ? 'max-w-7xl' : 'max-w-4xl'} mx-auto px-4 sm:px-6 lg:px-8`}>
             <div className="text-center mb-10">
               <h1 className="text-3xl md:text-4xl font-bold text-[#006699]">
@@ -1252,10 +1257,55 @@ const VendorRegistrationForm = () => {
                     </div>
                   </div>
 
-                  <div className="flex flex-col xl:flex-row gap-6">
+                  <div className="flex flex-col gap-6">
                     {/* Subscription Cards */}
-                    <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-5">
-                      {/* Basic Listing */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+
+                      {/* Free — Start Here */}
+                      <div
+                        className={`relative border-2 rounded-xl p-6 cursor-pointer transition-all bg-white ${formData.subscriptionType === "free" ? "border-[#006699] shadow-lg" : "border-gray-200 hover:border-gray-300"}`}
+                        onClick={() => handleSubscriptionChange("free")}
+                      >
+                        {formData.subscriptionType === "free" && (
+                          <div className="absolute top-3 right-3 bg-[#006699] rounded-full p-1">
+                            <Check className="h-4 w-4 text-white" />
+                          </div>
+                        )}
+                        <div className="inline-block bg-gray-100 text-gray-700 text-xs font-semibold px-3 py-1 rounded-full mb-4">
+                          START HERE
+                        </div>
+                        <div className="mb-4">
+                          <p className="text-3xl font-bold text-gray-900">
+                            $0<span className="text-base font-normal text-gray-500">/month</span>
+                          </p>
+                          <p className="text-xs text-gray-400 mt-1">Free forever</p>
+                        </div>
+                        <ul className="space-y-3 text-sm">
+                          <li className="flex items-start">
+                            <span className="text-[#006699] font-bold mr-2 mt-0.5">✓</span>
+                            <span>Your own vendor page on ParishMart</span>
+                          </li>
+                          <li className="flex items-start">
+                            <span className="text-[#006699] font-bold mr-2 mt-0.5">✓</span>
+                            <span>Business description & your story</span>
+                          </li>
+                          <li className="flex items-start">
+                            <span className="text-[#006699] font-bold mr-2 mt-0.5">✓</span>
+                            <span>Contact CTA so customers can reach you</span>
+                          </li>
+                          <li className="flex items-start">
+                            <span className="text-[#006699] font-bold mr-2 mt-0.5">✓</span>
+                            <span>Listed in ParishMart Directory</span>
+                          </li>
+                          <li className="flex items-start">
+                            <span className="text-[#006699] font-bold mr-2 mt-0.5">✓</span>
+                            <span>Community exposure as ParishMart grows</span>
+                          </li>
+                        </ul>
+                        <p className="text-xs text-gray-400 mt-4">No credit card required</p>
+                      </div>
+
+                      {/* Local */}
                       <div
                         className={`relative border-2 rounded-xl p-6 cursor-pointer transition-all bg-white ${formData.subscriptionType === "tier1" ? "border-[#006699] shadow-lg" : "border-gray-200 hover:border-gray-300"}`}
                         onClick={() => handleSubscriptionChange("tier1")}
@@ -1266,9 +1316,9 @@ const VendorRegistrationForm = () => {
                           </div>
                         )}
                         <div className="inline-block bg-amber-100 text-amber-800 text-xs font-semibold px-3 py-1 rounded-full mb-4">
-                          BASIC LISTING
+                          GROWING EXPOSURE
                         </div>
-                        <div className="mb-4">
+                        <div className="mb-1">
                           <p className="text-3xl font-bold text-gray-900">
                             {isAnnual ? "$390" : "$39"}
                             <span className="text-base font-normal text-gray-500">/{isAnnual ? "year" : "month"}</span>
@@ -1282,27 +1332,32 @@ const VendorRegistrationForm = () => {
                             </>
                           )}
                         </div>
+                        <p className="text-xs text-gray-500 mt-3 mb-4 leading-snug">Grow with ParishMart</p>
                         <ul className="space-y-3 text-sm">
                           <li className="flex items-start">
-                            <span className="text-[#006699] font-bold mr-2 mt-0.5">✓</span>
-                            <span>Business profile</span>
+                            <span className="text-gray-400 font-bold mr-2 mt-0.5">↑</span>
+                            <span className="text-gray-500">All features of the Free plan</span>
                           </li>
                           <li className="flex items-start">
                             <span className="text-[#006699] font-bold mr-2 mt-0.5">✓</span>
-                            <span>Up to 10 Products or 5 Services</span>
+                            <span>Early visibility advantage as new parishes join</span>
                           </li>
                           <li className="flex items-start">
                             <span className="text-[#006699] font-bold mr-2 mt-0.5">✓</span>
-                            <span>Contact or Get a Quote CTA</span>
+                            <span>Social Media exposure through ParishMart channels</span>
                           </li>
                           <li className="flex items-start">
                             <span className="text-[#006699] font-bold mr-2 mt-0.5">✓</span>
-                            <span>Listed in ParishMart Directory</span>
+                            <span>Get a Quote CTA on your profile</span>
+                          </li>
+                          <li className="flex items-start">
+                            <span className="text-[#006699] font-bold mr-2 mt-0.5">✓</span>
+                            <span>Visibility that grows as the platform expands</span>
                           </li>
                         </ul>
                       </div>
 
-                      {/* Commerce */}
+                      {/* Bookings & Services */}
                       <div
                         className={`relative border-2 rounded-xl p-6 cursor-pointer transition-all bg-white ${formData.subscriptionType === "tier2" ? "border-[#006699] shadow-lg" : "border-gray-200 hover:border-gray-300"}`}
                         onClick={() => handleSubscriptionChange("tier2")}
@@ -1313,7 +1368,7 @@ const VendorRegistrationForm = () => {
                           </div>
                         )}
                         <div className="inline-block bg-[#1a365d] text-white text-xs font-semibold px-3 py-1 rounded-full mb-4">
-                          COMMERCE — MOST POPULAR
+                          BEST FOR SERVICES
                         </div>
                         <div className="mb-4">
                           <p className="text-3xl font-bold text-gray-900">
@@ -1328,8 +1383,13 @@ const VendorRegistrationForm = () => {
                               <p className="text-xs text-green-600 font-medium">Save ~17%</p>
                             </>
                           )}
+                          <p className="text-xs text-gray-500 mt-2 italic">Turn visibility into real customers</p>
                         </div>
                         <ul className="space-y-3 text-sm">
+                          <li className="flex items-start">
+                            <span className="text-gray-400 font-bold mr-2 mt-0.5">↑</span>
+                            <span className="text-gray-500">All features of the Local plan</span>
+                          </li>
                           <li className="flex items-start">
                             <span className="text-[#006699] font-bold mr-2 mt-0.5">✓</span>
                             <span>Up to 50 Products or Services</span>
@@ -1344,12 +1404,20 @@ const VendorRegistrationForm = () => {
                           </li>
                           <li className="flex items-start">
                             <span className="text-[#006699] font-bold mr-2 mt-0.5">✓</span>
+                            <span>Appointment scheduling</span>
+                          </li>
+                          <li className="flex items-start">
+                            <span className="text-[#006699] font-bold mr-2 mt-0.5">✓</span>
                             <span>Analytics & Engagement Tools</span>
+                          </li>
+                          <li className="flex items-start">
+                            <span className="text-[#006699] font-bold mr-2 mt-0.5">✓</span>
+                            <span>Email notifications for bookings</span>
                           </li>
                         </ul>
                       </div>
 
-                      {/* Featured Partner */}
+                      {/* Sell Products */}
                       <div
                         className={`relative border-2 rounded-xl p-6 cursor-pointer transition-all bg-white ${formData.subscriptionType === "tier3" ? "border-[#006699] shadow-lg" : "border-gray-200 hover:border-gray-300"}`}
                         onClick={() => handleSubscriptionChange("tier3")}
@@ -1360,21 +1428,27 @@ const VendorRegistrationForm = () => {
                           </div>
                         )}
                         <div className="inline-block bg-amber-100 text-amber-800 text-xs font-semibold px-3 py-1 rounded-full mb-4">
-                          FEATURED PARTNER
+                          SELL PRODUCTS
                         </div>
                         <div className="mb-4">
                           <p className="text-3xl font-bold text-gray-900">
-                            {isAnnual ? "$1,490" : "$149"}
+                            {isAnnual ? "$989" : "$99"}
                             <span className="text-base font-normal text-gray-500">/{isAnnual ? "year" : "month"}</span>
                           </p>
                           {isAnnual ? (
-                            <p className="text-xs text-green-600 mt-1">$124.17/mo — Save $298/year</p>
+                            <p className="text-xs text-green-600 mt-1">$82.42/mo — Save $199/year</p>
                           ) : (
                             <>
-                              <p className="text-xs text-gray-500 mt-1">or <span className="text-green-600 font-medium">$1,490</span> / year</p>
+                              <p className="text-xs text-gray-500 mt-1">or <span className="text-green-600 font-medium">$989</span> / year</p>
                               <p className="text-xs text-green-600 font-medium">Save ~17%</p>
                             </>
                           )}
+                        </div>
+                        {/* Fee breakdown — shown before features */}
+                        <div className="bg-amber-50 rounded-lg p-3 mb-4 text-sm">
+                          <p className="font-semibold text-gray-800">10% supports a parish or cause</p>
+                          <p className="text-gray-500 text-xs mt-0.5">10% platform fee</p>
+                          <p className="text-gray-400 text-xs mt-1 border-t border-amber-100 pt-1">Total transaction fee: 20%</p>
                         </div>
                         <ul className="space-y-3 text-sm">
                           <li className="flex items-start">
@@ -1387,11 +1461,7 @@ const VendorRegistrationForm = () => {
                           </li>
                           <li className="flex items-start">
                             <span className="text-[#006699] font-bold mr-2 mt-0.5">✓</span>
-                            <span>Highlighted Banner Ads</span>
-                          </li>
-                          <li className="flex items-start">
-                            <span className="text-[#006699] font-bold mr-2 mt-0.5">✓</span>
-                            <span>Top Category Placement</span>
+                            <span>Highlighted Banner & Category Placement</span>
                           </li>
                           <li className="flex items-start">
                             <span className="text-[#006699] font-bold mr-2 mt-0.5">✓</span>
@@ -1401,32 +1471,31 @@ const VendorRegistrationForm = () => {
                       </div>
                     </div>
 
-                    {/* What's Included Sidebar */}
-                    <div className="xl:w-56 flex-shrink-0">
-                      <div className="bg-gray-50 rounded-xl p-5 h-full">
-                        <h3 className="font-semibold text-gray-900 text-sm mb-4">What's included in every plan</h3>
-                        <ul className="space-y-3 text-xs text-gray-600">
-                          <li className="flex items-start">
-                            <span className="text-[#006699] font-bold mr-2 mt-0.5">✓</span>
-                            <span>Business profile page</span>
-                          </li>
-                          <li className="flex items-start">
-                            <span className="text-[#006699] font-bold mr-2 mt-0.5">✓</span>
-                            <span>ParishMart directory listing</span>
-                          </li>
-                          <li className="flex items-start">
-                            <span className="text-[#006699] font-bold mr-2 mt-0.5">✓</span>
-                            <span>Community exposure</span>
-                          </li>
-                          <li className="flex items-start">
-                            <span className="text-[#006699] font-bold mr-2 mt-0.5">✓</span>
-                            <span>Secure checkout via Stripe</span>
-                          </li>
-                          <li className="flex items-start">
-                            <span className="text-[#006699] font-bold mr-2 mt-0.5">✓</span>
-                            <span>Dedicated support</span>
-                          </li>
-                        </ul>
+                  </div>
+
+                  {/* What's included in every plan — horizontal strip */}
+                  <div className="bg-gray-50 rounded-xl px-6 py-5">
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide text-center mb-4">Included in every plan</p>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 text-center">
+                      <div className="flex flex-col items-center gap-1">
+                        <span className="text-2xl">🏪</span>
+                        <span className="text-xs text-gray-600">Business profile page</span>
+                      </div>
+                      <div className="flex flex-col items-center gap-1">
+                        <span className="text-2xl">📋</span>
+                        <span className="text-xs text-gray-600">Directory listing</span>
+                      </div>
+                      <div className="flex flex-col items-center gap-1">
+                        <span className="text-2xl">🤝</span>
+                        <span className="text-xs text-gray-600">Community exposure</span>
+                      </div>
+                      <div className="flex flex-col items-center gap-1">
+                        <span className="text-2xl">🔒</span>
+                        <span className="text-xs text-gray-600">Secure checkout via Stripe</span>
+                      </div>
+                      <div className="flex flex-col items-center gap-1">
+                        <span className="text-2xl">💬</span>
+                        <span className="text-xs text-gray-600">Dedicated support</span>
                       </div>
                     </div>
                   </div>
@@ -1442,6 +1511,43 @@ const VendorRegistrationForm = () => {
                       Next Step
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
+                  </div>
+
+                  {/* Nationwide Partnership */}
+                  <div className="mt-10 relative overflow-hidden rounded-2xl bg-[#1a365d] p-8 md:p-10">
+                    <div className="pointer-events-none absolute -top-10 -right-10 w-48 h-48 bg-white opacity-5 rounded-full" />
+                    <div className="pointer-events-none absolute -bottom-12 -left-8 w-64 h-64 bg-[#006699] opacity-20 rounded-full" />
+                    <div className="relative">
+                      <span className="inline-block text-xs font-semibold tracking-widest text-[#7ec8e3] uppercase mb-3">Nationwide Partnership</span>
+                      <h3 className="text-2xl md:text-3xl font-bold text-white mb-2 leading-tight">
+                        Scale your brand across every parish in the country
+                      </h3>
+                      <p className="text-[#a8c8d8] text-sm mb-6 max-w-2xl">
+                        A direct partnership with ParishMart — built for brands that want nationwide reach inside faith communities.
+                      </p>
+                      <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-10 gap-y-2 mb-6 max-w-2xl">
+                        {[
+                          "Nationwide exposure across all ParishMart parishes",
+                          "Featured placement opportunities",
+                          "API / catalog integration",
+                          "Co-branded opportunities",
+                          "Dedicated support",
+                          "No subscription fee",
+                        ].map((item) => (
+                          <li key={item} className="flex items-center gap-2 text-sm text-white">
+                            <span className="flex-shrink-0 w-5 h-5 rounded-full bg-[#006699] flex items-center justify-center text-xs font-bold">✓</span>
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                      <p className="text-xs text-[#7ec8e3] italic mb-6">We don't charge partners. We grow together.</p>
+                      <a
+                        href="https://shop.parishmart.com/contact/partner"
+                        className="inline-block bg-white text-[#1a365d] text-sm font-semibold px-6 py-3 rounded-lg hover:bg-gray-100 transition-colors shadow-md"
+                      >
+                        Become a Partner →
+                      </a>
+                    </div>
                   </div>
                 </div>
               )}
@@ -1481,11 +1587,13 @@ const VendorRegistrationForm = () => {
                         </h4>
                         <p className="text-gray-600">
                           Subscription:{" "}
-                          {formData.subscriptionType === "tier1"
-                            ? "Basic Listing"
-                            : formData.subscriptionType === "tier2"
-                              ? "Commerce"
-                              : "Featured Partner"}
+                          {formData.subscriptionType === "free"
+                            ? "Free"
+                            : formData.subscriptionType === "tier1"
+                              ? "Local"
+                              : formData.subscriptionType === "tier2"
+                                ? "Bookings & Services"
+                                : "Sell Products"}
                           <span className="text-gray-500"> ({isAnnual ? "Annual" : "Monthly"})</span>
                         </p>
                         <p className="text-gray-600">
@@ -1544,6 +1652,28 @@ const VendorRegistrationForm = () => {
                     </div>
                   </div>
 
+                  <div className="flex items-start gap-3 mb-6">
+                    <input
+                      type="checkbox"
+                      id="acceptedTerms"
+                      checked={acceptedTerms}
+                      onChange={e => setAcceptedTerms(e.target.checked)}
+                      className="mt-0.5 h-4 w-4 accent-[#006699] cursor-pointer flex-shrink-0"
+                    />
+                    <label htmlFor="acceptedTerms" className="text-sm text-gray-700 cursor-pointer">
+                      I have read and agree to the{" "}
+                      <a
+                        href="https://shop.parishmart.com/terms-of-service"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-[#006699] underline hover:text-[#005588]"
+                      >
+                        Terms and Conditions
+                      </a>
+                      .
+                    </label>
+                  </div>
+
                   <div className="flex justify-between">
                     <Button
                       type="button"
@@ -1555,8 +1685,8 @@ const VendorRegistrationForm = () => {
                     </Button>
                     <Button
                       type="submit"
-                      className="bg-[#006699] hover:bg-[#005588] text-white"
-                      disabled={isSubmitting}
+                      className="bg-[#006699] hover:bg-[#005588] text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                      disabled={isSubmitting || !acceptedTerms}
                     >
                       {isSubmitting ? (
                         <>

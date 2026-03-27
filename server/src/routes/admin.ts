@@ -227,7 +227,6 @@ async function activateVendorApproval(client: PoolClient, vendorId: number, user
             store_name: userData.business_name,
             logo_url: logoRow?.media_url,
             images_for_banner: imagesForBanner,
-            merchandise: ['tshirt', 'cap', 'hoodie'],
             skip_background_removal: skipBgRemoval,
             webhook_url: `${process.env.BASE_URL}/api/webhook/image-processing`,
           });
@@ -327,7 +326,16 @@ async function activateStoreApproval(client: PoolClient, adminId: number, userDa
               store_name: userData.organization_name,
               logo_url: logoRow?.media_url,
               images_for_banner: imagesForBanner,
-              merchandise: ['tshirt', 'cap', 'hoodie'],
+              merchandise: [
+              'tshirt_white', 'tshirt_black', 'tshirt_red', 'tshirt_navy', 'tshirt_heather',
+              'hoodie_white', 'hoodie_black', 'hoodie_red', 'hoodie_navy', 'hoodie_heather',
+              'polo_men_white', 'polo_men_black', 'polo_men_red', 'polo_men_navy', 'polo_men_heather',
+              'polo_ladies_white', 'polo_ladies_black', 'polo_ladies_red', 'polo_ladies_navy', 'polo_ladies_heather',
+              'crewneck_white', 'crewneck_black', 'crewneck_red', 'crewneck_navy', 'crewneck_heather',
+              'tote_white', 'tote_black', 'tote_red', 'tote_navy',
+              'cap_white', 'cap_black', 'cap_red', 'cap_navy',
+              'jacket_ladies_black', 'jacket_men_black',
+            ],
               skip_background_removal: skipBgRemoval,
               webhook_url: `${process.env.BASE_URL}/api/webhook/image-processing`,
             });

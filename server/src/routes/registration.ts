@@ -81,7 +81,15 @@ router.post('/', registrationLimiter, upload, async (req: Request, res: Response
 
   } catch (error) {
     console.error('Registration error:', error);
-    
+
+    // Duplicate email (PostgreSQL unique constraint violation)
+    if ((error as any)?.code === '23505') {
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({
+        success: false,
+        error: 'An account with this email address already exists. Please use a different email or contact support.'
+      });
+    }
+
     if (error instanceof Error) {
       // Handle validation errors
       if (error.message.includes('required') || error.message.includes('Invalid')) {
@@ -90,7 +98,7 @@ router.post('/', registrationLimiter, upload, async (req: Request, res: Response
           error: error.message
         });
       }
-      
+
       // Handle file upload errors
       if (error.message.includes('file') || error.message.includes('upload')) {
         return res.status(HTTP_STATUS.BAD_REQUEST).json({

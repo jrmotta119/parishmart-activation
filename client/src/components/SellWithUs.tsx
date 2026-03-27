@@ -247,6 +247,43 @@ const SellWithUs = () => {
               Register Today!
             </Button>
           </div>
+
+          {/* Nationwide Partnership */}
+          <div className="mt-12 relative overflow-hidden rounded-2xl bg-[#1a365d] p-8 md:p-10">
+            <div className="pointer-events-none absolute -top-10 -right-10 w-48 h-48 bg-white opacity-5 rounded-full" />
+            <div className="pointer-events-none absolute -bottom-12 -left-8 w-64 h-64 bg-[#006699] opacity-20 rounded-full" />
+            <div className="relative">
+              <p className="text-xs font-semibold tracking-widest text-[#7ec8e3] uppercase mb-3">Nationwide Partnership</p>
+              <h2 className="text-2xl md:text-3xl font-bold text-white mb-2 leading-tight">
+                Scale your brand across every parish in the country
+              </h2>
+              <p className="text-[#a8c8d8] text-sm mb-6 max-w-2xl">
+                A direct partnership with ParishMart — built for brands that want nationwide reach inside faith communities. No subscription fee.
+              </p>
+              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-10 gap-y-2 mb-6 max-w-2xl">
+                {[
+                  "Nationwide exposure across all ParishMart parishes",
+                  "Featured placement opportunities",
+                  "API / catalog integration",
+                  "Co-branded opportunities",
+                  "Dedicated support",
+                  "No subscription fee",
+                ].map((item) => (
+                  <li key={item} className="flex items-center gap-2 text-sm text-white">
+                    <span className="flex-shrink-0 w-5 h-5 rounded-full bg-[#006699] flex items-center justify-center text-xs font-bold">✓</span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              <p className="text-xs text-[#7ec8e3] italic mb-6">We don't charge partners. We grow together.</p>
+              <a
+                href="https://shop.parishmart.com/contact/partner"
+                className="inline-block bg-white text-[#1a365d] text-sm font-semibold px-6 py-3 rounded-lg hover:bg-gray-100 transition-colors shadow-md"
+              >
+                Become a Partner →
+              </a>
+            </div>
+          </div>
         </div>
       </section>
 

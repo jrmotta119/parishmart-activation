@@ -31,7 +31,8 @@ interface VendorFormData {
   } | string;
   businessZipCode: string;
   websiteLinks?: string;
-  subscriptionType: 'tier1' | 'tier2' | 'tier3';
+  subscriptionType: 'free' | 'tier1' | 'tier2' | 'tier3';
+  termsAccepted?: boolean;
   contactEmail: string;
   contactPhone: string;
   products?: any[];
@@ -69,7 +70,8 @@ interface StoreFormData {
   slogan?: string;
   primaryColor?: string;
   secondaryColor?: string;
-  subscriptionTier: 'tier1' | 'tier2' | 'tier3';
+  subscriptionTier: 'free' | 'tier1' | 'tier2' | 'tier3';
+  termsAccepted?: boolean;
   needsConsultation?: boolean;
   collectsDonations?: boolean;
   donationPlatform?: string;
@@ -139,8 +141,9 @@ export class RegistrationService {
         INSERT INTO vendors (
           email, phone, password_hash, first_name, last_name,
           mission_affiliation, about_you, community_contribution, participate_in_campaigns,
-          contact_for_opportunities, approval_status, created_at, updated_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'pending', NOW(), NOW())
+          contact_for_opportunities, terms_accepted, terms_accepted_at,
+          approval_status, created_at, updated_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'pending', NOW(), NOW())
         RETURNING vendor_id
       `, [
         formData.email,
@@ -152,8 +155,9 @@ export class RegistrationService {
         formData.ownerDescription || null,
         formData.communityEfforts || null,
         formData.participateInCampaigns,
-        
-        formData.contactForOpportunities || null
+        formData.contactForOpportunities || null,
+        formData.termsAccepted === true || formData.termsAccepted === ('true' as any),
+        formData.termsAccepted ? new Date().toISOString() : null
       ]);
       
       const vendorId = vendorResult.rows[0].vendor_id;
@@ -261,8 +265,8 @@ export class RegistrationService {
         ]);
       }
 
-      // 8. Process products if subscription allows
-      if (formData.subscriptionType !== 'tier1') {
+      // 8. Process products if subscription allows (free and tier1 don't include product listings)
+      if (formData.subscriptionType !== 'free' && formData.subscriptionType !== 'tier1') {
         // Parse products from JSON string if needed
         let products = formData.products;
         if (typeof formData.products === 'string') {
@@ -409,8 +413,9 @@ export class RegistrationService {
           organization_id, first_name, last_name, email, password_hash,
           street_address, city, state, country, zip_code, phone_number,
           role, referred_by, referral_associate_name, social_media_platform,
+          terms_accepted, terms_accepted_at,
           approval_status, created_at, updated_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, 'pending', NOW(), NOW())
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, 'pending', NOW(), NOW())
         RETURNING admin_id
       `, [
         organizationId,
@@ -427,7 +432,9 @@ export class RegistrationService {
         formData.adminRole || null,
         formData.referredBy === 'other' ? (formData.otherReferredBy || null) : (formData.referredBy || null),
         formData.referralAssociateName || null,
-        formData.referredBy === 'social' ? (formData.socialMediaPlatform || null) : null
+        formData.referredBy === 'social' ? (formData.socialMediaPlatform || null) : null,
+        formData.termsAccepted === true || formData.termsAccepted === ('true' as any),
+        formData.termsAccepted ? new Date().toISOString() : null
       ]);
       
       const adminId = adminResult.rows[0].admin_id;

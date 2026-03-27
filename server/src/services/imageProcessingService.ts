@@ -16,7 +16,7 @@ export interface ProcessSellerPayload {
   store_name: string;
   logo_url?: string;           // any public URL — S3 or external
   images_for_banner: string[]; // 1–5 public image URLs
-  merchandise: string[];       // product categories; pass [] if none
+  merchandise?: string[];      // store-only; omit for vendor-only logo/banner processing
   skip_background_removal: boolean;
   webhook_url: string;         // our callback endpoint
 }
