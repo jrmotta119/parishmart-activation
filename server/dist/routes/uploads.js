@@ -35,20 +35,21 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const fileController_1 = __importStar(require("../controllers/fileController"));
+const adminAuth_1 = require("../middleware/adminAuth");
 const shared_1 = require("@parishmart/shared");
 const router = (0, express_1.Router)();
-// POST /api/upload/media - Upload images/videos to public bucket
+// POST /api/upload/media - Upload images/videos to public bucket (used during registration, no auth)
 router.post('/media', fileController_1.mediaUpload.single('file'), fileController_1.default.uploadMedia);
-// POST /api/upload/documents - Upload documents to private bucket
+// POST /api/upload/documents - Upload documents to private bucket (used during registration, no auth)
 router.post('/documents', fileController_1.documentUpload.single('file'), fileController_1.default.uploadDocument);
-// POST /api/upload/signed-url/:fileKey - Generate signed URL for private files
-router.post('/signed-url/:fileKey', fileController_1.default.generateSignedUrl);
-// GET /api/upload/files/:id - Get file information
-router.get('/files/:id', fileController_1.default.getFileInfo);
-// DELETE /api/upload/files/:id - Delete file
-router.delete('/files/:id', fileController_1.default.deleteFile);
-// GET /api/upload/stats - Get file statistics
-router.get('/stats', fileController_1.default.getFileStats);
+// POST /api/upload/signed-url/:fileKey - Generate signed URL for private files (admin only)
+router.post('/signed-url/:fileKey', adminAuth_1.requireSuperAdminAuth, fileController_1.default.generateSignedUrl);
+// GET /api/upload/files/:id - Get file information (admin only)
+router.get('/files/:id', adminAuth_1.requireSuperAdminAuth, fileController_1.default.getFileInfo);
+// DELETE /api/upload/files/:id - Delete file (admin only)
+router.delete('/files/:id', adminAuth_1.requireSuperAdminAuth, fileController_1.default.deleteFile);
+// GET /api/upload/stats - Get file statistics (admin only)
+router.get('/stats', adminAuth_1.requireSuperAdminAuth, fileController_1.default.getFileStats);
 // Error handling middleware for multer errors
 router.use((error, req, res, next) => {
     if (error instanceof Error) {

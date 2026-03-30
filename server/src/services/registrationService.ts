@@ -392,7 +392,7 @@ export class RegistrationService {
         formData.bannerMode || 'collage',
         formData.subscriptionAmount || null,
         formData.billingCycle || null,
-        formData.parishCount || null
+        formData.subscriptionTier === 'tier3' ? (formData.parishCount || null) : null
       ]);
       
       const organizationId = orgResult.rows[0].organization_id;

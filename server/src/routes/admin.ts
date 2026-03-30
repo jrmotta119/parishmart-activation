@@ -53,6 +53,15 @@ const adminActionLimiter = rateLimit({
 // Apply rate limiting to all admin routes
 router.use(adminActionLimiter);
 
+// Stricter rate limiting for one-time token actions (approve/reject email links)
+const tokenActionLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 10,
+  message: 'Too many token requests from this IP, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 /**
  * Helper function to render success/error pages
  */
@@ -187,6 +196,18 @@ async function activateVendorApproval(client: PoolClient, vendorId: number, user
 
     console.log(`✅ Vendor approved successfully: ${vendorId}`);
 
+    // Step 1b: Set subscription dates (free tier gets 30-day trial from approval date)
+    await client.query(`
+      UPDATE businesses
+      SET current_subscription_start_date = NOW(),
+          current_subscription_end_date = CASE
+            WHEN current_subscription_type = 'free' THEN NOW() + INTERVAL '30 days'
+            ELSE current_subscription_end_date
+          END,
+          is_subscription_active = true
+      WHERE vendor_id = $1
+    `, [vendorId]);
+
     // Step 2: Trigger image processing (non-blocking — results arrive via webhook)
     try {
       const mediaResult = await client.query(`
@@ -282,6 +303,18 @@ async function activateStoreApproval(client: PoolClient, adminId: number, userDa
 
     console.log(`✅ Administrator approved successfully: ${adminId}`);
 
+    // Step 1b: Set subscription dates (free tier gets 30-day trial from approval date)
+    await client.query(`
+      UPDATE organizations
+      SET current_subscription_start_date = NOW(),
+          current_subscription_end_date = CASE
+            WHEN current_subscription_type = 'free' THEN NOW() + INTERVAL '30 days'
+            ELSE current_subscription_end_date
+          END,
+          is_subscription_active = true
+      WHERE organization_id = (SELECT organization_id FROM administrators WHERE admin_id = $1)
+    `, [adminId]);
+
     // Step 2: Trigger image processing (non-blocking — results arrive via webhook)
     try {
       const orgRow = await client.query(
@@ -326,16 +359,17 @@ async function activateStoreApproval(client: PoolClient, adminId: number, userDa
               store_name: userData.organization_name,
               logo_url: logoRow?.media_url,
               images_for_banner: imagesForBanner,
+              parish: true,
               merchandise: [
-              'tshirt_white', 'tshirt_black', 'tshirt_red', 'tshirt_navy', 'tshirt_heather',
-              'hoodie_white', 'hoodie_black', 'hoodie_red', 'hoodie_navy', 'hoodie_heather',
-              'polo_men_white', 'polo_men_black', 'polo_men_red', 'polo_men_navy', 'polo_men_heather',
-              'polo_ladies_white', 'polo_ladies_black', 'polo_ladies_red', 'polo_ladies_navy', 'polo_ladies_heather',
-              'crewneck_white', 'crewneck_black', 'crewneck_red', 'crewneck_navy', 'crewneck_heather',
-              'tote_white', 'tote_black', 'tote_red', 'tote_navy',
-              'cap_white', 'cap_black', 'cap_red', 'cap_navy',
-              'jacket_ladies_black', 'jacket_men_black',
-            ],
+                'tshirt_white', 'tshirt_black', 'tshirt_red', 'tshirt_navy', 'tshirt_heather',
+                'hoodie_white', 'hoodie_black', 'hoodie_red', 'hoodie_navy', 'hoodie_heather',
+                'polo_men_white', 'polo_men_black', 'polo_men_red', 'polo_men_navy', 'polo_men_heather',
+                'polo_ladies_white', 'polo_ladies_black', 'polo_ladies_red', 'polo_ladies_navy', 'polo_ladies_heather',
+                'crewneck_white', 'crewneck_black', 'crewneck_red', 'crewneck_navy', 'crewneck_heather',
+                'tote_white', 'tote_black', 'tote_red', 'tote_navy',
+                'cap_white', 'cap_black', 'cap_red', 'cap_navy',
+                'jacket_ladies_black', 'jacket_men_black',
+              ],
               skip_background_removal: skipBgRemoval,
               webhook_url: `${process.env.BASE_URL}/api/webhook/image-processing`,
             });
@@ -429,7 +463,7 @@ async function rejectStoreApplication(client: PoolClient, adminId: number, reaso
  * GET /api/admin/approve/:token
  * Handle vendor/store approval
  */
-router.get('/approve/:token', async (req: Request, res: Response) => {
+router.get('/approve/:token', tokenActionLimiter, async (req: Request, res: Response) => {
   const { token } = req.params;
   
   try {
@@ -539,7 +573,7 @@ router.get('/approve/:token', async (req: Request, res: Response) => {
  * GET /api/admin/reject/:token
  * Handle vendor/store rejection
  */
-router.get('/reject/:token', async (req: Request, res: Response) => {
+router.get('/reject/:token', tokenActionLimiter, async (req: Request, res: Response) => {
   const { token } = req.params;
   
   try {
@@ -897,6 +931,7 @@ router.get('/dashboard/vendors', requireSuperAdminAuth, async (req: Request, res
         b.contact_email,
         b.contact_phone,
         b.current_subscription_type,
+        b.current_subscription_end_date,
         b.subscription_amount,
         b.billing_cycle,
         v.about_you,
@@ -965,6 +1000,7 @@ router.get('/dashboard/stores', requireSuperAdminAuth, async (req: Request, res:
         o.collect_donations,
         o.donations_platform,
         o.current_subscription_type,
+        o.current_subscription_end_date,
         o.subscription_amount,
         o.billing_cycle,
         o.parish_count,

@@ -74,7 +74,7 @@ interface StoreEntry {
   logo_raw_url: string | null;
   banner_processed_url: string | null;
   banner_images: string[] | null;
-  processed_results: { merchandise?: Record<string, string> } | null;
+  processed_results: { merchandise?: Record<string, string>; parish_cards?: string[] } | null;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -110,6 +110,31 @@ function fmtAmount(amount: number | null, cycle: string | null) {
   return `$${amount.toLocaleString()}/${cycle === 'annual' ? 'yr' : 'mo'}`;
 }
 
+function freeTrialStatus(endDate: string | null): { expiryDate: string; daysLeft: number } {
+  if (!endDate) return { expiryDate: '—', daysLeft: 0 };
+  const expiry = new Date(endDate);
+  const daysLeft = Math.ceil((expiry.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+  return { expiryDate: fmtDate(expiry.toISOString()), daysLeft };
+}
+
+function FreeTrialBadge({ endDate }: { endDate: string | null }) {
+  if (!endDate) return null;
+  const { expiryDate, daysLeft } = freeTrialStatus(endDate);
+  const color =
+    daysLeft <= 0  ? 'bg-red-100 text-red-700' :
+    daysLeft <= 7  ? 'bg-orange-100 text-orange-700' :
+                    'bg-gray-100 text-gray-600';
+  const label =
+    daysLeft <= 0  ? `Expired ${fmtDate(new Date(Date.now() - daysLeft * -86400000).toISOString())}` :
+    daysLeft === 1 ? 'Expires tomorrow' :
+                    `Expires ${expiryDate}`;
+  return (
+    <span className={`ml-1 inline-block text-xs px-1.5 py-0.5 rounded font-medium whitespace-nowrap ${color}`}>
+      {label}
+    </span>
+  );
+}
+
 // ─── Detail Panel ─────────────────────────────────────────────────────────────
 
 function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
@@ -126,12 +151,43 @@ function MediaLink({ href, label }: { href: string; label: string }) {
   return <a href={href} target="_blank" rel="noreferrer" className="text-blue-600 underline">{label}</a>;
 }
 
+function MediaThumb({ url, label }: { url: string; label: string }) {
+  return (
+    <a href={url} target="_blank" rel="noreferrer" className="group flex flex-col items-center gap-1">
+      <div className="w-full aspect-square rounded overflow-hidden border border-gray-200 bg-gray-100">
+        <img
+          src={url}
+          alt={label}
+          className="w-full h-full object-cover group-hover:opacity-80 transition-opacity"
+          onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+        />
+      </div>
+      <span className="text-xs text-gray-500 text-center leading-tight truncate w-full">{label}</span>
+    </a>
+  );
+}
+
+function MediaSection({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="mt-4">
+      <p className="text-xs font-bold text-gray-400 uppercase mb-2">{title}</p>
+      {children}
+    </div>
+  );
+}
+
 function VendorDetail({ vendor }: { vendor: VendorEntry }) {
+  const merchEntries = vendor.processed_results?.merchandise
+    ? Object.entries(vendor.processed_results.merchandise)
+    : [];
+
   return (
     <div className="p-4 bg-gray-50 border-t border-gray-200">
       <p className="text-sm font-semibold text-gray-700 mb-3">
         {vendor.first_name} {vendor.last_name}{vendor.business_name ? ` — ${vendor.business_name}` : ''}
       </p>
+
+      {/* Text fields — 2-col grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8">
         <div>
           <p className="text-xs font-bold text-gray-400 uppercase mb-2">Contact</p>
@@ -159,35 +215,67 @@ function VendorDetail({ vendor }: { vendor: VendorEntry }) {
           <DetailRow label="Mission They Support" value={vendor.mission_affiliation} />
         </div>
         <div className="mt-3">
-          <p className="text-xs font-bold text-gray-400 uppercase mb-2">Subscription & Media</p>
+          <p className="text-xs font-bold text-gray-400 uppercase mb-2">Subscription</p>
           <DetailRow label="Plan" value={vendor.current_subscription_type} />
           <DetailRow label="Amount" value={fmtAmount(vendor.subscription_amount, vendor.billing_cycle)} />
-          <DetailRow label="Logo (Processed)" value={vendor.logo_processed_url ? <MediaLink href={vendor.logo_processed_url} label="View" /> : null} />
-          <DetailRow label="Logo (Raw)" value={vendor.logo_raw_url ? <MediaLink href={vendor.logo_raw_url} label="View" /> : null} />
-          <DetailRow label="Banner (Processed)" value={vendor.banner_processed_url ? <MediaLink href={vendor.banner_processed_url} label="View" /> : null} />
-          {vendor.banner_images?.map((url, i) => (
-            <DetailRow key={i} label={`Banner Image ${i + 1}`} value={<MediaLink href={url} label="View" />} />
-          ))}
-          {vendor.processed_results?.merchandise && Object.keys(vendor.processed_results.merchandise).length > 0 && (
-            <>
-              <p className="text-xs font-bold text-gray-400 uppercase mt-3 mb-2">Merch Images</p>
-              {Object.entries(vendor.processed_results.merchandise).map(([item, url]) => (
-                <DetailRow key={item} label={item.charAt(0).toUpperCase() + item.slice(1)} value={<MediaLink href={url} label="View" />} />
-              ))}
-            </>
-          )}
+          {vendor.current_subscription_type === 'free' && vendor.current_subscription_end_date && (() => {
+            const { expiryDate, daysLeft } = freeTrialStatus(vendor.current_subscription_end_date);
+            const color = daysLeft <= 0 ? 'text-red-600' : daysLeft <= 7 ? 'text-orange-600' : 'text-gray-700';
+            return (
+              <DetailRow
+                label="Trial Expires"
+                value={<span className={`font-medium ${color}`}>{expiryDate}{daysLeft <= 0 ? ' (expired)' : daysLeft === 1 ? ' (tomorrow)' : ` (${daysLeft} days)`}</span>}
+              />
+            );
+          })()}
         </div>
+      </div>
+
+      {/* Media — full width below */}
+      <div className="mt-5 border-t border-gray-200 pt-4">
+        <p className="text-xs font-bold text-gray-400 uppercase mb-3">Media</p>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {vendor.logo_processed_url && (
+            <MediaThumb url={vendor.logo_processed_url} label="Logo (Processed)" />
+          )}
+          {vendor.logo_raw_url && (
+            <MediaThumb url={vendor.logo_raw_url} label="Logo (Raw)" />
+          )}
+          {vendor.banner_processed_url && (
+            <MediaThumb url={vendor.banner_processed_url} label="Banner (Processed)" />
+          )}
+          {vendor.banner_images?.map((url, i) => (
+            <MediaThumb key={i} url={url} label={`Banner Source ${i + 1}`} />
+          ))}
+        </div>
+
+        {merchEntries.length > 0 && (
+          <MediaSection title="Merch Images">
+            <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-7 gap-2">
+              {merchEntries.map(([item, url]) => (
+                <MediaThumb key={item} url={url} label={item.replace(/_/g, ' ')} />
+              ))}
+            </div>
+          </MediaSection>
+        )}
       </div>
     </div>
   );
 }
 
 function StoreDetail({ store }: { store: StoreEntry }) {
+  const merchEntries = store.processed_results?.merchandise
+    ? Object.entries(store.processed_results.merchandise)
+    : [];
+  const parishCards = store.processed_results?.parish_cards ?? [];
+
   return (
     <div className="p-4 bg-gray-50 border-t border-gray-200">
       <p className="text-sm font-semibold text-gray-700 mb-3">
         {store.first_name} {store.last_name}{store.organization_name ? ` — ${store.organization_name}` : ''}
       </p>
+
+      {/* Text fields — 2-col grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8">
         <div>
           <p className="text-xs font-bold text-gray-400 uppercase mb-2">Contact</p>
@@ -217,25 +305,60 @@ function StoreDetail({ store }: { store: StoreEntry }) {
           <DetailRow label="Referrer" value={store.referral_associate_name} />
         </div>
         <div className="mt-3">
-          <p className="text-xs font-bold text-gray-400 uppercase mb-2">Subscription & Media</p>
+          <p className="text-xs font-bold text-gray-400 uppercase mb-2">Subscription</p>
           <DetailRow label="Plan" value={store.current_subscription_type} />
           <DetailRow label="Amount" value={fmtAmount(store.subscription_amount, store.billing_cycle)} />
           <DetailRow label="Parishes" value={store.parish_count ?? undefined} />
-          <DetailRow label="Logo (Processed)" value={store.logo_processed_url ? <MediaLink href={store.logo_processed_url} label="View" /> : null} />
-          <DetailRow label="Logo (Raw)" value={store.logo_raw_url ? <MediaLink href={store.logo_raw_url} label="View" /> : null} />
-          <DetailRow label="Banner (Processed)" value={store.banner_processed_url ? <MediaLink href={store.banner_processed_url} label="View" /> : null} />
-          {store.banner_images?.map((url, i) => (
-            <DetailRow key={i} label={`Banner Image ${i + 1}`} value={<MediaLink href={url} label="View" />} />
-          ))}
-          {store.processed_results?.merchandise && Object.keys(store.processed_results.merchandise).length > 0 && (
-            <>
-              <p className="text-xs font-bold text-gray-400 uppercase mt-3 mb-2">Merch Images</p>
-              {Object.entries(store.processed_results.merchandise).map(([item, url]) => (
-                <DetailRow key={item} label={item.charAt(0).toUpperCase() + item.slice(1)} value={<MediaLink href={url} label="View" />} />
-              ))}
-            </>
-          )}
+          {store.current_subscription_type === 'free' && store.current_subscription_end_date && (() => {
+            const { expiryDate, daysLeft } = freeTrialStatus(store.current_subscription_end_date);
+            const color = daysLeft <= 0 ? 'text-red-600' : daysLeft <= 7 ? 'text-orange-600' : 'text-gray-700';
+            return (
+              <DetailRow
+                label="Trial Expires"
+                value={<span className={`font-medium ${color}`}>{expiryDate}{daysLeft <= 0 ? ' (expired)' : daysLeft === 1 ? ' (tomorrow)' : ` (${daysLeft} days)`}</span>}
+              />
+            );
+          })()}
         </div>
+      </div>
+
+      {/* Media — full width below */}
+      <div className="mt-5 border-t border-gray-200 pt-4">
+        <p className="text-xs font-bold text-gray-400 uppercase mb-3">Media</p>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {store.logo_processed_url && (
+            <MediaThumb url={store.logo_processed_url} label="Logo (Processed)" />
+          )}
+          {store.logo_raw_url && (
+            <MediaThumb url={store.logo_raw_url} label="Logo (Raw)" />
+          )}
+          {store.banner_processed_url && (
+            <MediaThumb url={store.banner_processed_url} label="Banner (Processed)" />
+          )}
+          {store.banner_images?.map((url, i) => (
+            <MediaThumb key={i} url={url} label={`Banner Source ${i + 1}`} />
+          ))}
+        </div>
+
+        {parishCards.length > 0 && (
+          <MediaSection title="Parish Donation Cards">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {parishCards.map((url, i) => (
+                <MediaThumb key={i} url={url} label={`Card ${i + 1}`} />
+              ))}
+            </div>
+          </MediaSection>
+        )}
+
+        {merchEntries.length > 0 && (
+          <MediaSection title="Merch Images">
+            <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-7 gap-2">
+              {merchEntries.map(([item, url]) => (
+                <MediaThumb key={item} url={url} label={item.replace(/_/g, ' ')} />
+              ))}
+            </div>
+          </MediaSection>
+        )}
       </div>
     </div>
   );
@@ -290,7 +413,10 @@ function VendorsTable({ vendors, newIds, dismissedIds, onDismiss }: { vendors: V
                 <td className="px-3 py-2 text-gray-600">{v.business_type || '—'}</td>
                 <td className="px-3 py-2 text-gray-600">{v.business_city || '—'}</td>
                 <td className="px-3 py-2 text-gray-600">{v.business_state || '—'}</td>
-                <td className="px-3 py-2 text-gray-600">{v.current_subscription_type || '—'}</td>
+                <td className="px-3 py-2 text-gray-600">
+                  <span>{v.current_subscription_type || '—'}</span>
+                  {v.current_subscription_type === 'free' && <FreeTrialBadge endDate={v.current_subscription_end_date} />}
+                </td>
                 <td className="px-3 py-2 text-gray-600 whitespace-nowrap">
                   {fmtAmount(v.subscription_amount, v.billing_cycle)}
                 </td>
@@ -366,7 +492,10 @@ function StoresTable({ stores, newIds, dismissedIds, onDismiss }: { stores: Stor
                 <td className="px-3 py-2 text-gray-600">{s.organization_type || '—'}</td>
                 <td className="px-3 py-2 text-gray-600">{s.city || '—'}</td>
                 <td className="px-3 py-2 text-gray-600">{s.state || '—'}</td>
-                <td className="px-3 py-2 text-gray-600">{s.current_subscription_type || '—'}</td>
+                <td className="px-3 py-2 text-gray-600">
+                  <span>{s.current_subscription_type || '—'}</span>
+                  {s.current_subscription_type === 'free' && <FreeTrialBadge endDate={s.current_subscription_end_date} />}
+                </td>
                 <td className="px-3 py-2 text-gray-600 whitespace-nowrap">
                   {fmtAmount(s.subscription_amount, s.billing_cycle)}
                 </td>

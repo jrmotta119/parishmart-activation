@@ -14,13 +14,18 @@ const path_1 = __importDefault(require("path"));
 const dotenv_1 = __importDefault(require("dotenv"));
 // Import database connection
 const connection_1 = require("./db/connection");
+// Import email service
+const emailService_1 = require("./services/emailService");
 // Import routes
 const auth_1 = __importDefault(require("./routes/auth"));
 const users_1 = __importDefault(require("./routes/users"));
 const products_1 = __importDefault(require("./routes/products"));
 const vendors_1 = __importDefault(require("./routes/vendors"));
-const uploads_1 = __importDefault(require("./routes/uploads"));
+// import uploadRoutes from './routes/uploads'; // Temporarily disabled due to compilation issues
 const registration_1 = __importDefault(require("./routes/registration"));
+const admin_1 = __importDefault(require("./routes/admin"));
+const emailTest_1 = __importDefault(require("./routes/emailTest"));
+const webhooks_1 = __importDefault(require("./routes/webhooks"));
 // Import middleware
 const errorHandler_1 = require("./middleware/errorHandler");
 const notFound_1 = require("./middleware/notFound");
@@ -28,16 +33,26 @@ const notFound_1 = require("./middleware/notFound");
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 3001;
+// Trust proxy for Heroku/production deployments
+app.set('trust proxy', 1);
 // Security middleware
 app.use((0, helmet_1.default)({
-    contentSecurityPolicy: false, // Disable for development, configure properly for production
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+            fontSrc: ["'self'", "https://fonts.gstatic.com"],
+            scriptSrc: ["'self'"],
+            imgSrc: ["'self'", "blob:", "https:"],
+            frameSrc: ["'self'", "https://www.youtube.com", "https://www.youtube-nocookie.com"],
+            connectSrc: ["'self'"],
+        },
+    },
 }));
-// CORS configuration
+// CORS
 app.use((0, cors_1.default)({
-    origin: process.env.NODE_ENV === 'production'
-        ? process.env.CORS_ORIGINS?.split(',') || ['*']
-        : ['http://localhost:5173', 'http://localhost:3000'],
-    credentials: true
+    origin: process.env.CORS_ORIGINS || 'http://localhost:3000',
+    credentials: true,
 }));
 // Rate limiting
 const limiter = (0, express_rate_limit_1.default)({
@@ -46,77 +61,97 @@ const limiter = (0, express_rate_limit_1.default)({
     message: 'Too many requests from this IP, please try again later.',
 });
 app.use('/api/', limiter);
-// Logging middleware
-if (process.env.NODE_ENV !== 'test') {
-    app.use((0, morgan_1.default)('combined'));
-}
-// Compression middleware
-app.use((0, compression_1.default)());
 // Body parsing middleware
-app.use(express_1.default.json({ limit: '50mb' }));
-app.use(express_1.default.urlencoded({ extended: true, limit: '50mb' }));
-// Static file serving
-app.use('/uploads', express_1.default.static(path_1.default.join(__dirname, '../uploads')));
-// Health check endpoint
+app.use(express_1.default.json({ limit: '1mb' }));
+app.use(express_1.default.urlencoded({ extended: true, limit: '1mb' }));
+// Logging
+app.use((0, morgan_1.default)('combined'));
+// Compression
+app.use((0, compression_1.default)());
+// Health check endpoints
 app.get('/api/health', (req, res) => {
-    res.status(200).json({
-        success: true,
-        message: 'Parishmart API is running',
+    res.json({
+        status: 'OK',
         timestamp: new Date().toISOString(),
+        uptime: process.uptime(),
         environment: process.env.NODE_ENV || 'development',
     });
 });
-// Database health check endpoint
 app.get('/api/health/db', async (req, res) => {
     try {
         await (0, connection_1.testConnection)();
-        res.status(200).json({
-            success: true,
-            database: { status: 'healthy' },
+        res.json({
+            status: 'OK',
+            database: 'Connected',
             timestamp: new Date().toISOString(),
         });
     }
     catch (error) {
-        res.status(500).json({
-            success: false,
-            error: 'Database health check failed',
-            details: error instanceof Error ? error.message : 'Unknown error',
+        res.status(503).json({
+            status: 'ERROR',
+            database: 'Disconnected',
+            error: error instanceof Error ? error.message : 'Unknown error',
             timestamp: new Date().toISOString(),
         });
     }
 });
+// Email health check
+app.get('/api/health/email', async (req, res) => {
+    try {
+        const health = await emailService_1.EmailService.getHealthStatus();
+        res.json({
+            status: 'OK',
+            email: health,
+            timestamp: new Date().toISOString(),
+        });
+    }
+    catch (error) {
+        res.status(503).json({
+            status: 'ERROR',
+            email: 'Service unavailable',
+            error: error instanceof Error ? error.message : 'Unknown error',
+            timestamp: new Date().toISOString(),
+        });
+    }
+});
+// Static files
+app.use('/uploads', express_1.default.static(path_1.default.join(__dirname, '../uploads')));
 // API routes
 app.use('/api/auth', auth_1.default);
 app.use('/api/users', users_1.default);
 app.use('/api/products', products_1.default);
 app.use('/api/vendors', vendors_1.default);
-app.use('/api/uploads', uploads_1.default);
+// app.use('/api/uploads', uploadRoutes); // Temporarily disabled
 app.use('/api/registration', registration_1.default);
-// Serve static files from React build in production
+app.use('/api/admin', admin_1.default);
+app.use('/api/email-test', emailTest_1.default);
+app.use('/api/webhook', webhooks_1.default);
+// Serve client build files in production
 if (process.env.NODE_ENV === 'production') {
-    // Serve static files from the React app build directory
-    app.use(express_1.default.static(path_1.default.join(__dirname, '../../client/dist')));
-    // Handle React routing, return all requests to React app
+    const clientBuildPath = path_1.default.join(__dirname, '../../client/dist');
+    app.use(express_1.default.static(clientBuildPath));
+    // Handle client-side routing
     app.get('*', (req, res) => {
-        res.sendFile(path_1.default.join(__dirname, '../../client/dist/index.html'));
+        res.sendFile(path_1.default.join(clientBuildPath, 'index.html'));
     });
 }
-else {
-    // Development route
-    app.get('/', (req, res) => {
-        res.json({ message: 'API is running in development mode' });
-    });
-}
-// 404 handler for API routes
-app.use('/api/*', notFound_1.notFound);
-// Error handling middleware
+// Error handling middleware (must be last)
+app.use(notFound_1.notFound);
 app.use(errorHandler_1.errorHandler);
 // Start server
 app.listen(PORT, async () => {
     console.log(`🚀 Server running on port ${PORT}`);
     console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
     console.log(`🗄️  Database health: http://localhost:${PORT}/api/health/db`);
+    console.log(`📧 Email health: http://localhost:${PORT}/api/health/email`);
     console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+    // Initialize email service
+    try {
+        await emailService_1.EmailService.initialize();
+    }
+    catch (error) {
+        console.warn('⚠️  Email service initialization failed, continuing without email functionality');
+    }
     // Test database connection only if DATABASE_URL is provided
     if (process.env.DATABASE_URL && process.env.DATABASE_URL !== 'your_actual_heroku_postgres_url_here') {
         console.log('🔌 Testing database connection...');

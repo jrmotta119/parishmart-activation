@@ -24,16 +24,27 @@ const getClient = async () => {
     return await pool.connect();
 };
 exports.getClient = getClient;
-const testConnection = async () => {
-    try {
-        const client = await pool.connect();
-        const result = await client.query('SELECT NOW()');
-        console.log('✅ Database connected successfully at:', result.rows[0].now);
-        client.release();
-    }
-    catch (error) {
-        console.error('❌ Database connection failed:', error);
-        throw error;
+const testConnection = async (retries = 5, delay = 2000) => {
+    for (let i = 0; i < retries; i++) {
+        try {
+            const client = await pool.connect();
+            const result = await client.query('SELECT NOW()');
+            console.log('✅ Database connected successfully at:', result.rows[0].now);
+            client.release();
+            return;
+        }
+        catch (error) {
+            const isLastAttempt = i === retries - 1;
+            if (error.code === 'EAI_AGAIN' || error.code === 'ENOTFOUND' || error.code === 'ETIMEDOUT') {
+                console.warn(`⚠️  Database connection attempt ${i + 1}/${retries} failed (DNS/Network issue). ${isLastAttempt ? 'Final attempt failed.' : `Retrying in ${delay / 1000}s...`}`);
+                if (!isLastAttempt) {
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    continue;
+                }
+            }
+            console.error('❌ Database connection failed:', error);
+            throw error;
+        }
     }
 };
 exports.testConnection = testConnection;

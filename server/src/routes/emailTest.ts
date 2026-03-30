@@ -18,6 +18,14 @@ const emailTestLimiter = rateLimit({
 
 router.use(emailTestLimiter);
 
+// Block all email test routes in production
+router.use((req, res, next) => {
+  if (process.env.NODE_ENV === 'production') {
+    return res.status(404).json({ success: false, error: 'Not found' });
+  }
+  next();
+});
+
 /**
  * POST /api/email-test/connection
  * Test email server connection

@@ -1,26 +1,27 @@
 import { Router } from 'express';
 import FileController, { mediaUpload, documentUpload } from '../controllers/fileController';
+import { requireSuperAdminAuth } from '../middleware/adminAuth';
 import { HTTP_STATUS } from '@parishmart/shared';
 
 const router = Router();
 
-// POST /api/upload/media - Upload images/videos to public bucket
+// POST /api/upload/media - Upload images/videos to public bucket (used during registration, no auth)
 router.post('/media', mediaUpload.single('file'), FileController.uploadMedia);
 
-// POST /api/upload/documents - Upload documents to private bucket
+// POST /api/upload/documents - Upload documents to private bucket (used during registration, no auth)
 router.post('/documents', documentUpload.single('file'), FileController.uploadDocument);
 
-// POST /api/upload/signed-url/:fileKey - Generate signed URL for private files
-router.post('/signed-url/:fileKey', FileController.generateSignedUrl);
+// POST /api/upload/signed-url/:fileKey - Generate signed URL for private files (admin only)
+router.post('/signed-url/:fileKey', requireSuperAdminAuth, FileController.generateSignedUrl);
 
-// GET /api/upload/files/:id - Get file information
-router.get('/files/:id', FileController.getFileInfo);
+// GET /api/upload/files/:id - Get file information (admin only)
+router.get('/files/:id', requireSuperAdminAuth, FileController.getFileInfo);
 
-// DELETE /api/upload/files/:id - Delete file
-router.delete('/files/:id', FileController.deleteFile);
+// DELETE /api/upload/files/:id - Delete file (admin only)
+router.delete('/files/:id', requireSuperAdminAuth, FileController.deleteFile);
 
-// GET /api/upload/stats - Get file statistics
-router.get('/stats', FileController.getFileStats);
+// GET /api/upload/stats - Get file statistics (admin only)
+router.get('/stats', requireSuperAdminAuth, FileController.getFileStats);
 
 // Error handling middleware for multer errors
 router.use((error: any, req: any, res: any, next: any) => {

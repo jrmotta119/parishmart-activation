@@ -338,8 +338,13 @@ const StoreRegistrationForm = () => {
       ...formData,
       subscriptionTier: tier,
       organizationType: orgTypeByTier[tier],
-      parishCount: tier === 'tier3' ? Math.max(5, formData.parishCount) : formData.parishCount,
+      parishCount: tier === 'tier3' ? Math.max(5, formData.parishCount) : 1,
     });
+    // Clear parish preload when switching to a tier that doesn't support it
+    if (tier !== 'free' && tier !== 'tier2') {
+      setSelectedParish(null);
+      setIsManualEntry(false);
+    }
   };
 
   const handleConsultationChange = (needsConsultation: boolean) => {
@@ -649,8 +654,8 @@ const StoreRegistrationForm = () => {
                   Organization & Administrator Information
                 </h2>
 
-                {/* Pre-load Parish Selector */}
-                {(formData.organizationType === "parish" || formData.organizationType === "diocese") && (
+                {/* Pre-load Parish Selector — only for Free and Parish Growth (tier2) */}
+                {(formData.subscriptionTier === "free" || formData.subscriptionTier === "tier2") && (
                   <div className="mb-8">
                     <Label className="block text-sm font-medium text-gray-700 mb-2">
                       Find your parish to pre-fill information

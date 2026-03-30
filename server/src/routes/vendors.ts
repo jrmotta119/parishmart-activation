@@ -61,66 +61,6 @@ router.get('/missions', async (req: Request, res: Response) => {
   }
 });
 
-// GET /api/vendors/schema - Inspect database schema
-router.get('/schema', async (req: Request, res: Response) => {
-  try {
-    console.log('🔍 Inspecting database schema...');
-
-    // Get missions table structure
-    const missionsSchema = await query(`
-      SELECT column_name, data_type, is_nullable, column_default
-      FROM information_schema.columns
-      WHERE table_name = 'missions'
-      ORDER BY ordinal_position;
-    `);
-
-    // Get all tables
-    const tables = await query(`
-      SELECT table_name
-      FROM information_schema.tables
-      WHERE table_schema = 'public'
-      ORDER BY table_name;
-    `);
-
-    // Get responsible table schema
-    const responsibleSchema = await query(`
-      SELECT column_name, data_type, is_nullable, column_default
-      FROM information_schema.columns
-      WHERE table_name = 'responsible'
-      ORDER BY ordinal_position;
-    `);
-
-    // Get responsible table constraints
-    const responsibleConstraints = await query(`
-      SELECT con.conname as constraint_name,
-             con.contype as constraint_type,
-             pg_get_constraintdef(con.oid) as constraint_definition
-      FROM pg_constraint con
-      JOIN pg_class rel ON rel.oid = con.conrelid
-      WHERE rel.relname = 'responsible'
-      AND con.contype = 'c';
-    `);
-
-    res.status(HTTP_STATUS.OK).json({
-      success: true,
-      data: {
-        tables: tables.rows,
-        missionsSchema: missionsSchema.rows,
-        responsibleSchema: responsibleSchema.rows,
-        responsibleConstraints: responsibleConstraints.rows
-      },
-      message: 'Database schema retrieved successfully'
-    });
-
-  } catch (error) {
-    console.error('❌ Error inspecting schema:', error);
-    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
-      success: false,
-      message: 'Failed to inspect database schema',
-      error: process.env.NODE_ENV === 'development' ? error : 'Internal server error'
-    });
-  }
-});
 
 // POST /api/vendors/update-missions - Update missions and responsible data from PDF (dev only)
 router.post('/update-missions', async (req: Request, res: Response) => {

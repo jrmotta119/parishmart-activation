@@ -17,6 +17,7 @@ export interface ProcessSellerPayload {
   logo_url?: string;           // any public URL — S3 or external
   images_for_banner: string[]; // 1–5 public image URLs
   merchandise?: string[];      // store-only; omit for vendor-only logo/banner processing
+  parish?: boolean;            // true = generate parish donation cards (store-only)
   skip_background_removal: boolean;
   webhook_url: string;         // our callback endpoint
 }
@@ -37,7 +38,8 @@ export interface JobResult {
       width?: number;
       height?: number;
     };
-    merchandise?: Record<string, string>; // e.g. { tshirt: url, cap: url, hoodie: url }
+    merchandise?: Record<string, string>; // e.g. { tshirt_white: url, ... }
+    parish_cards?: string[];              // [card_0_url, card_1_url] — present when parish: true
   };
   error?: string | null;
 }
