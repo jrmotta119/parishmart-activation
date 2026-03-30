@@ -28,6 +28,7 @@ interface VendorEntry {
   contact_phone: string;
   current_subscription_type: string;
   subscription_amount: number | null;
+  current_subscription_end_date: string | null;
   billing_cycle: string | null;
   about_you: string | null;
   community_contribution: string | null;
@@ -63,6 +64,7 @@ interface StoreEntry {
   collect_donations: boolean;
   donations_platform: string;
   current_subscription_type: string;
+  current_subscription_end_date: string | null;
   subscription_amount: number | null;
   billing_cycle: string | null;
   parish_count: number | null;
