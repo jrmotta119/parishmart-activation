@@ -18,6 +18,7 @@ export interface ProcessSellerPayload {
   images_for_banner: string[]; // 1–5 public image URLs
   merchandise?: string[];      // store-only; omit for vendor-only logo/banner processing
   parish?: boolean;            // true = generate parish donation cards (store-only)
+  circle_logo_for_merch?: boolean; // false = keep logo as-is on merch (no circular crop)
   skip_background_removal: boolean;
   webhook_url: string;         // our callback endpoint
 }

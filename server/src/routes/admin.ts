@@ -360,6 +360,7 @@ async function activateStoreApproval(client: PoolClient, adminId: number, userDa
               logo_url: logoRow?.media_url,
               images_for_banner: imagesForBanner,
               parish: true,
+              circle_logo_for_merch: false,
               merchandise: [
                 'tshirt_white', 'tshirt_black', 'tshirt_red', 'tshirt_navy', 'tshirt_heather',
                 'hoodie_white', 'hoodie_black', 'hoodie_red', 'hoodie_navy', 'hoodie_heather',
