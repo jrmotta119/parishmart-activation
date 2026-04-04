@@ -7,6 +7,7 @@ import { query, getClient } from '../db/connection';
 import { HTTP_STATUS } from '@parishmart/shared';
 import rateLimit from 'express-rate-limit';
 import { ImageProcessingService } from '../services/imageProcessingService';
+import { MarketplaceService } from '../services/marketplaceService';
 import { requireSuperAdminAuth } from '../middleware/adminAuth';
 
 interface VendorData {
@@ -719,6 +720,29 @@ router.post('/tokens/cleanup', requireSuperAdminAuth, async (req: Request, res: 
     res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
       success: false,
       error: 'Failed to cleanup tokens'
+    });
+  }
+});
+
+/**
+ * GET /api/admin/marketplace/test
+ * Verify marketplace API connectivity and signature (admin only)
+ */
+router.get('/marketplace/test', requireSuperAdminAuth, async (req: Request, res: Response) => {
+  try {
+    const countries = await MarketplaceService.getCountries();
+    res.json({
+      success: true,
+      message: 'Marketplace API connection successful',
+      country_count: countries.length,
+      sample: countries.slice(0, 3),
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    console.error('❌ Marketplace connectivity test failed:', error);
+    res.status(502).json({
+      success: false,
+      error: message,
     });
   }
 });

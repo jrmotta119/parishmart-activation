@@ -2,6 +2,7 @@ import crypto from 'crypto';
 import express, { Request, Response } from 'express';
 import { query } from '../db/connection';
 import type { JobResult } from '../services/imageProcessingService';
+import { MarketplaceService } from '../services/marketplaceService';
 
 const router = express.Router();
 
@@ -148,6 +149,14 @@ router.post('/image-processing', async (req: Request, res: Response) => {
     );
 
     console.log(`✅ ImaMod webhook fully processed for ${seller_id} (logo, banner, merchandise stored)`);
+
+    // Trigger marketplace seller sync (non-blocking)
+    // TODO: implement full sync once marketplace create-seller API docs are received
+    const sellerType = isVendor ? 'vendor' : 'store';
+    MarketplaceService.syncSeller(seller_id, sellerType).catch(err => {
+      console.error(`⚠️ Marketplace sync failed for ${seller_id} (non-fatal):`, err);
+    });
+
   } catch (err) {
     console.error(`❌ Error handling ImaMod webhook for ${seller_id}:`, err);
   }

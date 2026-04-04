@@ -26,6 +26,7 @@ const registration_1 = __importDefault(require("./routes/registration"));
 const admin_1 = __importDefault(require("./routes/admin"));
 const emailTest_1 = __importDefault(require("./routes/emailTest"));
 const webhooks_1 = __importDefault(require("./routes/webhooks"));
+const externalApi_1 = __importDefault(require("./routes/externalApi"));
 // Import middleware
 const errorHandler_1 = require("./middleware/errorHandler");
 const notFound_1 = require("./middleware/notFound");
@@ -126,6 +127,7 @@ app.use('/api/registration', registration_1.default);
 app.use('/api/admin', admin_1.default);
 app.use('/api/email-test', emailTest_1.default);
 app.use('/api/webhook', webhooks_1.default);
+app.use('/api/external', externalApi_1.default);
 // Serve client build files in production
 if (process.env.NODE_ENV === 'production') {
     const clientBuildPath = path_1.default.join(__dirname, '../../client/dist');
