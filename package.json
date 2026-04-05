@@ -1,39 +1,31 @@
 {
   "name": "parishmart-monorepo",
   "version": "1.0.0",
-  "description": "Parishmart monorepo with React frontend and Express backend",
+  "description": "Parishmart monorepo — faith-based marketplace platform",
   "private": true,
   "workspaces": [
-    "client",
-    "server",
-    "shared"
+    "apps/*",
+    "packages/*"
   ],
   "scripts": {
-    "heroku-postbuild": "npm run build:client && npm run build:server",
-    "build:client": "cd client && npm run build",
-    "build:server": "cd server && npm install && npm run build",
-    "start": "cd server && npm start",
-    "dev": "concurrently \"npm run dev:client\" \"npm run dev:server\"",
-    "dev:client": "cd client && npm run dev",
-    "dev:server": "cd server && npm run dev",
-    "build": "npm run build:client && npm run build:server",
-    "start:client": "cd client && npm run start",
-    "start:server": "cd server && npm run start",
-    "install:all": "npm install && cd client && npm install && cd ../server && npm install",
-    "clean": "npm run clean:client && npm run clean:server",
-    "clean:client": "cd client && rm -rf dist node_modules",
-    "clean:server": "cd server && rm -rf dist node_modules",
-    "lint": "npm run lint:client && npm run lint:server",
-    "lint:client": "cd client && npm run lint",
-    "lint:server": "cd server && npm run lint",
-    "db:migrate": "cd server && npm run db:migrate",
-    "db:seed": "cd server && npm run db:seed"
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "dev:onboarding": "turbo run dev --filter=parishmart-client",
+    "dev:marketplace": "turbo run dev --filter=parishmart-marketplace",
+    "dev:api": "turbo run dev --filter=parishmart-server",
+    "start": "cd apps/api && npm start",
+    "lint": "turbo run lint",
+    "clean": "turbo run clean",
+    "db:migrate": "cd apps/api && npm run db:migrate",
+    "db:seed": "cd apps/api && npm run db:seed"
   },
   "devDependencies": {
     "concurrently": "^8.2.2",
     "cypress": "^15.3.0",
+    "turbo": "^2.0.0",
     "vite": "^6.3.6"
   },
+  "packageManager": "npm@11.6.0",
   "engines": {
     "node": ">=18.x",
     "npm": ">=9.x"

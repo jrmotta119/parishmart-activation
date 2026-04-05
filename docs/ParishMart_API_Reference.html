@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ParishMart — API Reference & Marketplace Integration Request</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+
+  :root {
+    --blue:      #006699;
+    --blue-dark: #004D73;
+    --blue-light:#E5F3FA;
+    --green:     #166534;
+    --green-bg:  #F0FDF4;
+    --amber:     #92400E;
+    --amber-bg:  #FFFBEB;
+    --red:       #991B1B;
+    --red-bg:    #FEF2F2;
+    --gray-50:   #F8FAFC;
+    --gray-100:  #F1F5F9;
+    --gray-200:  #E2E8F0;
+    --gray-400:  #94A3B8;
+    --gray-600:  #475569;
+    --gray-800:  #1E293B;
+    --ink:       #0F172A;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', system-ui, sans-serif;
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--ink);
+    background: #fff;
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 48px 40px;
+  }
+
+  /* ── Cover ── */
+  .cover {
+    border-bottom: 2px solid var(--blue);
+    padding-bottom: 32px;
+    margin-bottom: 40px;
+  }
+  .cover-eyebrow {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--blue);
+    margin-bottom: 8px;
+  }
+  .cover h1 {
+    font-size: 26px;
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1.2;
+    margin-bottom: 6px;
+  }
+  .cover-sub {
+    font-size: 14px;
+    color: var(--gray-600);
+    margin-bottom: 20px;
+  }
+  .cover-meta {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .meta-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--gray-400);
+  }
+  .meta-value {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--gray-800);
+  }
+
+  /* ── TOC ── */
+  .toc {
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    border-radius: 8px;
+    padding: 20px 24px;
+    margin-bottom: 44px;
+  }
+  .toc-title {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--gray-400);
+    margin-bottom: 12px;
+  }
+  .toc ol {
+    padding-left: 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px 32px;
+  }
+  .toc li { font-size: 12px; color: var(--blue); }
+  .toc a { color: var(--blue); text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+
+  /* ── Section headers ── */
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 6px;
+    margin-top: 48px;
+  }
+  .section-num {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--blue);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .section-header h2 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .section-desc {
+    font-size: 12px;
+    color: var(--gray-600);
+    margin-bottom: 24px;
+    padding-left: 40px;
+    line-height: 1.7;
+  }
+
+  .sub-header {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--blue-dark);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin: 28px 0 12px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--blue-light);
+  }
+
+  /* ── Auth callout ── */
+  .auth-box {
+    background: var(--blue-light);
+    border-left: 3px solid var(--blue);
+    border-radius: 0 6px 6px 0;
+    padding: 14px 16px;
+    margin-bottom: 20px;
+    font-size: 12px;
+  }
+  .auth-box strong { color: var(--blue-dark); }
+  .auth-box code { background: rgba(0,102,153,0.12); padding: 1px 5px; border-radius: 3px; font-family: 'DM Mono', monospace; font-size: 11px; }
+
+  .note-box {
+    background: var(--amber-bg);
+    border-left: 3px solid #D97706;
+    border-radius: 0 6px 6px 0;
+    padding: 14px 16px;
+    margin-bottom: 20px;
+    font-size: 12px;
+    color: var(--amber);
+  }
+  .note-box strong { color: #92400E; }
+
+  .request-box {
+    background: var(--green-bg);
+    border-left: 3px solid #16a34a;
+    border-radius: 0 6px 6px 0;
+    padding: 14px 16px;
+    margin: 20px 0;
+    font-size: 12px;
+    color: var(--green);
+  }
+  .request-box strong { color: var(--green); }
+
+  /* ── API endpoint card ── */
+  .endpoint {
+    border: 1px solid var(--gray-200);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+  .endpoint-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: var(--gray-50);
+    border-bottom: 1px solid var(--gray-200);
+  }
+  .method {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    padding: 3px 8px;
+    border-radius: 4px;
+    min-width: 46px;
+    text-align: center;
+  }
+  .method.get    { background: #DBEAFE; color: #1D4ED8; }
+  .method.post   { background: #D1FAE5; color: #065F46; }
+  .method.put    { background: #FEF3C7; color: #92400E; }
+  .method.delete { background: #FEE2E2; color: #991B1B; }
+  .endpoint-path {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ink);
+    flex: 1;
+  }
+  .endpoint-desc {
+    font-size: 11px;
+    color: var(--gray-600);
+  }
+  .endpoint-body {
+    padding: 12px 14px;
+  }
+
+  /* ── Table ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    margin-top: 4px;
+  }
+  thead tr {
+    background: var(--gray-100);
+  }
+  th {
+    text-align: left;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--gray-600);
+    padding: 7px 10px;
+    border-bottom: 1px solid var(--gray-200);
+  }
+  td {
+    padding: 7px 10px;
+    border-bottom: 1px solid var(--gray-100);
+    vertical-align: top;
+  }
+  tr:last-child td { border-bottom: none; }
+  td code {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    background: var(--gray-100);
+    padding: 1px 5px;
+    border-radius: 3px;
+    color: var(--blue-dark);
+  }
+  .tag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 500;
+    padding: 1px 7px;
+    border-radius: 999px;
+    margin: 1px;
+  }
+  .tag-req  { background: #FEE2E2; color: #991B1B; }
+  .tag-opt  { background: var(--gray-100); color: var(--gray-600); }
+  .tag-str  { background: var(--blue-light); color: var(--blue-dark); }
+  .tag-int  { background: #EDE9FE; color: #5B21B6; }
+  .tag-bool { background: #FEF3C7; color: #92400E; }
+  .tag-arr  { background: #D1FAE5; color: #065F46; }
+
+  /* ── Code block ── */
+  pre {
+    background: var(--gray-800);
+    color: #E2E8F0;
+    border-radius: 6px;
+    padding: 12px 14px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    line-height: 1.7;
+    overflow-x: auto;
+    margin-top: 8px;
+  }
+  pre .k  { color: #93C5FD; }
+  pre .s  { color: #86EFAC; }
+  pre .c  { color: #64748B; font-style: italic; }
+  pre .n  { color: #FDE68A; }
+
+  /* ── Status badges ── */
+  .badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 999px;
+  }
+  .badge-live    { background: #D1FAE5; color: #065F46; }
+  .badge-stub    { background: #FEF3C7; color: #92400E; }
+  .badge-needed  { background: #FEE2E2; color: #991B1B; }
+  .badge-partial { background: var(--blue-light); color: var(--blue-dark); }
+
+  /* ── Divider ── */
+  hr {
+    border: none;
+    border-top: 1px solid var(--gray-200);
+    margin: 40px 0;
+  }
+
+  /* ── Footer ── */
+  .footer {
+    margin-top: 56px;
+    padding-top: 20px;
+    border-top: 2px solid var(--blue);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    color: var(--gray-400);
+  }
+
+  /* ── Print ── */
+  @media print {
+    body { padding: 20px 24px; font-size: 11px; }
+    .section-header { margin-top: 32px; }
+    .endpoint { break-inside: avoid; }
+    table { break-inside: avoid; }
+    @page { margin: 1.5cm 1.5cm; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- COVER                                                                  -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="cover">
+  <div class="cover-eyebrow">ParishMart · Internal Technical Document</div>
+  <h1>API Reference &amp; Marketplace Integration Request</h1>
+  <div class="cover-sub">Existing backend APIs · Data needed from the Laravel marketplace · Mobile marketplace requirements</div>
+  <div class="cover-meta">
+    <div class="meta-item"><span class="meta-label">Version</span><span class="meta-value">1.0</span></div>
+    <div class="meta-item"><span class="meta-label">Date</span><span class="meta-value">April 2026</span></div>
+    <div class="meta-item"><span class="meta-label">Prepared by</span><span class="meta-value">ParishMart Engineering</span></div>
+    <div class="meta-item"><span class="meta-label">Audience</span><span class="meta-value">Laravel Marketplace Team</span></div>
+    <div class="meta-item"><span class="meta-label">Status</span><span class="meta-value badge badge-partial">Draft — Awaiting Marketplace Response</span></div>
+  </div>
+</div>
+
+<!-- TOC -->
+<div class="toc">
+  <div class="toc-title">Contents</div>
+  <ol>
+    <li><a href="#s1">Authentication Scheme</a></li>
+    <li><a href="#s2">Part A — Our APIs (ParishMart Backend)</a></li>
+    <li><a href="#s3">Part B — APIs We Need (Laravel Marketplace)</a></li>
+    <li><a href="#s4">User Registration Fields</a></li>
+    <li><a href="#s5">Parish / Store Fields</a></li>
+    <li><a href="#s6">Vendor Fields</a></li>
+    <li><a href="#s7">Product Fields</a></li>
+    <li><a href="#s8">Donation / Campaign Fields</a></li>
+  </ol>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- SECTION 1 — AUTH                                                       -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="section-header" id="s1">
+  <span class="section-num">1</span>
+  <h2>Authentication Scheme</h2>
+</div>
+<div class="section-desc">
+  All API-to-API communication between ParishMart and the Laravel marketplace uses
+  <strong>HMAC-SHA256 request signing</strong>. Every request must include four HTTP headers.
+  The same algorithm is used in both directions — our calls to you, and your calls to us.
+</div>
+
+<div class="auth-box">
+  <strong>Required headers on every request:</strong><br/><br/>
+  <code>X-Api-Key</code> — Pre-shared API key identifying the caller.<br/>
+  <code>X-Timestamp</code> — Unix epoch seconds (integer). Requests older than 5 minutes are rejected.<br/>
+  <code>X-Nonce</code> — 32-character hex random string. Prevents replay attacks.<br/>
+  <code>X-Signature</code> — HMAC-SHA256 hex digest of the canonical string (see below).<br/>
+  <code>X-Idempotency-Key</code> — UUID, required on POST requests only. Prevents duplicate creation on retries.
+</div>
+
+<div class="sub-header">Canonical String Construction</div>
+<pre><span class="c">// Canonical string joined with newlines:</span>
+<span class="k">canonical</span> = METHOD + <span class="s">"\n"</span> + PATH + <span class="s">"\n"</span> + TIMESTAMP + <span class="s">"\n"</span> + NONCE + <span class="s">"\n"</span> + SHA256(body)
+
+<span class="c">// body = JSON.stringify(requestBody) for POST, or "" for GET
+// X-Signature = HMAC-SHA256(canonical, API_SECRET).hex</span>
+
+<span class="c">// Example (GET /api/v1/external-api/parishes):</span>
+<span class="k">canonical</span> = <span class="s">"GET\n/api/v1/external-api/parishes\n1743800000\nabc123def456...\ne3b0c44..."</span>
+</pre>
+
+<hr/>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- SECTION 2 — OUR APIS                                                  -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="section-header" id="s2">
+  <span class="section-num">2</span>
+  <h2>Part A — Our APIs (ParishMart Backend)</h2>
+</div>
+<div class="section-desc">
+  These endpoints are hosted on the <strong>ParishMart Node.js/Express API</strong> (port 3001, AWS).
+  They are the interfaces the Laravel marketplace can call to query registered vendors and stores,
+  and the onboarding entry points for new registrations. All <code>/api/external/*</code> routes
+  require HMAC-SHA256 authentication. Rate limit: 60 req / 15 min per IP.
+</div>
+
+<!-- Registration -->
+<div class="sub-header">Onboarding &amp; Registration</div>
+
+<div class="endpoint">
+  <div class="endpoint-header">
+    <span class="method post">POST</span>
+    <span class="endpoint-path">/api/registration</span>
+    <span class="endpoint-desc">Submit vendor or store registration (multipart/form-data)</span>
+    <span class="badge badge-live" style="margin-left:auto">Live</span>
+  </div>
+  <div class="endpoint-body">
+    <table>
+      <thead><tr><th>Field</th><th>Type</th><th>Required?</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><code>registrationType</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-req">Required</span></td><td><code>"vendor"</code> or <code>"store"</code></td></tr>
+        <tr><td><code>firstName / lastName</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-req">Required</span></td><td>Owner / admin name</td></tr>
+        <tr><td><code>email</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-req"><Optg></Optg>Optional</span></td><td>Primary contact email</td></tr>
+        <tr><td><code>phone</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-req">Required</span></td><td>Phone number</td></tr>
+        <tr><td><code>parishAffiliation</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-req">Required</span></td><td>Mission/parish ID from dropdown</td></tr>
+        <tr><td><code>businessName / organizationName</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-req">Required</span></td><td>Trading name</td></tr>
+        <tr><td><code>businessType / organizationType</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-req">Required</span></td><td>Category / org type</td></tr>
+        <tr><td><code>businessDescription / description</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-req">Required</span></td><td>Free-text description</td></tr>
+        <tr><td><code>businessAddress, city, state, zipCode</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-req">Required</span></td><td>Physical address</td></tr>
+        <tr><td><code>subscriptionType</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-req">Required</span></td><td><code>free | tier1 | tier2 | tier3</code></td></tr>
+        <tr><td><code>billingCycle</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-req">Required</span></td><td><code>monthly | annual</code></td></tr>
+        <tr><td><code>websiteLinks</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-opt">Optional</span></td><td>Comma-separated URLs</td></tr>
+        <tr><td><code>reach</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-opt">Optional</span></td><td><code>local | regional | national | global</code></td></tr>
+        <tr><td><code>logo</code> (file)</td><td><span class="tag tag-arr">file</span></td><td><span class="tag tag-req">Required</span></td><td>PNG/JPG. Processed by ImaMod.</td></tr>
+        <tr><td><code>bannerImages</code> (file[])</td><td><span class="tag tag-arr">file[]</span></td><td><span class="tag tag-opt">Optional</span></td><td>Banner image(s)</td></tr>
+        <tr><td><code>hasTaxExemptStatus</code></td><td><span class="tag tag-bool">boolean</span></td><td><span class="tag tag-opt">Store only</span></td><td>501(c)(3) status flag</td></tr>
+        <tr><td><code>collectsDonations</code></td><td><span class="tag tag-bool">boolean</span></td><td><span class="tag tag-opt">Store only</span></td><td>Enables donation module</td></tr>
+      </tbody>
+    </table>
+    <pre><span class="c">// Success 201</span>
+{ <span class="n">"success"</span>: <span class="k">true</span>, <span class="n">"message"</span>: <span class="s">"vendor registration completed successfully"</span>,
+  <span class="n">"data"</span>: { <span class="n">"vendorId"</span>: 42, <span class="n">"approvalToken"</span>: <span class="s">"abc..."</span> } }</pre>
+  </div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header">
+    <span class="method get">GET</span>
+    <span class="endpoint-path">/api/registration/status/:token</span>
+    <span class="endpoint-desc">Check registration approval status by token</span>
+    <span class="badge badge-live" style="margin-left:auto">Live</span>
+  </div>
+  <div class="endpoint-body">
+    <pre><span class="c">// Success 200</span>
+{ <span class="n">"success"</span>: <span class="k">true</span>, <span class="n">"status"</span>: <span class="s">"pending"</span> <span class="c">/* pending | approved | rejected */</span> }</pre>
+  </div>
+</div>
+
+<!-- External API — Vendor/Store Status -->
+<div class="sub-header">External API — Vendor &amp; Store Status (called by Marketplace)</div>
+
+<div class="auth-box" style="margin-bottom:16px">
+  <strong>Auth required:</strong> All routes below require <code>X-Api-Key</code>, <code>X-Timestamp</code>, <code>X-Nonce</code>, <code>X-Signature</code> headers.
+  Contact ParishMart Engineering for your key/secret pair.
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header">
+    <span class="method get">GET</span>
+    <span class="endpoint-path">/api/external/vendors</span>
+    <span class="endpoint-desc">List all vendors with marketplace sync status</span>
+    <span class="badge badge-live" style="margin-left:auto">Live</span>
+  </div>
+  <div class="endpoint-body">
+    <pre>{ <span class="n">"success"</span>: <span class="k">true</span>, <span class="n">"data"</span>: [
+  { <span class="n">"id"</span>: 1, <span class="n">"type"</span>: <span class="s">"vendor"</span>, <span class="n">"name"</span>: <span class="s">"Maria's Bakery"</span>,
+    <span class="n">"email"</span>: <span class="s">"maria@example.com"</span>, <span class="n">"subscription_type"</span>: <span class="s">"tier1"</span>,
+    <span class="n">"approval_status"</span>: <span class="s">"approved"</span>,
+    <span class="n">"marketplace_status"</span>: <span class="s">"pending"</span>,  <span class="c">// pending | approved | synced</span>
+    <span class="n">"approved_at"</span>: <span class="s">"2026-01-15T10:00:00Z"</span>,
+    <span class="n">"marketplace_synced_at"</span>: <span class="k">null</span>,
+    <span class="n">"logo_url"</span>: <span class="s">"https://..."</span>, <span class="n">"banner_url"</span>: <span class="s">"https://..."</span> }
+] }</pre>
+  </div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header">
+    <span class="method get">GET</span>
+    <span class="endpoint-path">/api/external/vendors/:id</span>
+    <span class="endpoint-desc">Get a single vendor by vendor_id</span>
+    <span class="badge badge-live" style="margin-left:auto">Live</span>
+  </div>
+  <div class="endpoint-body">
+    Returns same shape as list item above. <code>404</code> if not found.
+  </div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header">
+    <span class="method get">GET</span>
+    <span class="endpoint-path">/api/external/stores</span>
+    <span class="endpoint-desc">List all parish stores with marketplace sync status</span>
+    <span class="badge badge-live" style="margin-left:auto">Live</span>
+  </div>
+  <div class="endpoint-body">
+    Same response shape as vendors, with <code>"type": "store"</code>.
+  </div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header">
+    <span class="method get">GET</span>
+    <span class="endpoint-path">/api/external/stores/:id</span>
+    <span class="endpoint-desc">Get a single store by organization_id</span>
+    <span class="badge badge-live" style="margin-left:auto">Live</span>
+  </div>
+  <div class="endpoint-body">
+    Returns same shape as store list item. <code>404</code> if not found.
+  </div>
+</div>
+
+<!-- Mission list -->
+<div class="sub-header">Missions / Parish List (used by Onboarding)</div>
+
+<div class="endpoint">
+  <div class="endpoint-header">
+    <span class="method get">GET</span>
+    <span class="endpoint-path">/api/vendors/missions</span>
+    <span class="endpoint-desc">Return list of parishes/missions for the registration dropdown</span>
+    <span class="badge badge-live" style="margin-left:auto">Live</span>
+  </div>
+  <div class="endpoint-body">
+    <pre>{ <span class="n">"success"</span>: <span class="k">true</span>, <span class="n">"data"</span>: [
+  { <span class="n">"id"</span>: <span class="s">"st-edmond"</span>, <span class="n">"name"</span>: <span class="s">"St. Edmond"</span>, <span class="n">"city"</span>: <span class="s">"Lafayette"</span>, <span class="n">"state"</span>: <span class="s">"LA"</span> }
+] }</pre>
+  </div>
+</div>
+
+<!-- Auth (stub) -->
+<div class="sub-header">Authentication (Stubs — Not Yet Implemented)</div>
+
+<div class="endpoint">
+  <div class="endpoint-header">
+    <span class="method post">POST</span>
+    <span class="endpoint-path">/api/auth/login</span>
+    <span class="endpoint-desc">User login — returns JWT</span>
+    <span class="badge badge-stub" style="margin-left:auto">Stub</span>
+  </div>
+  <div class="endpoint-body">Planned. Accepts <code>{ email, password }</code>. Returns <code>{ token, refreshToken }</code>.</div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header">
+    <span class="method post">POST</span>
+    <span class="endpoint-path">/api/auth/register</span>
+    <span class="endpoint-desc">End-user account creation (mobile marketplace)</span>
+    <span class="badge badge-stub" style="margin-left:auto">Stub</span>
+  </div>
+  <div class="endpoint-body">Planned. Accepts user fields (see Section 4 for full field list requested from marketplace).</div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header">
+    <span class="method post">POST</span>
+    <span class="endpoint-path">/api/auth/refresh</span>
+    <span class="endpoint-desc">Refresh an expired JWT</span>
+    <span class="badge badge-stub" style="margin-left:auto">Stub</span>
+  </div>
+  <div class="endpoint-body">Accepts <code>{ refreshToken }</code>. Returns new <code>{ token }</code>.</div>
+</div>
+
+<!-- Upload -->
+<div class="sub-header">File Uploads</div>
+
+<div class="endpoint">
+  <div class="endpoint-header">
+    <span class="method post">POST</span>
+    <span class="endpoint-path">/api/upload/media</span>
+    <span class="endpoint-desc">Upload images/video to public S3 bucket</span>
+    <span class="badge badge-live" style="margin-left:auto">Live</span>
+  </div>
+  <div class="endpoint-body">
+    Accepts multipart/form-data. Returns <code>{ url: "https://parishmart-files-public.s3..." }</code>.<br/>
+    Bucket: <code>parishmart-files-public</code> · Region: <code>us-east-2</code>
+  </div>
+</div>
+
+<!-- Health -->
+<div class="sub-header">Health Checks</div>
+<div class="endpoint">
+  <div class="endpoint-header">
+    <span class="method get">GET</span>
+    <span class="endpoint-path">/api/health</span>
+    <span class="endpoint-desc">Server, database, and email service health</span>
+    <span class="badge badge-live" style="margin-left:auto">Live</span>
+  </div>
+  <div class="endpoint-body">Also available: <code>/api/health/db</code> and <code>/api/health/email</code></div>
+</div>
+
+<hr/>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- SECTION 3 — APIs WE NEED                                              -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="section-header" id="s3">
+  <span class="section-num">3</span>
+  <h2>Part B — APIs We Need from the Laravel Marketplace</h2>
+</div>
+<div class="section-desc">
+  The sections below document every endpoint we need the Laravel marketplace to expose so
+  the <strong>ParishMart mobile marketplace</strong> (Next.js) can replace its current static mock data
+  with live data. For each endpoint we specify the minimum required response fields.
+  Authentication should use the same HMAC-SHA256 scheme described in Section 1.
+</div>
+
+<div class="request-box">
+  <strong>To the Laravel team:</strong> Please provide base URL, versioning strategy, and confirm
+  which fields are available in your existing data model. Fields marked <span class="tag tag-req">Required</span>
+  are essential for the mobile UI to render correctly. Fields marked <span class="tag tag-opt">Optional</span>
+  are used for richer detail pages and can be added later.
+</div>
+
+<!-- Already confirmed -->
+<div class="endpoint">
+  <div class="endpoint-header">
+    <span class="method get">GET</span>
+    <span class="endpoint-path">/api/v1/external-api/countries</span>
+    <span class="endpoint-desc">Country list — already working (used for connectivity check)</span>
+    <span class="badge badge-live" style="margin-left:auto">Confirmed</span>
+  </div>
+  <div class="endpoint-body">
+    Returns <code>{ success: true, data: [ { id, name, code, nationality, is_default, status } ] }</code>
+  </div>
+</div>
+
+<div class="note-box">
+  <strong>Note:</strong> The endpoint below (<code>syncSeller</code>) is a documented TODO in our codebase.
+  Once the Laravel team provides the create-seller endpoint spec, we will implement
+  the push flow in <code>marketplaceService.ts → syncSeller()</code>.
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header">
+    <span class="method post">POST</span>
+    <span class="endpoint-path">/api/v1/external-api/sellers</span>
+    <span class="endpoint-desc">Create / sync an approved vendor or store into the marketplace</span>
+    <span class="badge badge-needed" style="margin-left:auto">Needed</span>
+  </div>
+  <div class="endpoint-body">
+    <p style="font-size:12px;color:var(--gray-600);margin-bottom:8px">
+      Called by ParishMart after admin approval. Should be idempotent (honor <code>X-Idempotency-Key</code>).
+    </p>
+    <p style="font-size:12px;margin-bottom:4px"><strong>We will send:</strong></p>
+    <table>
+      <thead><tr><th>Field</th><th>Type</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><code>parishmart_id</code></td><td><span class="tag tag-int">integer</span></td><td>Our vendor_id or organization_id</td></tr>
+        <tr><td><code>seller_type</code></td><td><span class="tag tag-str">string</span></td><td><code>"vendor"</code> or <code>"store"</code></td></tr>
+        <tr><td><code>name</code></td><td><span class="tag tag-str">string</span></td><td>Business / parish name</td></tr>
+        <tr><td><code>email</code></td><td><span class="tag tag-str">string</span></td><td>Primary contact email</td></tr>
+        <tr><td><code>subscription_type</code></td><td><span class="tag tag-str">string</span></td><td><code>free | tier1 | tier2 | tier3</code></td></tr>
+        <tr><td><code>logo_url</code></td><td><span class="tag tag-str">string</span></td><td>S3 URL of processed logo</td></tr>
+        <tr><td><code>banner_url</code></td><td><span class="tag tag-str">string</span></td><td>S3 URL of processed banner</td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:12px;margin:8px 0 4px"><strong>We expect back:</strong> <code>{ success: true, marketplace_id: "...", marketplace_url: "..." }</code></p>
+  </div>
+</div>
+
+<hr/>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- SECTION 4 — USER REGISTRATION                                         -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="section-header" id="s4">
+  <span class="section-num">4</span>
+  <h2>User Registration — Fields Required from Marketplace</h2>
+</div>
+<div class="section-desc">
+  The mobile marketplace's <strong>Account tab</strong> has a Sign Up form. We need the marketplace
+  to expose a user registration endpoint. Below are the fields our UI collects and the
+  minimum fields required for the response.
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header">
+    <span class="method post">POST</span>
+    <span class="endpoint-path">/api/v1/external-api/users/register</span>
+    <span class="endpoint-desc">Register a new marketplace user account</span>
+    <span class="badge badge-needed" style="margin-left:auto">Needed</span>
+  </div>
+  <div class="endpoint-body">
+    <table>
+      <thead><tr><th>Field</th><th>Type</th><th>Required?</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><code>first_name</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-req">Required</span></td><td>Max 64 chars</td></tr>
+        <tr><td><code>last_name</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-req">Required</span></td><td>Max 64 chars</td></tr>
+        <tr><td><code>email</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-req">Required</span></td><td>Must be unique. Used for login.</td></tr>
+        <tr><td><code>password</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-req">Required</span></td><td>Min 8 chars. Hashed server-side.</td></tr>
+        <tr><td><code>parish_id</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-opt">Optional</span></td><td>Home parish affiliation</td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:12px;margin:8px 0 4px"><strong>Expected response:</strong></p>
+    <table>
+      <thead><tr><th>Field</th><th>Type</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><code>user_id</code></td><td><span class="tag tag-int">integer/string</span></td><td><span class="tag tag-req">Required</span> — marketplace user ID</td></tr>
+        <tr><td><code>email</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-req">Required</span></td></tr>
+        <tr><td><code>token</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-req">Required</span> — JWT or session token for subsequent calls</td></tr>
+        <tr><td><code>refresh_token</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-opt">Optional</span></td></tr>
+        <tr><td><code>token_expires_at</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-opt">Optional</span> — ISO 8601 datetime</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header">
+    <span class="method post">POST</span>
+    <span class="endpoint-path">/api/v1/external-api/users/login</span>
+    <span class="endpoint-desc">Authenticate an existing user</span>
+    <span class="badge badge-needed" style="margin-left:auto">Needed</span>
+  </div>
+  <div class="endpoint-body">
+    <p style="font-size:12px;margin-bottom:8px"><strong>Send:</strong> <code>{ email, password }</code></p>
+    <p style="font-size:12px;margin-bottom:4px"><strong>Return:</strong> same shape as register response above.</p>
+  </div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header">
+    <span class="method post">POST</span>
+    <span class="endpoint-path">/api/v1/external-api/users/forgot-password</span>
+    <span class="endpoint-desc">Trigger password reset email</span>
+    <span class="badge badge-needed" style="margin-left:auto">Needed</span>
+  </div>
+  <div class="endpoint-body">
+    <p style="font-size:12px"><strong>Send:</strong> <code>{ email }</code> &nbsp;·&nbsp; <strong>Return:</strong> <code>{ success: true, message: "Reset email sent" }</code></p>
+  </div>
+</div>
+
+<hr/>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- SECTION 5 — PARISH / STORE FIELDS                                     -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="section-header" id="s5">
+  <span class="section-num">5</span>
+  <h2>Parishes / Stores — Fields Required from Marketplace</h2>
+</div>
+<div class="section-desc">
+  The mobile app has a <strong>Browse Parishes</strong> screen, individual <strong>Parish Store</strong> pages,
+  and a global home feed that lists featured parishes. These are the fields the UI currently
+  reads from <code>mockData.ts</code> that must come from the marketplace API.
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header">
+    <span class="method get">GET</span>
+    <span class="endpoint-path">/api/v1/external-api/parishes</span>
+    <span class="endpoint-desc">List all active parishes (summary — for browse screen &amp; home feed)</span>
+    <span class="badge badge-needed" style="margin-left:auto">Needed</span>
+  </div>
+  <div class="endpoint-body">
+    <table>
+      <thead><tr><th>Field</th><th>Type</th><th>Required?</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-req">Required</span></td><td>Unique slug or UUID. Used in URLs: <code>/store/:id</code></td></tr>
+        <tr><td><code>name</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-req">Required</span></td><td>e.g. "St. Edmond"</td></tr>
+        <tr><td><code>tagline</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-req">Required</span></td><td>Short mission statement</td></tr>
+        <tr><td><code>city</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-req">Required</span></td><td></td></tr>
+        <tr><td><code>state</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-req">Required</span></td><td>2-letter abbreviation</td></tr>
+        <tr><td><code>logo_url</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-req">Required</span></td><td>Square logo image. Min 200×200px.</td></tr>
+        <tr><td><code>hero_image_url</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-req">Required</span></td><td>Wide banner image. Min 800×300px.</td></tr>
+        <tr><td><code>primary_color</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-opt">Optional</span></td><td>Hex color, e.g. <code>#1A56A0</code>. Used for header tint.</td></tr>
+        <tr><td><code>accent_color</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-opt">Optional</span></td><td>Secondary brand color</td></tr>
+        <tr><td><code>product_count</code></td><td><span class="tag tag-int">integer</span></td><td><span class="tag tag-req">Required</span></td><td>Shown on parish card</td></tr>
+        <tr><td><code>donation_count</code></td><td><span class="tag tag-int">integer</span></td><td><span class="tag tag-opt">Optional</span></td><td>Active campaign count</td></tr>
+        <tr><td><code>vendor_count</code></td><td><span class="tag tag-int">integer</span></td><td><span class="tag tag-opt">Optional</span></td><td>Number of community vendors</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header">
+    <span class="method get">GET</span>
+    <span class="endpoint-path">/api/v1/external-api/parishes/:id</span>
+    <span class="endpoint-desc">Full parish detail including products, donations, and vendors</span>
+    <span class="badge badge-needed" style="margin-left:auto">Needed</span>
+  </div>
+  <div class="endpoint-body">
+    All fields from the list endpoint above, plus the embedded arrays documented in Sections 6–8.
+    <pre>{ <span class="n">"id"</span>: <span class="s">"st-edmond"</span>, <span class="n">"name"</span>: <span class="s">"St. Edmond"</span>, <span class="n">"..."</span>: <span class="s">"..."</span>,
+  <span class="n">"products"</span>: [ <span class="c">/* see Section 7 */</span> ],
+  <span class="n">"donation_goals"</span>: [ <span class="c">/* see Section 8 */</span> ],
+  <span class="n">"vendors"</span>: [ <span class="c">/* see Section 6 */</span> ]
+}</pre>
+  </div>
+</div>
+
+<hr/>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- SECTION 6 — VENDOR FIELDS                                             -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="section-header" id="s6">
+  <span class="section-num">6</span>
+  <h2>Vendors — Fields Required from Marketplace</h2>
+</div>
+<div class="section-desc">
+  Vendors appear inside parish store pages and have their own full-page view at <code>/vendor/:id</code>.
+  They list services/products that can be added to the cart.
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header">
+    <span class="method get">GET</span>
+    <span class="endpoint-path">/api/v1/external-api/vendors</span>
+    <span class="endpoint-desc">List all vendors across all parishes (for Marketplace browse screen)</span>
+    <span class="badge badge-needed" style="margin-left:auto">Needed</span>
+  </div>
+  <div class="endpoint-body">
+    <table>
+      <thead><tr><th>Field</th><th>Type</th><th>Required?</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-req">Required</span></td><td>Unique slug/UUID. Used in URL: <code>/vendor/:id</code></td></tr>
+        <tr><td><code>name</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-req">Required</span></td><td>Business name</td></tr>
+        <tr><td><code>tagline</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-req">Required</span></td><td>One-line description</td></tr>
+        <tr><td><code>category</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-req">Required</span></td><td>e.g. "Food &amp; Beverage", "Legal Services"</td></tr>
+        <tr><td><code>logo_url</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-req">Required</span></td><td>Square logo. Min 200×200px.</td></tr>
+        <tr><td><code>parish_id</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-req">Required</span></td><td>Links vendor to parish store</td></tr>
+        <tr><td><code>parish_name</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-req">Required</span></td><td>Displayed on vendor cards</td></tr>
+        <tr><td><code>banner_url</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-opt">Optional</span></td><td>Wide banner for vendor detail page</td></tr>
+        <tr><td><code>about</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-opt">Optional</span></td><td>Longer description for vendor page</td></tr>
+        <tr><td><code>website_url</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-opt">Optional</span></td><td>External link</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header">
+    <span class="method get">GET</span>
+    <span class="endpoint-path">/api/v1/external-api/vendors/:id</span>
+    <span class="endpoint-desc">Full vendor detail including services</span>
+    <span class="badge badge-needed" style="margin-left:auto">Needed</span>
+  </div>
+  <div class="endpoint-body">
+    All fields from the list above, plus:
+    <table style="margin-top:8px">
+      <thead><tr><th>Field</th><th>Type</th><th>Required?</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><code>services</code></td><td><span class="tag tag-arr">array</span></td><td><span class="tag tag-req">Required</span></td><td>Array of VendorService objects (see below)</td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:12px;margin:10px 0 4px"><strong>VendorService object fields:</strong></p>
+    <table>
+      <thead><tr><th>Field</th><th>Type</th><th>Required?</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-req">Required</span></td><td></td></tr>
+        <tr><td><code>vendor_id</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-req">Required</span></td><td>Parent vendor reference</td></tr>
+        <tr><td><code>name</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-req">Required</span></td><td>Service/product name</td></tr>
+        <tr><td><code>description</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-req">Required</span></td><td></td></tr>
+        <tr><td><code>price</code></td><td><span class="tag tag-int">decimal</span></td><td><span class="tag tag-req">Required</span></td><td>0 if free</td></tr>
+        <tr><td><code>price_label</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-opt">Optional</span></td><td>e.g. "Free", "starting at", "per month"</td></tr>
+        <tr><td><code>image_url</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-req">Required</span></td><td>Service thumbnail</td></tr>
+        <tr><td><code>available</code></td><td><span class="tag tag-bool">boolean</span></td><td><span class="tag tag-req">Required</span></td><td>Controls add-to-cart button state</td></tr>
+        <tr><td><code>badge</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-opt">Optional</span></td><td>e.g. "Bestseller", "Seasonal", "Free"</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<hr/>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- SECTION 7 — PRODUCT FIELDS                                            -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="section-header" id="s7">
+  <span class="section-num">7</span>
+  <h2>Products — Fields Required from Marketplace</h2>
+</div>
+<div class="section-desc">
+  Products are sold by parishes (religious articles and merch). They appear on the parish store page
+  and the global <strong>All Products</strong> browse screen with category filtering.
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header">
+    <span class="method get">GET</span>
+    <span class="endpoint-path">/api/v1/external-api/products</span>
+    <span class="endpoint-desc">List all products across all parishes</span>
+    <span class="badge badge-needed" style="margin-left:auto">Needed</span>
+  </div>
+  <div class="endpoint-body">
+    <p style="font-size:12px;margin-bottom:8px">Supports optional query params: <code>?parish_id=</code> &nbsp;<code>?category=religious|merch</code> &nbsp;<code>?in_stock=true</code></p>
+    <table>
+      <thead><tr><th>Field</th><th>Type</th><th>Required?</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-req">Required</span></td><td>Unique product ID</td></tr>
+        <tr><td><code>name</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-req">Required</span></td><td></td></tr>
+        <tr><td><code>description</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-req">Required</span></td><td>Shown on product card and detail</td></tr>
+        <tr><td><code>price</code></td><td><span class="tag tag-int">decimal</span></td><td><span class="tag tag-req">Required</span></td><td>In USD</td></tr>
+        <tr><td><code>image_url</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-req">Required</span></td><td>Primary product image</td></tr>
+        <tr><td><code>category</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-req">Required</span></td><td><code>"religious"</code> or <code>"merch"</code></td></tr>
+        <tr><td><code>in_stock</code></td><td><span class="tag tag-bool">boolean</span></td><td><span class="tag tag-req">Required</span></td><td>Controls "Sold Out" overlay &amp; add-to-cart</td></tr>
+        <tr><td><code>parish_id</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-req">Required</span></td><td>Parent parish reference</td></tr>
+        <tr><td><code>parish_name</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-req">Required</span></td><td>Displayed on browse cards</td></tr>
+        <tr><td><code>badge</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-opt">Optional</span></td><td>e.g. "Bestseller", "New", "Imported"</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<hr/>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- SECTION 8 — DONATION / CAMPAIGN FIELDS                                -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="section-header" id="s8">
+  <span class="section-num">8</span>
+  <h2>Donations / Campaigns — Fields Required from Marketplace</h2>
+</div>
+<div class="section-desc">
+  Donation campaigns have a dedicated browse screen, progress bars, and appear on each parish store page.
+  They require real-time <code>raised_amount</code> so progress reflects live giving.
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header">
+    <span class="method get">GET</span>
+    <span class="endpoint-path">/api/v1/external-api/donations</span>
+    <span class="endpoint-desc">List all active donation campaigns across all parishes</span>
+    <span class="badge badge-needed" style="margin-left:auto">Needed</span>
+  </div>
+  <div class="endpoint-body">
+    <p style="font-size:12px;margin-bottom:8px">Supports optional query params: <code>?parish_id=</code> &nbsp;<code>?active=true</code></p>
+    <table>
+      <thead><tr><th>Field</th><th>Type</th><th>Required?</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-req">Required</span></td><td>Unique campaign ID</td></tr>
+        <tr><td><code>title</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-req">Required</span></td><td>Campaign name</td></tr>
+        <tr><td><code>description</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-req">Required</span></td><td>Shown on campaign card and detail</td></tr>
+        <tr><td><code>goal_amount</code></td><td><span class="tag tag-int">decimal</span></td><td><span class="tag tag-req">Required</span></td><td>Target in USD</td></tr>
+        <tr><td><code>raised_amount</code></td><td><span class="tag tag-int">decimal</span></td><td><span class="tag tag-req">Required</span></td><td>Current total — drives progress bar %</td></tr>
+        <tr><td><code>image_url</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-req">Required</span></td><td>Campaign header image</td></tr>
+        <tr><td><code>parish_id</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-req">Required</span></td><td>Parent parish reference</td></tr>
+        <tr><td><code>parish_name</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-req">Required</span></td><td>Displayed on campaign card</td></tr>
+        <tr><td><code>ends_at</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-opt">Optional</span></td><td>ISO 8601 date. Shown as deadline.</td></tr>
+        <tr><td><code>is_active</code></td><td><span class="tag tag-bool">boolean</span></td><td><span class="tag tag-opt">Optional</span></td><td>Filter flag. Default: only return active.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header">
+    <span class="method post">POST</span>
+    <span class="endpoint-path">/api/v1/external-api/donations/:id/contribute</span>
+    <span class="endpoint-desc">Submit a donation to a specific campaign</span>
+    <span class="badge badge-needed" style="margin-left:auto">Needed</span>
+  </div>
+  <div class="endpoint-body">
+    <table>
+      <thead><tr><th>Field</th><th>Type</th><th>Required?</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><code>amount</code></td><td><span class="tag tag-int">decimal</span></td><td><span class="tag tag-req">Required</span></td><td>Donation amount in USD</td></tr>
+        <tr><td><code>donor_name</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-opt">Optional</span></td><td>Anonymous if omitted</td></tr>
+        <tr><td><code>donor_email</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-opt">Optional</span></td><td>For receipt</td></tr>
+        <tr><td><code>message</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-opt">Optional</span></td><td>Donor message</td></tr>
+        <tr><td><code>payment_token</code></td><td><span class="tag tag-str">string</span></td><td><span class="tag tag-req">Required</span></td><td>Stripe payment method token</td></tr>
+      </tbody>
+    </table>
+    <pre><span class="c">// Success 201</span>
+{ <span class="n">"success"</span>: <span class="k">true</span>, <span class="n">"donation_id"</span>: <span class="s">"..."</span>, <span class="n">"new_raised_amount"</span>: 19450.00 }</pre>
+  </div>
+</div>
+
+<!-- ── Footer ── -->
+<div class="footer">
+  <span>ParishMart — Confidential · Engineering Use Only</span>
+  <span>v1.0 · April 2026 · <strong style="color:var(--blue)">parishmart.com</strong></span>
+</div>
+
+</body>
+</html>

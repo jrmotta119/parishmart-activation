@@ -1,0 +1,10 @@
+{
+  "name": "@parishmart/config",
+  "version": "0.1.0",
+  "description": "Shared TypeScript and Tailwind configurations for ParishMart packages",
+  "private": true,
+  "exports": {
+    "./tsconfig.base.json": "./tsconfig.base.json",
+    "./tailwind.config": "./tailwind.config.ts"
+  }
+}

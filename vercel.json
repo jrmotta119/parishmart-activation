@@ -1,6 +1,6 @@
 {
-  "buildCommand": "cd client && npm run build",
-  "outputDirectory": "client/dist",
+  "buildCommand": "cd apps/onboarding && npm run build",
+  "outputDirectory": "apps/onboarding/dist",
   "installCommand": "npm install",
   "rewrites": [
     {

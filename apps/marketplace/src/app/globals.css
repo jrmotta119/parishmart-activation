@@ -1,0 +1,141 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Design tokens ───────────────────────────────────────── */
+:root {
+  --parish-primary: #006699;
+  --parish-accent: #004D73;
+  --parish-primary-rgb: 0, 102, 153;
+
+  /* Clean modern palette */
+  --parchment: #F8F9FB;
+  --ink: #0F172A;
+  --gold: #006699;
+  --gold-light: #0088CC;
+  --mist: #E8ECF2;
+  --warm-gray: #64748B;
+  --surface: #FFFFFF;
+  --surface-2: #F1F5F9;
+}
+
+/* ── Base ────────────────────────────────────────────────── */
+*, *::before, *::after {
+  -webkit-tap-highlight-color: transparent;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--parchment);
+  color: var(--ink);
+  font-family: var(--font-dm-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* ── Safe area ───────────────────────────────────────────── */
+.safe-top    { padding-top: env(safe-area-inset-top); }
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+
+/* ── Typography helpers ──────────────────────────────────── */
+.font-display {
+  font-family: var(--font-cormorant), Georgia, serif;
+  font-optical-sizing: auto;
+}
+
+/* ── Scrollbar hide ──────────────────────────────────────── */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* ── Hero gradient overlay ───────────────────────────────── */
+.parish-hero-overlay {
+  background: linear-gradient(
+    to bottom,
+    rgba(0,0,0,0.05) 0%,
+    rgba(0,0,0,0.35) 55%,
+    rgba(0,0,0,0.72) 100%
+  );
+}
+
+/* ── Grain texture ────────────────────────────────────────── */
+.grain {
+  position: relative;
+  overflow: hidden;
+}
+.grain::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+  opacity: 0.03;
+  pointer-events: none;
+  mix-blend-mode: overlay;
+  z-index: 1;
+}
+
+/* ── Accent hairline ─────────────────────────────────────── */
+.gold-hairline {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold-light), transparent);
+  opacity: 0.4;
+}
+
+/* ── Ornamental divider ──────────────────────────────────── */
+.ornament {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--gold);
+}
+.ornament::before,
+.ornament::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.25;
+}
+
+/* ── Category card staggered animation ───────────────────── */
+.card-reveal {
+  opacity: 0;
+  animation: cardReveal 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.card-reveal:nth-child(1) { animation-delay: 0.04s; }
+.card-reveal:nth-child(2) { animation-delay: 0.10s; }
+.card-reveal:nth-child(3) { animation-delay: 0.16s; }
+.card-reveal:nth-child(4) { animation-delay: 0.22s; }
+
+@keyframes cardReveal {
+  from { opacity: 0; transform: translateY(14px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0)   scale(1);    }
+}
+
+/* Welcome section reveal */
+.welcome-reveal {
+  opacity: 0;
+  animation: fadeSlideUp 0.45s ease 0.04s forwards;
+}
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Product card tap feedback ───────────────────────────── */
+.card-tap {
+  transition: transform 0.13s ease, box-shadow 0.13s ease;
+}
+.card-tap:active {
+  transform: scale(0.97);
+}
