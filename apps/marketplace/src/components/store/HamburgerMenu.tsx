@@ -21,11 +21,11 @@ const MENU_ITEMS: MenuItem[] = [
   { label: 'Browse Parishes & Causes', Icon: Store,   href: '/browse/parishes', dividerAfter: true },
   { label: 'Marketplace',           Icon: ShoppingBag, href: '/browse/marketplace' },
   { label: 'All Donations',         Icon: Heart,      href: '/browse/donations', dividerAfter: true },
-  { label: 'Become a Seller',       Icon: UserPlus,   href: '/become-a-seller' },
-  { label: 'Create Your Store',     Icon: PlusSquare, href: '/create-store', dividerAfter: true },
-  { label: 'Contact Us',            Icon: Mail,       href: '/contact' },
-  { label: 'About Us',              Icon: Info,       href: '/about' },
-  { label: 'FAQs',                  Icon: HelpCircle, href: '/faq' },
+  { label: 'Become a Seller',       Icon: UserPlus,   href: 'https://home.parishmart.com/sell-with-us' },
+  { label: 'Create Your Store',     Icon: PlusSquare, href: 'https://home.parishmart.com/why-register', dividerAfter: true },
+  { label: 'Contact Us',            Icon: Mail,       href: 'https://shop.parishmart.com/contact' },
+  { label: 'About Us',              Icon: Info,       href: 'https://home.parishmart.com/about-us' },
+  { label: 'FAQs',                  Icon: HelpCircle, href: 'https://shop.parishmart.com/faqs' },
 ];
 
 interface HamburgerMenuProps {

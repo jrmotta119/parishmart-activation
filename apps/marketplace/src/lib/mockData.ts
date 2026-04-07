@@ -14,7 +14,7 @@ const ST_MARY: ParishStore = {
   city: 'Lafayette',
   state: 'LA',
   products: [
-    { id: 'sm-p1', name: 'Rosary Beads — Hematite', description: 'Handcrafted hematite rosary with sterling silver cross.', price: 24.99, imageUrl: 'https://images.unsplash.com/photo-1606041011872-596597976b25?w=400&q=75', category: 'religious', inStock: true, badge: 'Bestseller', parishId: 'st-edmond', parishName: 'St. Edmond' },
+    { id: 'sm-p1', name: 'Rosary Beads — Hematite', description: 'Handcrafted hematite rosary with sterling silver cross.', price: 24.99, imageUrl: 'https://images.unsplash.com/photo-1606041011872-596597976b25?w=600&q=80', images: ['https://images.unsplash.com/photo-1609587312208-cea54be969e7?w=600&q=80', 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80'], category: 'religious', inStock: true, badge: 'Bestseller', parishId: 'st-edmond', parishName: 'St. Edmond' },
     { id: 'sm-p2', name: 'Saint Michael Medal', description: 'Solid bronze patron saint medal with engraved prayer on the back.', price: 18.50, imageUrl: 'https://images.unsplash.com/photo-1609587312208-cea54be969e7?w=400&q=75', category: 'religious', inStock: true, parishId: 'st-edmond', parishName: 'St. Edmond' },
     { id: 'sm-p3', name: 'Holy Water Bottle', description: 'Elegant glass bottle with silver cap. Blessed water included.', price: 12.00, imageUrl: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=75', category: 'religious', inStock: false, parishId: 'st-edmond', parishName: 'St. Edmond' },
     { id: 'sm-p4', name: 'Parish Hoodie — Navy', description: 'St. Edmond embroidered hoodie. 80% cotton, 20% polyester.', price: 45.00, imageUrl: 'https://images.unsplash.com/photo-1556821840-3a63f15732ce?w=400&q=75', category: 'merch', inStock: true, badge: 'New', parishId: 'st-edmond', parishName: 'St. Edmond' },
@@ -79,7 +79,7 @@ const ST_PATRICKS: ParishStore = {
   city: 'Weston',
   state: 'FL',
   products: [
-    { id: 'sp-p1', name: 'Bronze Crucifix — Wall', description: 'Hand-cast bronze wall crucifix with detailed corpus. Suitable for home or office.', price: 34.00, imageUrl: 'https://images.unsplash.com/photo-1599707367072-cd6ada2bc375?w=400&q=75', category: 'religious', inStock: true, badge: 'Handcrafted', parishId: 'st-katharine', parishName: 'St. Katharine Drexel' },
+    { id: 'sp-p1', name: 'Bronze Crucifix — Wall', description: 'Hand-cast bronze wall crucifix with detailed corpus. Suitable for home or office.', price: 34.00, imageUrl: 'https://images.unsplash.com/photo-1599707367072-cd6ada2bc375?w=600&q=80', images: ['https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=600&q=80'], category: 'religious', inStock: true, badge: 'Handcrafted', parishId: 'st-katharine', parishName: 'St. Katharine Drexel' },
     { id: 'sp-p2', name: 'St. Katharine Drexel Medal', description: 'Sterling silver patron saint medal, blessed at Sunday Mass.', price: 14.00, imageUrl: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400&q=75', category: 'religious', inStock: true, parishId: 'st-katharine', parishName: 'St. Katharine Drexel' },
     { id: 'sp-p3', name: 'Illustrated Catholic Bible', description: 'Full-color illustrated New American Bible, hardcover edition.', price: 42.00, imageUrl: 'https://images.unsplash.com/photo-1585845328078-7b5fdb2e3e04?w=400&q=75', category: 'religious', inStock: true, parishId: 'st-katharine', parishName: 'St. Katharine Drexel' },
     { id: 'sp-p4', name: 'Parish Zip-Up Hoodie', description: 'St. Katharine Drexel embroidered zip-up. Green with white crest.', price: 52.00, imageUrl: 'https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=400&q=75', category: 'merch', inStock: true, badge: 'New', parishId: 'st-katharine', parishName: 'St. Katharine Drexel' },
@@ -216,6 +216,22 @@ export const MOCK_STORES: Record<string, ParishStore> = {
 
 export function getStore(storeId: string): ParishStore | null {
   return MOCK_STORES[storeId] ?? null;
+}
+
+export function getDonation(donationId: string): DonationGoal | null {
+  for (const store of Object.values(MOCK_STORES)) {
+    const found = store.donationGoals.find((d) => d.id === donationId);
+    if (found) return found;
+  }
+  return null;
+}
+
+export function getProduct(productId: string): StoreProduct | null {
+  for (const store of Object.values(MOCK_STORES)) {
+    const found = store.products.find((p) => p.id === productId);
+    if (found) return found;
+  }
+  return null;
 }
 
 export function getVendor(vendorId: string): StoreVendor | null {

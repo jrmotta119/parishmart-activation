@@ -34,11 +34,9 @@ export function VendorPageShell({ vendor }: VendorPageShellProps) {
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
         </div>
 
-        {/* Logo + name row */}
-        <div className="relative px-4 -mt-10 flex items-end gap-4 mb-5">
-          <div
-            className="relative h-20 w-20 flex-shrink-0 rounded-2xl overflow-hidden border-2 border-white shadow-lg bg-white"
-          >
+        {/* Logo — overlaps banner */}
+        <div className="relative px-4 -mt-10 mb-3">
+          <div className="relative h-20 w-20 rounded-2xl overflow-hidden border-2 border-white shadow-lg bg-white">
             <Image
               src={vendor.logoUrl}
               alt={vendor.name}
@@ -47,12 +45,14 @@ export function VendorPageShell({ vendor }: VendorPageShellProps) {
               sizes="80px"
             />
           </div>
-          <div className="pb-1 min-w-0">
-            <h2 className="font-display text-[22px] italic font-normal text-ink leading-tight line-clamp-1">
-              {vendor.name}
-            </h2>
-            <p className="font-body text-[12px] text-warm-gray mt-0.5 line-clamp-1">{vendor.tagline}</p>
-          </div>
+        </div>
+
+        {/* Name + tagline — on parchment, fully readable */}
+        <div className="px-4 mb-5">
+          <h2 className="font-display text-[24px] italic font-normal text-ink leading-tight">
+            {vendor.name}
+          </h2>
+          <p className="font-body text-[13px] text-warm-gray mt-1">{vendor.tagline}</p>
         </div>
 
         {/* Category + parish chips */}

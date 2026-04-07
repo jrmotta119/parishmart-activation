@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { ShoppingCart, Check } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { BrowseLayout } from './BrowseLayout';
@@ -113,9 +114,11 @@ function ProductBrowseCard({ product }: { product: StoreProduct }) {
     setTimeout(() => setAdded(false), 1400);
   }
 
+  const href = `/product/${product.id}?from=${product.parishId}`;
+
   return (
     <div className="flex flex-col rounded-2xl bg-white border border-mist shadow-warm-sm overflow-hidden">
-      <div className="relative h-36 w-full bg-mist">
+      <Link href={href} className="relative h-36 w-full bg-mist block">
         <Image src={product.imageUrl} alt={product.name} fill className="object-cover" sizes="50vw" />
         {product.badge && (
           <div className="absolute top-2 left-2">
@@ -129,18 +132,19 @@ function ProductBrowseCard({ product }: { product: StoreProduct }) {
             <span className="font-body text-[11px] font-semibold uppercase tracking-widest text-warm-gray">Sold Out</span>
           </div>
         )}
-      </div>
+      </Link>
       <div className="flex flex-col flex-1 px-3 pt-2.5 pb-3 gap-1">
-        {/* Parish badge */}
         <span
           className="self-start font-body text-[9px] font-semibold uppercase tracking-wider rounded-full px-2 py-0.5"
           style={{ backgroundColor: 'rgba(27,79,114,0.08)', color: 'var(--parish-primary)' }}
         >
           {product.parishName.replace(' Parish', '').replace('Our Lady of Guadalupe', 'Our Lady')}
         </span>
-        <p className="font-display text-[16px] italic font-normal text-ink leading-snug line-clamp-2 flex-1">
-          {product.name}
-        </p>
+        <Link href={href}>
+          <p className="font-display text-[16px] italic font-normal text-ink leading-snug line-clamp-2">
+            {product.name}
+          </p>
+        </Link>
         <div className="flex items-center justify-between pt-1">
           <span className="font-body text-sm font-semibold" style={{ color: 'var(--parish-primary)' }}>
             ${product.price.toFixed(2)}

@@ -66,7 +66,7 @@ export function DonationsClient({ goals, parishes }: DonationsClientProps) {
         {results.map((goal) => {
           const pct = Math.min(100, Math.round((goal.raisedAmount / goal.goalAmount) * 100));
           return (
-            <div key={goal.id} className="rounded-2xl bg-white border border-mist shadow-warm-sm overflow-hidden">
+            <Link key={goal.id} href={`/donation/${goal.id}`} className="rounded-2xl bg-white border border-mist shadow-warm-sm overflow-hidden block active:opacity-90 transition-opacity">
               {/* Image */}
               <div className="relative h-40 w-full bg-mist">
                 <Image src={goal.imageUrl} alt={goal.title} fill className="object-cover" sizes="92vw" />
@@ -107,7 +107,7 @@ export function DonationsClient({ goals, parishes }: DonationsClientProps) {
                   Donate to {goal.parishName.replace(' Parish', '')}
                 </button>
               </div>
-            </div>
+            </Link>
           );
         })}
       </div>

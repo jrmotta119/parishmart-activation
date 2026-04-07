@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 import { ShoppingCart, Check } from 'lucide-react';
 import { useState } from 'react';
 import type { StoreProduct, AddToCartContext } from '@/types/store';
@@ -21,10 +22,12 @@ export function ProductCard({ product, context = { type: 'global' } }: ProductCa
     setTimeout(() => setAdded(false), 1400);
   }
 
+  const href = `/product/${product.id}?from=${product.parishId}`;
+
   return (
     <div className="card-tap flex flex-col rounded-2xl bg-white overflow-hidden shadow-warm-sm border border-mist">
-      {/* Image */}
-      <div className="relative h-40 w-full bg-mist overflow-hidden">
+      {/* Image — tappable to detail page */}
+      <Link href={href} className="relative h-40 w-full bg-mist overflow-hidden block">
         <Image
           src={product.imageUrl}
           alt={product.name}
@@ -51,16 +54,18 @@ export function ProductCard({ product, context = { type: 'global' } }: ProductCa
             </span>
           </div>
         )}
-      </div>
+      </Link>
 
       {/* Info */}
       <div className="flex flex-col flex-1 px-3 pt-3 pb-3 gap-1.5">
-        <p className="font-display text-[17px] italic font-normal leading-snug text-ink line-clamp-2">
-          {product.name}
-        </p>
-        <p className="font-body text-[12px] text-warm-gray leading-relaxed line-clamp-2 flex-1">
-          {product.description}
-        </p>
+        <Link href={href}>
+          <p className="font-display text-[17px] italic font-normal leading-snug text-ink line-clamp-2">
+            {product.name}
+          </p>
+          <p className="font-body text-[12px] text-warm-gray leading-relaxed line-clamp-2">
+            {product.description}
+          </p>
+        </Link>
 
         <div className="flex items-center justify-between pt-1.5">
           <span className="font-body text-base font-semibold" style={{ color: 'var(--parish-primary)' }}>

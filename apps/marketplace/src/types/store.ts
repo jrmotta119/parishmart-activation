@@ -6,6 +6,7 @@ export interface StoreProduct {
   description: string;
   price: number;
   imageUrl: string;
+  images?: string[];   // additional images; imageUrl is always the primary
   category: 'religious' | 'merch';
   inStock: boolean;
   badge?: string;
