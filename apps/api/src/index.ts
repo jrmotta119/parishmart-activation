@@ -55,8 +55,23 @@ app.use(helmet({
 }));
 
 // CORS
+const allowedOrigins = (process.env.CORS_ORIGINS || 'http://localhost:3000')
+  .split(',')
+  .map(o => o.trim());
+
 app.use(cors({
-  origin: process.env.CORS_ORIGINS || 'http://localhost:3000',
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, curl, server-to-server)
+    if (!origin) return callback(null, true);
+    // Exact match or wildcard *.vercel.app pattern
+    const allowed = allowedOrigins.some(o => {
+      if (o.startsWith('*.')) {
+        return origin.endsWith(o.slice(1));
+      }
+      return o === origin;
+    });
+    callback(allowed ? null : new Error('Not allowed by CORS'), allowed);
+  },
   credentials: true,
 }));
 
