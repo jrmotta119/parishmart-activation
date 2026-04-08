@@ -207,26 +207,3 @@ npm run db:seed      # Seed with sample data
 
 ---
 
-## Troubleshooting
-
-**`@parishmart/shared` not found during build**
-```bash
-cd packages/shared && npm run build
-```
-
-**Railway SMTP timeout**
-Railway blocks all outbound SMTP. Set `RESEND_API_KEY` instead of SMTP vars.
-
-**Approval email links go to home page**
-`BASE_URL` must point to the API server, not the frontend.
-- Heroku: `BASE_URL=https://api.parishmart.com`
-- Railway: `BASE_URL=https://web-production-6ce8a.up.railway.app`
-
-**CORS errors from Vercel preview URLs**
-Add a wildcard pattern to `CORS_ORIGINS`, e.g.:
-```
-CORS_ORIGINS=https://home.parishmart.com,https://*.vercel.app
-```
-
-**Vendor approval creating merchandise**
-Ensure `merchandise: []` is passed in the ImaMod job payload for vendor approvals (stores pass the full merchandise array).
