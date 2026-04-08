@@ -755,7 +755,7 @@ export default function AdminDashboard() {
 
   const fetchTab = async (tab: Tab): Promise<boolean> => {
     try {
-      const res = await fetch(`/api/admin/dashboard/${tab}`, {
+      const res = await fetch(apiUrl(`/api/admin/dashboard/${tab}`), {
         headers: { Authorization: `Bearer ${token}` },
       });
 
