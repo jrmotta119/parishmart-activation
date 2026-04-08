@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { apiUrl } from '@/lib/api';
 
 interface AdminInfo {
   firstName: string;
@@ -34,7 +35,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     try {
       const stored = localStorage.getItem('admin_token');
       if (stored) {
-        await fetch('/api/auth/admin/logout', {
+        await fetch(apiUrl('/api/auth/admin/logout'), {
           method: 'POST',
           headers: { Authorization: `Bearer ${stored}` },
         });

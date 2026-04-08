@@ -1,4 +1,5 @@
 import React, { useState, FormEvent } from 'react';
+import { apiUrl } from '@/lib/api';
 import { useNavigate } from 'react-router-dom';
 import { useAdmin } from './AdminContext';
 
@@ -17,7 +18,7 @@ export default function AdminLogin() {
     setLoading(true);
 
     try {
-      const res = await fetch('/api/auth/admin/login', {
+      const res = await fetch(apiUrl('/api/auth/admin/login'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),

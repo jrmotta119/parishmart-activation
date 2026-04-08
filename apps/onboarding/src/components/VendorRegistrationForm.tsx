@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { apiUrl } from '@/lib/api';
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
@@ -132,7 +133,7 @@ const VendorRegistrationForm = () => {
         setMissionsLoading(true);
         setMissionsError(null);
 
-        const response = await fetch('/api/vendors/missions');
+        const response = await fetch(apiUrl('/api/vendors/missions'));
         const data = await response.json();
 
         if (data.success) {
@@ -368,7 +369,7 @@ const VendorRegistrationForm = () => {
       submitData.append('termsAccepted', acceptedTerms.toString());
 
       // Send form data to API endpoint
-      const response = await fetch('/api/registration', {
+      const response = await fetch(apiUrl('/api/registration'), {
         method: 'POST',
         body: submitData, // Don't set Content-Type header for FormData
       });

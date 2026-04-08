@@ -10,6 +10,7 @@
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
+    "build:api": "cd packages/shared && npm run build && cd ../../apps/api && npm run build",
     "dev:onboarding": "turbo run dev --filter=parishmart-client",
     "dev:marketplace": "turbo run dev --filter=parishmart-marketplace",
     "dev:api": "turbo run dev --filter=parishmart-server",

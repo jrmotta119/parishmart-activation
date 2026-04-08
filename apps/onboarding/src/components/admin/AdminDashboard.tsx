@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAdmin } from './AdminContext';
+import { apiUrl } from '@/lib/api';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -555,7 +556,7 @@ function AdminsPanel({ token }: { token: string }) {
   const loadAdmins = async () => {
     try {
       setLoading(true);
-      const res = await fetch('/api/auth/admin/list', {
+      const res = await fetch(apiUrl('/api/auth/admin/list'), {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -580,7 +581,7 @@ function AdminsPanel({ token }: { token: string }) {
     }
     setSubmitting(true);
     try {
-      const res = await fetch('/api/auth/admin/create', {
+      const res = await fetch(apiUrl('/api/auth/admin/create'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
