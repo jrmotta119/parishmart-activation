@@ -65,8 +65,9 @@ app.use(cors({
     if (!origin) return callback(null, true);
     // Exact match or wildcard *.vercel.app pattern
     const allowed = allowedOrigins.some(o => {
-      if (o.startsWith('*.')) {
-        return origin.endsWith(o.slice(1));
+      if (o.includes('*')) {
+        const escaped = o.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*');
+        return new RegExp(`^${escaped}$`).test(origin);
       }
       return o === origin;
     });
