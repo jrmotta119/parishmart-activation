@@ -3,6 +3,9 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+// Lazily imported so the package is optional when using SMTP
+let ResendClient: any = null;
+
 interface EmailOptions {
   to: string | string[];
   subject: string;
@@ -21,14 +24,75 @@ interface EmailResult {
 }
 
 /**
- * Email Service using Nodemailer with Gmail SMTP
- * Handles all email operations for the ParishMart registration system
+ * Email Service — supports two transports:
+ *  - Resend HTTP API  (when RESEND_API_KEY is set — works on Railway/any platform)
+ *  - Nodemailer SMTP  (fallback — requires outbound SMTP ports, e.g. Heroku)
  */
 export class EmailService {
   private static transporter: Transporter | null = null;
 
+  private static useResend(): boolean {
+    return !!process.env.RESEND_API_KEY;
+  }
+
+  // ─── Resend transport ────────────────────────────────────────────────────────
+
+  private static async getResendClient() {
+    if (!ResendClient) {
+      const { Resend } = await import('resend');
+      ResendClient = new Resend(process.env.RESEND_API_KEY);
+    }
+    return ResendClient;
+  }
+
+  private static async sendViaResend(
+    to: string | string[],
+    subject: string,
+    html: string
+  ): Promise<EmailResult> {
+    const resend = await this.getResendClient();
+    const fromName = process.env.EMAIL_FROM_NAME || 'ParishMart';
+    const fromAddress = process.env.EMAIL_FROM_ADDRESS || 'onboarding@resend.dev';
+
+    const { data, error } = await resend.emails.send({
+      from: `${fromName} <${fromAddress}>`,
+      to: Array.isArray(to) ? to : [to],
+      subject,
+      html,
+    });
+
+    if (error) {
+      throw new Error(`Resend error: ${error.message}`);
+    }
+
+    console.log(`✅ Email sent via Resend to ${Array.isArray(to) ? to.join(', ') : to}`);
+    console.log(`   Message ID: ${data?.id}`);
+
+    return {
+      messageId: data?.id || '',
+      accepted: Array.isArray(to) ? to : [to],
+      rejected: [],
+      response: 'OK',
+    };
+  }
+
+  private static async testResendConnection(): Promise<boolean> {
+    try {
+      const resend = await this.getResendClient();
+      // Resend has no explicit "verify" — check by listing domains (lightweight call)
+      await resend.domains.list();
+      console.log('✅ Resend API connection successful');
+      return true;
+    } catch (error) {
+      console.error('❌ Resend API connection failed:', error);
+      return false;
+    }
+  }
+
+  // ─── SMTP transport (Nodemailer) ─────────────────────────────────────────────
+
   /**
-   * Create and configure Gmail SMTP transporter
+   * Create and configure SMTP transporter
    */
   private static createTransporter(): Transporter {
     if (!process.env.EMAIL_HOST || !process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
@@ -38,45 +102,42 @@ export class EmailService {
     return nodemailer.createTransport({
       host: process.env.EMAIL_HOST,
       port: parseInt(process.env.EMAIL_PORT || '587'),
-      secure: process.env.EMAIL_SECURE === 'true', // false for TLS (587), true for SSL (465)
+      secure: process.env.EMAIL_SECURE === 'true',
       auth: {
         user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS // Gmail App Password (16 digits)
+        pass: process.env.EMAIL_PASS
       },
       tls: {
         rejectUnauthorized: process.env.NODE_ENV === 'production'
       },
-      pool: true, // Use connection pooling
-      maxConnections: 5, // Limit concurrent connections
-      maxMessages: 100, // Limit messages per connection
-      rateDelta: 1000, // 1 second rate limiting
-      rateLimit: 5 // Max 5 emails per second
+      pool: true,
+      maxConnections: 5,
+      maxMessages: 100,
+      rateDelta: 1000,
+      rateLimit: 5
     });
   }
 
-  /**
-   * Get transporter instance (singleton pattern)
-   */
   private static getTransporter(): Transporter {
     if (!this.transporter) {
       this.transporter = this.createTransporter();
-      // With pool:true, SMTP socket errors (e.g. ECONNRESET) are emitted as 'error'
-      // events on the pool rather than rejecting the sendMail() promise.
-      // Attaching a listener here prevents Node from treating them as uncaught
-      // exceptions that crash the process.
       (this.transporter as any).on('error', (err: Error) => {
         console.error('📧 Email transport pool error (connection dropped):', err.message);
-        // Discard the broken transporter so the next send recreates a fresh one
         this.transporter = null;
       });
     }
     return this.transporter;
   }
 
+  // ─── Public API ──────────────────────────────────────────────────────────────
+
   /**
    * Test email connection
    */
   static async testConnection(): Promise<boolean> {
+    if (this.useResend()) {
+      return this.testResendConnection();
+    }
     try {
       const transporter = this.getTransporter();
       await transporter.verify();
@@ -97,18 +158,6 @@ export class EmailService {
     html: string,
     retries: number = 3
   ): Promise<EmailResult> {
-    const transporter = this.getTransporter();
-    
-    const mailOptions: EmailOptions = {
-      from: {
-        name: process.env.EMAIL_FROM_NAME || 'ParishMart',
-        address: process.env.EMAIL_FROM_ADDRESS || process.env.EMAIL_USER || ''
-      },
-      to: to,
-      subject: subject,
-      html: html
-    };
-
     // Validate email addresses
     const recipients = Array.isArray(to) ? to : [to];
     for (const email of recipients) {
@@ -117,6 +166,22 @@ export class EmailService {
       }
     }
 
+    if (this.useResend()) {
+      return this.sendViaResend(to, subject, html);
+    }
+
+    const transporter = this.getTransporter();
+
+    const mailOptions: EmailOptions = {
+      from: {
+        name: process.env.EMAIL_FROM_NAME || 'ParishMart',
+        address: process.env.EMAIL_FROM_ADDRESS || process.env.EMAIL_USER || ''
+      },
+      to,
+      subject,
+      html,
+    };
+
     let lastError: Error | null = null;
 
     for (let attempt = 1; attempt <= retries; attempt++) {
@@ -124,7 +189,7 @@ export class EmailService {
         const info = await transporter.sendMail(mailOptions);
         console.log(`✅ Email sent successfully to ${Array.isArray(to) ? to.join(', ') : to}`);
         console.log(`   Message ID: ${info.messageId}`);
-        
+
         return {
           messageId: info.messageId,
           accepted: info.accepted as string[],
@@ -134,17 +199,15 @@ export class EmailService {
       } catch (error) {
         lastError = error as Error;
         console.error(`❌ Email send attempt ${attempt} failed:`, lastError.message);
-        
-        // Don't retry on certain errors
+
         if (this.isNonRetryableError(lastError)) {
           throw lastError;
         }
-        
+
         if (attempt === retries) {
           throw new Error(`Failed to send email after ${retries} attempts: ${lastError.message}`);
         }
-        
-        // Exponential backoff: wait 1s, 2s, 4s between retries
+
         const waitTime = 1000 * Math.pow(2, attempt - 1);
         await new Promise(resolve => setTimeout(resolve, waitTime));
       }
