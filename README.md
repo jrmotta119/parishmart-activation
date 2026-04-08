@@ -1,220 +1,232 @@
-# Parishmart Monorepo
+# ParishMart Monorepo
 
-A monorepo containing the Parishmart marketplace application with React frontend and Express.js backend.
+A faith-based marketplace platform connecting parishes, local vendors, and their communities. Monorepo managed with [Turborepo](https://turbo.build/).
 
-## 🏗️ Project Structure
+---
+
+## Project Structure
 
 ```
 parishmart/
-├── client/                 # React + Vite frontend
-│   ├── src/               # Frontend source code
-│   ├── public/            # Static assets
-│   ├── package.json       # Frontend dependencies
-│   └── vite.config.ts     # Vite configuration
-├── server/                # Express.js backend
-│   ├── src/               # Backend source code
-│   ├── uploads/           # File upload directory
-│   ├── package.json       # Backend dependencies
-│   └── tsconfig.json      # TypeScript configuration
-├── shared/                # Shared types and utilities
-│   ├── src/               # Shared source code
-│   ├── package.json       # Shared package configuration
-│   └── tsconfig.json      # TypeScript configuration
-├── package.json           # Root monorepo configuration
-└── README.md              # This file
+├── apps/
+│   ├── api/                    # Express.js + TypeScript backend
+│   │   └── src/
+│   │       ├── controllers/    # Route controllers
+│   │       ├── db/             # PostgreSQL connection + migrations
+│   │       ├── middleware/     # Auth, error handling, rate limiting
+│   │       ├── repositories/   # DB query layer
+│   │       ├── routes/         # API route definitions
+│   │       ├── services/       # Business logic (email, image processing, marketplace)
+│   │       ├── templates/      # Handlebars email templates
+│   │       └── utils/          # Token utils, email templates, helpers
+│   ├── marketplace/            # Next.js 14 mobile-first marketplace (App Router)
+│   │   └── src/
+│   │       ├── app/            # Next.js App Router pages
+│   │       │   ├── browse/     # Browse parishes, products, vendors, donations
+│   │       │   ├── donation/[donationId]/  # Campaign detail page
+│   │       │   ├── product/[productId]/   # Product detail page
+│   │       │   ├── store/[storeId]/       # Parish store page
+│   │       │   └── vendor/[vendorId]/     # Local vendor page
+│   │       ├── components/     # UI components by domain
+│   │       │   ├── browse/     # Browse/search UI
+│   │       │   ├── donation/   # Campaign detail shell
+│   │       │   ├── home/       # Home page (hero, featured sections)
+│   │       │   ├── layout/     # BottomNav, Providers wrapper
+│   │       │   ├── product/    # Product detail shell + gallery
+│   │       │   ├── store/      # Parish store + product cards
+│   │       │   └── vendor/     # Vendor page shell + service cards
+│   │       ├── context/        # CartContext (localStorage cart)
+│   │       ├── lib/            # Mock data, helpers
+│   │       └── types/          # Shared TS types (StoreProduct, CartItem, etc.)
+│   └── onboarding/             # Vite + React registration & admin portal
+│       └── src/
+│           ├── components/     # Registration forms, admin dashboard
+│           ├── lib/            # api.ts helper (apiUrl())
+│           └── types/          # Form types
+└── packages/
+    ├── shared/                 # Shared constants + types (@parishmart/shared)
+    ├── config/                 # Shared tooling config
+    └── ui/                     # Shared UI component library
 ```
 
-## 🚀 Quick Start
+---
+
+## Apps
+
+| App | Description | Local port |
+|---|---|---|
+| `apps/api` | REST API — registration, admin, webhooks, image processing | 3001 |
+| `apps/marketplace` | Mobile-first Next.js consumer marketplace | 3002 |
+| `apps/onboarding` | Vite/React registration portal + admin dashboard | 3000 |
+
+---
+
+## Infrastructure & External Services
+
+### Production
+
+| Resource | Service | URL / identifier |
+|---|---|---|
+| API backend | **Heroku** | `api.parishmart.com` |
+| Onboarding frontend | **Vercel** | `home.parishmart.com` |
+| Marketplace frontend | **Vercel** | *(Vercel auto-deploy from `main`)* |
+| Database | **Heroku Postgres** | attached to Heroku app |
+| Email | **Gmail SMTP** | App Password via `EMAIL_USER` / `EMAIL_PASS` |
+| Image processing | **ImaMod** | `IMAMOD_API_URL` + `IMAMOD_API_KEY` |
+| File storage | **AWS S3** | `AWS_BUCKET_NAME`, `AWS_REGION` |
+
+### QA
+
+| Resource | Service | URL / identifier |
+|---|---|---|
+| API backend | **Railway** | `web-production-6ce8a.up.railway.app` |
+| Onboarding frontend | **Vercel** | Vercel preview URLs (branch: `qa`) |
+| Marketplace frontend | **Vercel** | Vercel preview URLs (branch: `qa`) |
+| Database | **Railway PostgreSQL** | `maglev.proxy.rlwy.net:35888` / db: `railway` |
+| Email | **Resend** (HTTP API) | `RESEND_API_KEY` — bypasses Railway SMTP block |
+| Image processing | **ImaMod** | same keys as production |
+| File storage | **AWS S3** | same bucket as production |
+
+> **Why Resend for QA?** Railway blocks all outbound SMTP ports (25, 465, 587, 2525).
+> The API auto-selects Resend when `RESEND_API_KEY` is set, otherwise falls back to SMTP.
+
+---
+
+## Deploy Strategy
+
+```
+main branch  →  Vercel (auto)  +  Heroku (manual: git push heroku main)
+qa branch    →  Vercel preview (auto)  +  Railway (auto)
+```
+
+`qa` is a long-lived branch — never deleted. Merge production fixes into `qa` as needed; merge `qa` → `main` when promoting to production.
+
+---
+
+## Environment Variables
+
+### `apps/api`
+
+| Variable | Required | Description |
+|---|---|---|
+| `PORT` | no | Server port (default 3001) |
+| `NODE_ENV` | yes | `development` / `qa` / `production` |
+| `DATABASE_URL` | yes | PostgreSQL connection string |
+| `JWT_SECRET` | yes | Secret for signing JWTs |
+| `CORS_ORIGINS` | yes | Comma-separated allowed origins (supports `*` wildcard) |
+| `BASE_URL` | yes | **API** base URL (e.g. `https://api.parishmart.com`) — used in email approval links and ImaMod webhooks |
+| `EMAIL_HOST` | SMTP only | SMTP host (e.g. `smtp.gmail.com`) |
+| `EMAIL_PORT` | SMTP only | SMTP port (e.g. `587`) |
+| `EMAIL_SECURE` | SMTP only | `true` for SSL/465, `false` for TLS/587 |
+| `EMAIL_USER` | SMTP only | SMTP username / Gmail address |
+| `EMAIL_PASS` | SMTP only | Gmail App Password (16 chars) |
+| `RESEND_API_KEY` | Resend only | Resend API key — takes priority over SMTP |
+| `EMAIL_FROM_NAME` | yes | Sender display name (e.g. `ParishMart`) |
+| `EMAIL_FROM_ADDRESS` | yes | Sender address (must match verified domain in Resend) |
+| `IMAMOD_API_URL` | yes | ImaMod base URL |
+| `IMAMOD_API_KEY` | yes | ImaMod API key |
+| `IMAMOD_API_SECRET` | yes | ImaMod API secret |
+| `AWS_ACCESS_KEY_ID` | yes | AWS credentials for S3 |
+| `AWS_SECRET_ACCESS_KEY` | yes | AWS credentials for S3 |
+| `AWS_REGION` | yes | S3 region |
+| `AWS_BUCKET_NAME` | yes | S3 bucket name |
+| `MARKETPLACE_API_KEY` | yes | Key for external marketplace API access |
+| `MARKETPLACE_API_SECRET` | yes | Secret for external marketplace API access |
+
+### `apps/onboarding`
+
+| Variable | Required | Description |
+|---|---|---|
+| `VITE_API_URL` | yes | Full API base URL (e.g. `https://api.parishmart.com`) |
+
+### `apps/marketplace`
+
+No runtime env vars — currently uses mock data. Will need `NEXT_PUBLIC_API_URL` when connected to the live API.
+
+---
+
+## Quick Start (local)
 
 ### Prerequisites
-- Node.js >= 18.0.0
-- npm >= 8.0.0
+- Node.js >= 18
+- npm >= 9
 
-### Installation
+### Install
 
-1. **Install all dependencies:**
-   ```bash
-   npm run install:all
-   ```
+```bash
+npm install
+```
 
-2. **Set up environment variables:**
-   ```bash
-   cp server/env.example server/.env
-   # Edit server/.env with your configuration
-   ```
+### Build shared package (required before running API)
 
-3. **Build shared package:**
-   ```bash
-   cd shared && npm run build
-   ```
+```bash
+cd packages/shared && npm run build
+```
 
-### Development
+### Run all apps
 
-**Start both frontend and backend:**
 ```bash
 npm run dev
 ```
 
-**Start only frontend:**
-```bash
-npm run dev:client
-```
-
-**Start only backend:**
-```bash
-npm run dev:server
-```
-
-### Production
-
-**Build both projects:**
-```bash
-npm run build
-```
-
-**Start production servers:**
-```bash
-npm run start
-```
-
-## 📁 Package Scripts
-
-### Root Level
-- `npm run dev` - Start both frontend and backend in development
-- `npm run build` - Build both frontend and backend
-- `npm run start` - Start both in production mode
-- `npm run install:all` - Install dependencies for all packages
-- `npm run clean` - Clean build artifacts
-
-### Client (Frontend)
-- `npm run dev` - Start Vite development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-
-### Server (Backend)
-- `npm run dev` - Start development server with nodemon
-- `npm run build` - Compile TypeScript
-- `npm run start` - Start production server
-- `npm run db:migrate` - Run database migrations
-- `npm run db:seed` - Seed database
-
-### Shared
-- `npm run build` - Build shared package
-- `npm run dev` - Watch mode for shared package
-
-## 🔧 Configuration
-
-### Frontend Configuration
-- **Port:** 5173 (Vite default)
-- **API Proxy:** All `/api/*` requests are proxied to `http://localhost:3001`
-- **Environment:** Uses Vite's environment variable system
-
-### Backend Configuration
-- **Port:** 3001 (configurable via `PORT` env var)
-- **CORS:** Configured for `http://localhost:5173`
-- **File Uploads:** Stored in `server/uploads/`
-- **Rate Limiting:** 100 requests per 15 minutes per IP
-
-### Environment Variables
-
-**Backend (.env):**
-```env
-PORT=3001
-NODE_ENV=development
-FRONTEND_URL=http://localhost:5173
-DATABASE_URL=your_database_url_here
-JWT_SECRET=your_jwt_secret_here
-```
-
-## 🛠️ Development Workflow
-
-1. **Frontend Development:**
-   - Edit files in `client/src/`
-   - Hot reload available at `http://localhost:5173`
-   - API calls automatically proxied to backend
-
-2. **Backend Development:**
-   - Edit files in `server/src/`
-   - Server restarts automatically with nodemon
-   - API available at `http://localhost:3001`
-
-3. **Shared Code:**
-   - Edit files in `shared/src/`
-   - Rebuild with `npm run build` in shared directory
-   - Import in both frontend and backend using `@parishmart/shared`
-
-## 📡 API Endpoints
-
-### Health Check
-- `GET /api/health` - Server health status
-
-### Authentication
-- `POST /api/auth/login` - User login
-- `POST /api/auth/register` - User registration
-- `POST /api/auth/logout` - User logout
-- `POST /api/auth/refresh` - Refresh token
-
-### Users
-- `GET /api/users/profile` - Get user profile
-- `PUT /api/users/profile` - Update user profile
-
-### Products
-- `GET /api/products` - List products
-- `POST /api/products` - Create product
-- `GET /api/products/:id` - Get product by ID
-- `PUT /api/products/:id` - Update product
-- `DELETE /api/products/:id` - Delete product
-
-### Vendors
-- `GET /api/vendors` - List vendors
-- `POST /api/vendors` - Create vendor
-- `GET /api/vendors/:id` - Get vendor by ID
-- `PUT /api/vendors/:id` - Update vendor
-- `POST /api/vendors/:id/verify` - Verify vendor
-
-### File Uploads
-- `POST /api/uploads/image` - Upload image file
-
-## 🔍 Troubleshooting
-
-### Common Issues
-
-1. **Import errors with `@/` alias:**
-   - Ensure `vite.config.ts` has correct alias configuration
-   - Check that TypeScript paths are configured in `tsconfig.json`
-
-2. **API calls not working:**
-   - Verify backend is running on port 3001
-   - Check CORS configuration in backend
-   - Ensure proxy configuration in Vite is correct
-
-3. **Shared package not found:**
-   - Build shared package: `cd shared && npm run build`
-   - Check that shared package is listed in dependencies
-
-4. **File uploads not working:**
-   - Ensure `server/uploads/` directory exists
-   - Check file size limits in multer configuration
-   - Verify file type restrictions
-
-### Debug Commands
+Or individually:
 
 ```bash
-# Check if ports are in use
-netstat -ano | findstr :3001
-netstat -ano | findstr :5173
-
-# Clean and reinstall
-npm run clean
-npm run install:all
-
-# Rebuild shared package
-cd shared && npm run build
+npm run dev:api          # API only  (port 3001)
+npm run dev:onboarding   # Onboarding only  (port 3000)
+npm run dev:marketplace  # Marketplace only  (port 3002)
 ```
 
-## 📚 Additional Resources
+### Database
 
-- [Migration Checklist](./MIGRATION_CHECKLIST.md) - Detailed migration steps
-- [Vite Documentation](https://vitejs.dev/) - Frontend build tool
-- [Express.js Documentation](https://expressjs.com/) - Backend framework
-- [TypeScript Documentation](https://www.typescriptlang.org/) - Type system
+```bash
+npm run db:migrate   # Run pending migrations
+npm run db:seed      # Seed with sample data
+```
+
+---
+
+## API Routes
+
+| Method | Path | Description |
+|---|---|---|
+| GET | `/api/health` | Server health |
+| GET | `/api/health/db` | Database health |
+| GET | `/api/health/email` | Email service health |
+| POST | `/api/auth/admin/login` | Admin login |
+| POST | `/api/auth/admin/logout` | Admin logout |
+| GET | `/api/auth/admin/list` | List admin users |
+| POST | `/api/auth/admin/create` | Create admin user |
+| GET | `/api/admin/dashboard/:tab` | Dashboard data |
+| GET | `/api/admin/approve/:token` | One-click approval from email |
+| GET | `/api/admin/reject/:token` | One-click rejection from email |
+| POST | `/api/registration` | Parish/store registration |
+| POST | `/api/vendors/missions` | Fetch missions for vendor form |
+| POST | `/api/webhook/image-processing` | ImaMod webhook callback |
+| GET | `/api/external/*` | External marketplace API |
+
+---
+
+## Troubleshooting
+
+**`@parishmart/shared` not found during build**
+```bash
+cd packages/shared && npm run build
+```
+
+**Railway SMTP timeout**
+Railway blocks all outbound SMTP. Set `RESEND_API_KEY` instead of SMTP vars.
+
+**Approval email links go to home page**
+`BASE_URL` must point to the API server, not the frontend.
+- Heroku: `BASE_URL=https://api.parishmart.com`
+- Railway: `BASE_URL=https://web-production-6ce8a.up.railway.app`
+
+**CORS errors from Vercel preview URLs**
+Add a wildcard pattern to `CORS_ORIGINS`, e.g.:
+```
+CORS_ORIGINS=https://home.parishmart.com,https://*.vercel.app
+```
+
+**Vendor approval creating merchandise**
+Ensure `merchandise: []` is passed in the ImaMod job payload for vendor approvals (stores pass the full merchandise array).
