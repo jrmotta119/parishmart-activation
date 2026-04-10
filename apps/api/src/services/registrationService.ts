@@ -78,6 +78,7 @@ interface StoreFormData {
   subscriptionTier: 'free' | 'tier1' | 'tier2' | 'tier3';
   termsAccepted?: boolean;
   needsConsultation?: boolean;
+  showReligiousProducts?: boolean;
   collectsDonations?: boolean;
   donationPlatform?: string;
   otherDonationPlatform?: string;
@@ -143,6 +144,12 @@ export class RegistrationService {
           const result = await S3Service.uploadFile(image, 'media');
           bannerImageResults.push(result);
         }
+      }
+
+      // 3c. Upload card image (marketplace thumbnail) — optional; falls back to first collage image
+      let cardImageResult = null;
+      if (files.cardImage && files.cardImage[0]) {
+        cardImageResult = await S3Service.uploadFile(files.cardImage[0], 'media');
       }
 
       // 4. Create vendor record (names already split in frontend)
@@ -280,6 +287,25 @@ export class RegistrationService {
         ]);
       }
 
+      // 7c. Save card image (marketplace thumbnail)
+      // Use explicit upload if provided; otherwise fall back to first collage banner image
+      const effectiveCardImage = cardImageResult ?? (bannerImageResults.length > 0 ? bannerImageResults[0] : null);
+      if (effectiveCardImage) {
+        await client.query(`
+          INSERT INTO businessmedia (
+            business_id, media_url, media_type, media_order, bucket_type,
+            bucket_name, media_key, file_size, mime_type, created_at
+          ) VALUES ($1, $2, 'card_image', 1, 'public', $3, $4, $5, $6, NOW())
+        `, [
+          businessId,
+          effectiveCardImage.directUrl,
+          effectiveCardImage.bucketName,
+          effectiveCardImage.fileKey,
+          effectiveCardImage.size,
+          effectiveCardImage.mimeType
+        ]);
+      }
+
       // 8. Process products if subscription allows (free and tier1 don't include product listings)
       if (formData.subscriptionType !== 'free' && formData.subscriptionType !== 'tier1') {
         // Parse products from JSON string if needed
@@ -387,9 +413,9 @@ export class RegistrationService {
         INSERT INTO organizations (
           name, organization_type, description, impact, since_year, slogan,
           is_tax_exempt, collect_donations, donations_platform,
-          needs_consultation, current_subscription_type,
+          needs_consultation, show_religious_products, current_subscription_type,
           logo_has_transparent_bg, banner_mode, subscription_amount, billing_cycle, parish_count, created_at, updated_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, NOW(), NOW())
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, NOW(), NOW())
         RETURNING organization_id
       `, [
         formData.organizationName,
@@ -402,6 +428,7 @@ export class RegistrationService {
         formData.collectsDonations || false,
         formData.donationPlatform === 'other' ? formData.otherDonationPlatform : formData.donationPlatform || null,
         formData.needsConsultation || false,
+        formData.showReligiousProducts === true || formData.showReligiousProducts === ('true' as any),
         formData.subscriptionTier,
         formData.logoHasTransparentBg === 'true' || formData.logoHasTransparentBg === true,
         formData.bannerMode || 'collage',

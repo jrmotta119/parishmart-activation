@@ -34,10 +34,17 @@ interface VendorEntry {
   about_you: string | null;
   community_contribution: string | null;
   mission_affiliation: string | null;
+  external_country_id: number | null;
+  external_state_id: number | null;
+  external_city_id: number | null;
+  external_mission_store_id: number | null;
+  terms_accepted: boolean | null;
+  terms_accepted_at: string | null;
   logo_processed_url: string | null;
   logo_raw_url: string | null;
   banner_processed_url: string | null;
   banner_images: string[] | null;
+  card_image_url: string | null;
   processed_results: { merchandise?: Record<string, string> } | null;
 }
 
@@ -64,15 +71,21 @@ interface StoreEntry {
   is_tax_exempt: boolean;
   collect_donations: boolean;
   donations_platform: string;
+  show_religious_products: boolean | null;
   current_subscription_type: string;
   current_subscription_end_date: string | null;
   subscription_amount: number | null;
   billing_cycle: string | null;
   parish_count: number | null;
+  external_country_id: number | null;
+  external_state_id: number | null;
+  external_city_id: number | null;
   role: string | null;
   referred_by: string | null;
   referral_associate_name: string | null;
   social_media_platform: string | null;
+  terms_accepted: boolean | null;
+  terms_accepted_at: string | null;
   logo_processed_url: string | null;
   logo_raw_url: string | null;
   banner_processed_url: string | null;
@@ -216,6 +229,18 @@ function VendorDetail({ vendor }: { vendor: VendorEntry }) {
           <DetailRow label="About Owner" value={vendor.about_you} />
           <DetailRow label="Community Efforts" value={vendor.community_contribution} />
           <DetailRow label="Mission They Support" value={vendor.mission_affiliation} />
+          <DetailRow label="External Mission Store ID" value={vendor.external_mission_store_id} />
+        </div>
+        <div className="mt-3">
+          <p className="text-xs font-bold text-gray-400 uppercase mb-2">External Marketplace IDs</p>
+          <DetailRow label="Country ID" value={vendor.external_country_id} />
+          <DetailRow label="State ID" value={vendor.external_state_id} />
+          <DetailRow label="City ID" value={vendor.external_city_id} />
+        </div>
+        <div className="mt-3">
+          <p className="text-xs font-bold text-gray-400 uppercase mb-2">Legal</p>
+          <DetailRow label="Terms Accepted" value={vendor.terms_accepted ? 'Yes' : 'No'} />
+          <DetailRow label="Terms Accepted At" value={vendor.terms_accepted_at ? new Date(vendor.terms_accepted_at).toLocaleString() : null} />
         </div>
         <div className="mt-3">
           <p className="text-xs font-bold text-gray-400 uppercase mb-2">Subscription</p>
@@ -300,6 +325,18 @@ function StoreDetail({ store }: { store: StoreEntry }) {
           <DetailRow label="Tax Exempt" value={store.is_tax_exempt ? 'Yes' : 'No'} />
           <DetailRow label="Collects Donations" value={store.collect_donations ? 'Yes' : 'No'} />
           <DetailRow label="Donations Platform" value={store.donations_platform} />
+          <DetailRow label="Show Religious Products" value={store.show_religious_products ? 'Yes' : 'No'} />
+        </div>
+        <div className="mt-3">
+          <p className="text-xs font-bold text-gray-400 uppercase mb-2">External Marketplace IDs</p>
+          <DetailRow label="Country ID" value={store.external_country_id} />
+          <DetailRow label="State ID" value={store.external_state_id} />
+          <DetailRow label="City ID" value={store.external_city_id} />
+        </div>
+        <div className="mt-3">
+          <p className="text-xs font-bold text-gray-400 uppercase mb-2">Legal</p>
+          <DetailRow label="Terms Accepted" value={store.terms_accepted ? 'Yes' : 'No'} />
+          <DetailRow label="Terms Accepted At" value={store.terms_accepted_at ? new Date(store.terms_accepted_at).toLocaleString() : null} />
         </div>
         <div className="mt-3">
           <p className="text-xs font-bold text-gray-400 uppercase mb-2">Referral</p>

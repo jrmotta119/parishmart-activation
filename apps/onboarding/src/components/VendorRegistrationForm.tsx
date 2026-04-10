@@ -130,6 +130,8 @@ const VendorRegistrationForm = () => {
   const [bannerMode, setBannerMode] = useState<"full" | "collage">("full");
   const [bannerImages, setBannerImages] = useState<File[]>([]);
   const [bannerImagesPreviews, setBannerImagesPreviews] = useState<string[]>([]);
+  const [cardImage, setCardImage] = useState<File | null>(null);
+  const [cardImagePreview, setCardImagePreview] = useState<string>("");
 
   useEffect(() => {
     const handleScroll = () => {
@@ -303,6 +305,8 @@ const VendorRegistrationForm = () => {
 
     // Validate all required fields before submission
     const bannerValid = bannerMode === "full" ? !!banner : bannerImages.length >= 3;
+    // Card image required when full banner uploaded (can't auto-pick from collage images)
+    const cardImageValid = bannerMode === "collage" || !!cardImage;
     if (
       !formData.firstName ||
       !formData.lastName ||
@@ -312,6 +316,7 @@ const VendorRegistrationForm = () => {
       !formData.businessDescription ||
       !formData.logo ||
       !bannerValid ||
+      !cardImageValid ||
       !formData.reach ||
       !formData.businessAddress ||
       !externalLocation.countryId ||
@@ -366,6 +371,11 @@ const VendorRegistrationForm = () => {
         bannerImages.forEach((img) => {
           submitData.append('bannerImages', img);
         });
+      }
+
+      // Card image: explicit upload if provided; collage mode will use first banner image server-side
+      if (cardImage) {
+        submitData.append('cardImage', cardImage);
       }
 
       // Add business contact info (use personal info if business contact not provided)
@@ -433,16 +443,18 @@ const VendorRegistrationForm = () => {
       }
     } else if (step === 3) {
       const bannerValid = bannerMode === "full" ? !!banner : bannerImages.length >= 3;
+      const cardImageValid = bannerMode === "collage" || !!cardImage;
       if (
         !formData.businessName ||
         !formData.businessDescription ||
         !formData.logo ||
         !bannerValid ||
+        !cardImageValid ||
         !formData.reach ||
         !formData.businessAddress ||
-        !formData.businessCity ||
-        !formData.businessLocation.country ||
-        !formData.businessLocation.subdivision ||
+        !externalLocation.countryId ||
+        !externalLocation.stateId ||
+        !externalLocation.cityId ||
         !formData.businessZipCode
       ) {
         setToastMessage("Please fill in all required fields, upload a logo, and upload a banner");
@@ -812,11 +824,9 @@ const VendorRegistrationForm = () => {
                     Business Information
                   </h2>
 
+                  {/* Business Name — full width */}
                   <div className="mb-6">
-                    <Label
-                      htmlFor="businessName"
-                      className="block text-sm font-medium text-gray-700 mb-1"
-                    >
+                    <Label htmlFor="businessName" className="block text-sm font-medium text-gray-700 mb-1">
                       Business Name *
                     </Label>
                     <Input
@@ -829,349 +839,380 @@ const VendorRegistrationForm = () => {
                       className={`w-full ${!formData.businessName && attemptedSteps.includes(step) && "border-red-300"}`}
                     />
                     {!formData.businessName && attemptedSteps.includes(step) && (
-                      <p className="mt-1 text-sm text-red-600">
-                        Business name is required
-                      </p>
+                      <p className="mt-1 text-sm text-red-600">Business name is required</p>
                     )}
                   </div>
 
-                  <div className="mb-6">
-                    <Label className="block text-sm font-medium text-gray-700 mb-2">
-                      What does your business offer? *
-                    </Label>
-                    <RadioGroup
-                      value={formData.businessType}
-                      onValueChange={(value) =>
-                        handleRadioChange("businessType", value)
-                      }
-                      className="flex flex-col space-y-2"
-                    >
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="product" id="product" />
-                        <Label htmlFor="product" className="cursor-pointer">
-                          Product Seller – (Sells physical products)
+                  {/* Description + Policy | Business Type + Reach — 2 col */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
+                    {/* Left: Description + Policy */}
+                    <div>
+                      <div className="mb-4">
+                        <Label htmlFor="businessDescription" className="block text-sm font-medium text-gray-700 mb-1">
+                          Business Description *
                         </Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="service" id="service" />
-                        <Label htmlFor="service" className="cursor-pointer">
-                          Service Provider – (Offers services from handymen realtors,lawyers, etc.)
-                        </Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="both" id="both" />
-                        <Label htmlFor="both" className="cursor-pointer">
-                          Both – (Sells products and provides services)
-                        </Label>
-                      </div>
-                    </RadioGroup>
-                  </div>
-
-                  {/* Where do you offer your products or services? */}
-                  <div className="mb-6">
-                    <Label className="block text-sm font-medium text-gray-700 mb-2">
-                      Where do you offer your products or services? <span className="text-red-500">*</span>
-                    </Label>
-                    <p className="text-xs text-gray-600 mb-2 italic">
-                      Select the option that best describes your current reach:
-                    </p>
-                    <RadioGroup
-                      value={formData.reach}
-                      onValueChange={(value) => setFormData({ ...formData, reach: value as FormData['reach'] })}
-                      className="flex flex-col space-y-2"
-                    >
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="local" id="reach-local" />
-                        <Label htmlFor="reach-local" className="cursor-pointer font-semibold">
-                          Local
-                        </Label>
-                        <span className="text-xs text-gray-600 ml-2">You serve a specific town or city.</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="regional" id="reach-regional" />
-                        <Label htmlFor="reach-regional" className="cursor-pointer font-semibold">
-                          Regional
-                        </Label>
-                        <span className="text-xs text-gray-600 ml-2">You operate across a broader area within your neighboring areas or state.</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="national" id="reach-national" />
-                        <Label htmlFor="reach-national" className="cursor-pointer font-semibold">
-                          National
-                        </Label>
-                        <span className="text-xs text-gray-600 ml-2">You serve customers across the United States.</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="global" id="reach-global" />
-                        <Label htmlFor="reach-global" className="cursor-pointer font-semibold">
-                          Global
-                        </Label>
-                        <span className="text-xs text-gray-600 ml-2">You offer your products or services internationally.</span>
-                      </div>
-                    </RadioGroup>
-                    {!formData.reach && attemptedSteps.includes(step) && (
-                      <p className="mt-1 text-sm text-red-600">
-                        Please select where you offer your products or services
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="mb-6">
-                    <Label
-                      htmlFor="businessDescription"
-                      className="block text-sm font-medium text-gray-700 mb-1"
-                    >
-                      Business Description *
-                    </Label>
-                    <Textarea
-                      id="businessDescription"
-                      name="businessDescription"
-                      value={formData.businessDescription}
-                      onChange={handleInputChange}
-                      required
-                      maxLength={250}
-                      className={`w-full h-32 ${!formData.businessDescription && attemptedSteps.includes(step) && "border-red-300"}`}
-                      placeholder="Describe your business in detail..."
-                    />
-                    {!formData.businessDescription &&
-                      attemptedSteps.includes(step) && (
-                        <p className="mt-1 text-sm text-red-600">
-                          Business description is required
-                        </p>
-                      )}
-                  </div>
-
-                  <div className="mb-6">
-                    <Label
-                      htmlFor="businessPolicy"
-                      className="block text-sm font-medium text-gray-700 mb-1"
-                    >
-                      Business Policy
-                    </Label>
-                    <Textarea
-                      id="businessPolicy"
-                      name="businessPolicy"
-                      value={formData.businessPolicy}
-                      onChange={handleInputChange}
-                      maxLength={250}
-                      className="w-full h-32"
-                      placeholder="Describe your business policies regarding returns, shipping, etc..."
-                    />
-                  </div>
-                  <div className="mb-6">
-                    <Label
-                      htmlFor="businessAddress"
-                      className="block text-sm font-medium text-gray-700 mb-1"
-                    >
-                      Business Address *
-                    </Label>
-                    <Input
-                      id="businessAddress"
-                      name="businessAddress"
-                      value={formData.businessAddress}
-                      onChange={handleInputChange}
-                      required
-                      maxLength={250}
-                      className={`w-full ${!formData.businessAddress && attemptedSteps.includes(step) && "border-red-300"}`}
-                      placeholder="Street address, P.O. box"
-                    />
-                    {!formData.businessAddress && attemptedSteps.includes(step) && (
-                      <p className="mt-1 text-sm text-red-600">
-                        Business address is required
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="mb-6">
-                    <ExternalLocationSelector
-                      value={externalLocation}
-                      onChange={(loc) => {
-                        setExternalLocation(loc);
-                        setFormData(prev => ({
-                          ...prev,
-                          businessCity: loc.cityName,
-                          businessLocation: { country: loc.countryName, subdivision: loc.stateName },
-                        }));
-                      }}
-                      countryError={!externalLocation.countryId && attemptedSteps.includes(step)}
-                      stateError={!externalLocation.stateId && attemptedSteps.includes(step)}
-                      cityError={!externalLocation.cityId && attemptedSteps.includes(step)}
-                      showErrors={attemptedSteps.includes(step)}
-                    />
-                  </div>
-
-                  <div className="mb-6">
-                    <Label
-                      htmlFor="businessZipCode"
-                      className="block text-sm font-medium text-gray-700 mb-1"
-                    >
-                      ZIP/Postal Code *
-                    </Label>
-                    <Input
-                      id="businessZipCode"
-                      name="businessZipCode"
-                      value={formData.businessZipCode}
-                      onChange={handleInputChange}
-                      required
-                      maxLength={10}
-                      className={`w-full ${(!formData.businessZipCode && attemptedSteps.includes(step)) || zipCodeError ? "border-red-300" : ""}`}
-                      placeholder="e.g. 12345 or 12345-6789"
-                      pattern="[0-9\-]*"
-                      title="Please enter a valid ZIP code"
-                    />
-                    {!formData.businessZipCode && attemptedSteps.includes(step) && (
-                      <p className="mt-1 text-sm text-red-600">
-                        ZIP/Postal code is required
-                      </p>
-                    )}
-                    {zipCodeError && (
-                      <p className="mt-1 text-sm text-red-600">
-                        {zipCodeError}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Logo Upload */}
-                  <div className="mb-8">
-                    <span className="block text-sm font-medium text-gray-700 mb-2">Upload Logo *</span>
-                    <div className="flex flex-col items-center w-44">
-                      <div className={`w-44 h-44 border-2 border-dashed ${!formData.logo && attemptedSteps.includes(step) ? "border-red-500" : "border-gray-300"} rounded-lg flex items-center justify-center text-center cursor-pointer hover:bg-gray-50 transition-colors mb-2`}>
-                        <input
-                          type="file"
-                          id="logo"
-                          accept="image/*"
-                          onChange={handleLogoChange}
-                          className="hidden"
+                        <Textarea
+                          id="businessDescription"
+                          name="businessDescription"
+                          value={formData.businessDescription}
+                          onChange={handleInputChange}
+                          required
+                          maxLength={1000}
+                          className={`w-full h-40 ${!formData.businessDescription && attemptedSteps.includes(step) && "border-red-300"}`}
+                          placeholder="Describe your business in detail..."
                         />
-                        <label htmlFor="logo" className="cursor-pointer flex flex-col items-center w-full h-full justify-center">
-                          {logoPreview ? (
-                            <img src={logoPreview} alt="Logo preview" className="w-full h-full object-contain" />
-                          ) : (
-                            <>
-                              <Upload className="h-8 w-8 text-gray-400 mb-2 mx-auto" />
-                              <span className="text-xs text-gray-500">Click to upload your logo</span>
-                              <span className="text-xs text-gray-400 mt-1">PNG, JPG, GIF up to 5MB</span>
-                            </>
+                        <div className="flex justify-between items-center mt-1">
+                          {!formData.businessDescription && attemptedSteps.includes(step) && (
+                            <p className="text-sm text-red-600">Business description is required</p>
                           )}
-                        </label>
+                          <p className="text-xs text-gray-400 ml-auto">{formData.businessDescription.length}/1000</p>
+                        </div>
                       </div>
-                      <div className="text-xs text-gray-500 mt-1">Ideal size: 230x340 px</div>
-                      {!formData.logo && attemptedSteps.includes(step) && (
-                        <p className="mt-1 text-xs text-red-500">Logo is required</p>
-                      )}
-                    </div>
-                    <label className="flex items-center gap-2 mt-2 cursor-pointer select-none">
-                      <input
-                        type="checkbox"
-                        checked={formData.logoHasTransparentBg}
-                        onChange={(e) => setFormData(prev => ({ ...prev, logoHasTransparentBg: e.target.checked }))}
-                        className="w-4 h-4 accent-[#006699]"
-                      />
-                      <span className="text-xs text-gray-600">Logo already has transparent background</span>
-                    </label>
-                  </div>
-
-                  {/* Banner Upload */}
-                  <div className="mb-6">
-                    <span className="block text-sm font-medium text-gray-700 mb-2">Upload Business Banner *</span>
-
-                    {/* Toggle */}
-                    <div className="flex items-center gap-2 mb-4">
-                      <button
-                        type="button"
-                        onClick={() => setBannerMode("full")}
-                        className={`px-4 py-2 text-sm rounded-l-md border transition-colors ${bannerMode === "full" ? "bg-[#006699] text-white border-[#006699]" : "bg-white text-gray-600 border-gray-300 hover:bg-gray-50"}`}
-                      >
-                        Full Banner
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setBannerMode("collage")}
-                        className={`px-4 py-2 text-sm rounded-r-md border transition-colors ${bannerMode === "collage" ? "bg-[#006699] text-white border-[#006699]" : "bg-white text-gray-600 border-gray-300 hover:bg-gray-50"}`}
-                      >
-                        Image Collage
-                      </button>
-                    </div>
-
-                    {bannerMode === "full" ? (
                       <div>
-                        <p className="text-xs text-gray-500 mb-2">Upload a single pre-made banner image for your storefront.</p>
-                        <div className="flex flex-col items-start">
-                          <div className={`w-full max-w-[500px] h-44 border-2 border-dashed ${!banner && attemptedSteps.includes(step) ? "border-red-500" : "border-gray-300"} rounded-lg flex items-center justify-center text-center cursor-pointer hover:bg-gray-50 transition-colors mb-2`}>
-                            <input
-                              type="file"
-                              id="vendor-banner-image"
-                              accept="image/*"
-                              onChange={handleBannerChange}
-                              className="hidden"
-                            />
-                            <label htmlFor="vendor-banner-image" className="cursor-pointer flex flex-col items-center w-full h-full justify-center">
-                              {bannerPreview ? (
-                                <img src={bannerPreview} alt="Banner preview" className="w-full h-full object-cover rounded-lg" />
-                              ) : (
-                                <>
-                                  <Upload className="h-5 w-20 text-gray-400 mb-2 mx-auto" />
-                                  <span className="text-xs text-gray-500">Banner Image</span>
-                                  <span className="text-xs text-gray-400">PNG, JPG, GIF</span>
-                                </>
-                              )}
-                            </label>
+                        <Label htmlFor="businessPolicy" className="block text-sm font-medium text-gray-700 mb-1">
+                          Business Policy
+                        </Label>
+                        <Textarea
+                          id="businessPolicy"
+                          name="businessPolicy"
+                          value={formData.businessPolicy}
+                          onChange={handleInputChange}
+                          maxLength={500}
+                          className="w-full h-28"
+                          placeholder="Describe your business policies regarding returns, shipping, etc..."
+                        />
+                        <p className="text-xs text-gray-400 mt-1 text-right">{formData.businessPolicy.length}/500</p>
+                      </div>
+                    </div>
+
+                    {/* Right: Business Type + Reach */}
+                    <div>
+                      <div className="mb-6">
+                        <Label className="block text-sm font-medium text-gray-700 mb-2">
+                          What does your business offer? *
+                        </Label>
+                        <RadioGroup
+                          value={formData.businessType}
+                          onValueChange={(value) => handleRadioChange("businessType", value)}
+                          className="flex flex-col space-y-2"
+                        >
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="product" id="product" />
+                            <Label htmlFor="product" className="cursor-pointer">
+                              Product Seller – (Sells physical products)
+                            </Label>
                           </div>
-                          <div className="text-xs text-gray-500 mt-1">Ideal size: 1498x337 px</div>
-                          {!banner && attemptedSteps.includes(step) && (
-                            <p className="mt-1 text-xs text-red-500">Banner image is required</p>
-                          )}
-                        </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="service" id="service" />
+                            <Label htmlFor="service" className="cursor-pointer">
+                              Service Provider – (Offers services from handymen, realtors, lawyers, etc.)
+                            </Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="both" id="both" />
+                            <Label htmlFor="both" className="cursor-pointer">
+                              Both – (Sells products and provides services)
+                            </Label>
+                          </div>
+                        </RadioGroup>
                       </div>
-                    ) : (
+
                       <div>
-                        <p className="text-xs text-gray-500 mb-2">Upload 3 to 5 images in the same order you would like them displayed and we'll create a collage banner for your storefront.</p>
-                        <div className="grid grid-cols-5 gap-3">
-                          {Array.from({ length: Math.max(3, bannerImages.length + (bannerImages.length < 5 ? 1 : 0)) }).map((_, index) => {
-                            if (index < bannerImages.length) {
-                              return (
-                                <div key={index} className="relative w-full aspect-square">
-                                  <img src={bannerImagesPreviews[index]} alt={`Banner image ${index + 1}`} className="w-full h-full object-cover rounded-lg border border-gray-200" />
-                                  <button
-                                    type="button"
-                                    onClick={() => removeBannerImage(index)}
-                                    className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600"
-                                  >
-                                    ×
-                                  </button>
-                                </div>
-                              );
-                            }
-                            if (index === bannerImages.length && bannerImages.length < 5) {
-                              return (
-                                <div key={index} className={`w-full aspect-square border-2 border-dashed ${bannerImages.length < 3 && attemptedSteps.includes(step) ? "border-red-500" : "border-gray-300"} rounded-lg flex items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors`}>
-                                  <input
-                                    type="file"
-                                    id="banner-collage-images"
-                                    accept="image/*"
-                                    multiple
-                                    onChange={handleBannerImagesChange}
-                                    className="hidden"
-                                  />
-                                  <label htmlFor="banner-collage-images" className="cursor-pointer flex flex-col items-center justify-center w-full h-full">
-                                    <Upload className="h-6 w-6 text-gray-400 mb-1" />
-                                    <span className="text-xs text-gray-500">Add</span>
-                                  </label>
-                                </div>
-                              );
-                            }
-                            return (
-                              <div key={index} className={`w-full aspect-square border-2 border-dashed ${bannerImages.length < 3 && attemptedSteps.includes(step) ? "border-red-500" : "border-gray-300"} rounded-lg flex items-center justify-center`}>
-                                <span className="text-xs text-gray-400">{index + 1}</span>
-                              </div>
-                            );
-                          })}
-                        </div>
-                        <div className="text-xs text-gray-500 mt-2">{bannerImages.length}/5 images uploaded (minimum 3)</div>
-                        {bannerImages.length < 3 && attemptedSteps.includes(step) && (
-                          <p className="mt-1 text-xs text-red-500">Please upload at least 3 images</p>
+                        <Label className="block text-sm font-medium text-gray-700 mb-2">
+                          Where do you offer your products or services? <span className="text-red-500">*</span>
+                        </Label>
+                        <p className="text-xs text-gray-600 mb-2 italic">
+                          Select the option that best describes your current reach:
+                        </p>
+                        <RadioGroup
+                          value={formData.reach}
+                          onValueChange={(value) => setFormData({ ...formData, reach: value as FormData['reach'] })}
+                          className="flex flex-col space-y-2"
+                        >
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="local" id="reach-local" />
+                            <Label htmlFor="reach-local" className="cursor-pointer font-semibold">Local</Label>
+                            <span className="text-xs text-gray-600 ml-2">You serve a specific town or city.</span>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="regional" id="reach-regional" />
+                            <Label htmlFor="reach-regional" className="cursor-pointer font-semibold">Regional</Label>
+                            <span className="text-xs text-gray-600 ml-2">You operate across a broader area within your neighboring areas or state.</span>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="national" id="reach-national" />
+                            <Label htmlFor="reach-national" className="cursor-pointer font-semibold">National</Label>
+                            <span className="text-xs text-gray-600 ml-2">You serve customers across the United States.</span>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="global" id="reach-global" />
+                            <Label htmlFor="reach-global" className="cursor-pointer font-semibold">Global</Label>
+                            <span className="text-xs text-gray-600 ml-2">You offer your products or services internationally.</span>
+                          </div>
+                        </RadioGroup>
+                        {!formData.reach && attemptedSteps.includes(step) && (
+                          <p className="mt-1 text-sm text-red-600">Please select where you offer your products or services</p>
                         )}
                       </div>
+                    </div>
+                  </div>
+
+                  {/* Address + Location — 2 col */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6 pt-6 border-t border-gray-100">
+                    <div>
+                      <Label htmlFor="businessAddress" className="block text-sm font-medium text-gray-700 mb-1">
+                        Business Address *
+                      </Label>
+                      <Input
+                        id="businessAddress"
+                        name="businessAddress"
+                        value={formData.businessAddress}
+                        onChange={handleInputChange}
+                        required
+                        maxLength={250}
+                        className={`w-full mb-4 ${!formData.businessAddress && attemptedSteps.includes(step) && "border-red-300"}`}
+                        placeholder="Street address, P.O. box"
+                      />
+                      {!formData.businessAddress && attemptedSteps.includes(step) && (
+                        <p className="mb-4 text-sm text-red-600">Business address is required</p>
+                      )}
+                      <Label htmlFor="businessZipCode" className="block text-sm font-medium text-gray-700 mb-1">
+                        ZIP/Postal Code *
+                      </Label>
+                      <Input
+                        id="businessZipCode"
+                        name="businessZipCode"
+                        value={formData.businessZipCode}
+                        onChange={handleInputChange}
+                        required
+                        maxLength={10}
+                        className={`w-full ${(!formData.businessZipCode && attemptedSteps.includes(step)) || zipCodeError ? "border-red-300" : ""}`}
+                        placeholder="e.g. 12345 or 12345-6789"
+                        pattern="[0-9\-]*"
+                        title="Please enter a valid ZIP code"
+                      />
+                      {!formData.businessZipCode && attemptedSteps.includes(step) && (
+                        <p className="mt-1 text-sm text-red-600">ZIP/Postal code is required</p>
+                      )}
+                      {zipCodeError && (
+                        <p className="mt-1 text-sm text-red-600">{zipCodeError}</p>
+                      )}
+                    </div>
+                    <div>
+                      <ExternalLocationSelector
+                        value={externalLocation}
+                        onChange={(loc) => {
+                          setExternalLocation(loc);
+                          setFormData(prev => ({
+                            ...prev,
+                            businessCity: loc.cityName,
+                            businessLocation: { country: loc.countryName, subdivision: loc.stateName },
+                          }));
+                        }}
+                        countryError={!externalLocation.countryId && attemptedSteps.includes(step)}
+                        stateError={!externalLocation.stateId && attemptedSteps.includes(step)}
+                        cityError={!externalLocation.cityId && attemptedSteps.includes(step)}
+                        showErrors={attemptedSteps.includes(step)}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Logo + Banner side by side */}
+                  <div className="flex flex-col md:flex-row gap-8 mb-8">
+
+                    {/* Logo Upload */}
+                    <div className="flex-shrink-0">
+                      <span className="block text-sm font-medium text-gray-700 mb-2">Upload Logo *</span>
+                      <div className="flex flex-col items-center w-44">
+                        <div className={`w-44 h-44 border-2 border-dashed ${!formData.logo && attemptedSteps.includes(step) ? "border-red-500" : "border-gray-300"} rounded-lg flex items-center justify-center text-center cursor-pointer hover:bg-gray-50 transition-colors mb-2`}>
+                          <input
+                            type="file"
+                            id="logo"
+                            accept="image/*"
+                            onChange={handleLogoChange}
+                            className="hidden"
+                          />
+                          <label htmlFor="logo" className="cursor-pointer flex flex-col items-center w-full h-full justify-center">
+                            {logoPreview ? (
+                              <img src={logoPreview} alt="Logo preview" className="w-full h-full object-contain" />
+                            ) : (
+                              <>
+                                <Upload className="h-8 w-8 text-gray-400 mb-2 mx-auto" />
+                                <span className="text-xs text-gray-500">Click to upload your logo</span>
+                                <span className="text-xs text-gray-400 mt-1">PNG, JPG, GIF up to 5MB</span>
+                              </>
+                            )}
+                          </label>
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1">Ideal size: 230x340 px</div>
+                        {!formData.logo && attemptedSteps.includes(step) && (
+                          <p className="mt-1 text-xs text-red-500">Logo is required</p>
+                        )}
+                      </div>
+                      <label className="flex items-center gap-2 mt-2 cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          checked={formData.logoHasTransparentBg}
+                          onChange={(e) => setFormData(prev => ({ ...prev, logoHasTransparentBg: e.target.checked }))}
+                          className="w-4 h-4 accent-[#006699]"
+                        />
+                        <span className="text-xs text-gray-600">Logo already has transparent background</span>
+                      </label>
+                    </div>
+
+                    {/* Banner Upload */}
+                    <div className="flex-1 min-w-0">
+                      <span className="block text-sm font-medium text-gray-700 mb-2">Upload Business Banner *</span>
+
+                      {/* Toggle */}
+                      <div className="flex items-center gap-2 mb-4">
+                        <button
+                          type="button"
+                          onClick={() => setBannerMode("full")}
+                          className={`px-4 py-2 text-sm rounded-l-md border transition-colors ${bannerMode === "full" ? "bg-[#006699] text-white border-[#006699]" : "bg-white text-gray-600 border-gray-300 hover:bg-gray-50"}`}
+                        >
+                          Full Banner
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setBannerMode("collage")}
+                          className={`px-4 py-2 text-sm rounded-r-md border transition-colors ${bannerMode === "collage" ? "bg-[#006699] text-white border-[#006699]" : "bg-white text-gray-600 border-gray-300 hover:bg-gray-50"}`}
+                        >
+                          Image Collage
+                        </button>
+                      </div>
+
+                      {bannerMode === "full" ? (
+                        <div>
+                          <p className="text-xs text-gray-500 mb-2">Upload a single pre-made banner image for your storefront.</p>
+                          <div className="flex flex-col items-start">
+                            <div className={`w-full h-44 border-2 border-dashed ${!banner && attemptedSteps.includes(step) ? "border-red-500" : "border-gray-300"} rounded-lg flex items-center justify-center text-center cursor-pointer hover:bg-gray-50 transition-colors mb-2`}>
+                              <input
+                                type="file"
+                                id="vendor-banner-image"
+                                accept="image/*"
+                                onChange={handleBannerChange}
+                                className="hidden"
+                              />
+                              <label htmlFor="vendor-banner-image" className="cursor-pointer flex flex-col items-center w-full h-full justify-center">
+                                {bannerPreview ? (
+                                  <img src={bannerPreview} alt="Banner preview" className="w-full h-full object-cover rounded-lg" />
+                                ) : (
+                                  <>
+                                    <Upload className="h-5 w-8 text-gray-400 mb-2 mx-auto" />
+                                    <span className="text-xs text-gray-500">Banner Image</span>
+                                    <span className="text-xs text-gray-400">PNG, JPG, GIF</span>
+                                  </>
+                                )}
+                              </label>
+                            </div>
+                            <div className="text-xs text-gray-500 mt-1">Ideal size: 1498x337 px</div>
+                            {!banner && attemptedSteps.includes(step) && (
+                              <p className="mt-1 text-xs text-red-500">Banner image is required</p>
+                            )}
+                          </div>
+                        </div>
+                      ) : (
+                        <div>
+                          <p className="text-xs text-gray-500 mb-2">Upload 3 to 5 images in the same order you would like them displayed and we'll create a collage banner for your storefront.</p>
+                          <div className="grid grid-cols-5 gap-3">
+                            {Array.from({ length: Math.max(3, bannerImages.length + (bannerImages.length < 5 ? 1 : 0)) }).map((_, index) => {
+                              if (index < bannerImages.length) {
+                                return (
+                                  <div key={index} className="relative w-full aspect-square">
+                                    <img src={bannerImagesPreviews[index]} alt={`Banner image ${index + 1}`} className="w-full h-full object-cover rounded-lg border border-gray-200" />
+                                    <button
+                                      type="button"
+                                      onClick={() => removeBannerImage(index)}
+                                      className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600"
+                                    >
+                                      ×
+                                    </button>
+                                  </div>
+                                );
+                              }
+                              if (index === bannerImages.length && bannerImages.length < 5) {
+                                return (
+                                  <div key={index} className={`w-full aspect-square border-2 border-dashed ${bannerImages.length < 3 && attemptedSteps.includes(step) ? "border-red-500" : "border-gray-300"} rounded-lg flex items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors`}>
+                                    <input
+                                      type="file"
+                                      id="banner-collage-images"
+                                      accept="image/*"
+                                      multiple
+                                      onChange={handleBannerImagesChange}
+                                      className="hidden"
+                                    />
+                                    <label htmlFor="banner-collage-images" className="cursor-pointer flex flex-col items-center justify-center w-full h-full">
+                                      <Upload className="h-6 w-6 text-gray-400 mb-1" />
+                                      <span className="text-xs text-gray-500">Add</span>
+                                    </label>
+                                  </div>
+                                );
+                              }
+                              return (
+                                <div key={index} className={`w-full aspect-square border-2 border-dashed ${bannerImages.length < 3 && attemptedSteps.includes(step) ? "border-red-500" : "border-gray-300"} rounded-lg flex items-center justify-center`}>
+                                  <span className="text-xs text-gray-400">{index + 1}</span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                          <div className="text-xs text-gray-500 mt-2">{bannerImages.length}/5 images uploaded (minimum 3)</div>
+                          {bannerImages.length < 3 && attemptedSteps.includes(step) && (
+                            <p className="mt-1 text-xs text-red-500">Please upload at least 3 images</p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Card Image Upload */}
+                  <div className="mb-6">
+                    <span className="block text-sm font-medium text-gray-700 mb-1">
+                      Marketplace Card Image {bannerMode === "full" ? "*" : <span className="text-gray-400 font-normal">(optional)</span>}
+                    </span>
+                    <p className="text-xs text-gray-500 mb-3">
+                      This image appears as the thumbnail on your vendor card in the ParishMart marketplace directory — the first thing shoppers see when browsing.
+                      {bannerMode === "collage"
+                        ? " If you don't upload one, the first image from your banner collage will be used automatically."
+                        : " Required when uploading a full banner (since we can't automatically extract a thumbnail from it)."}
+                    </p>
+                    <div className={`w-44 h-44 border-2 border-dashed ${bannerMode === "full" && !cardImage && attemptedSteps.includes(step) ? "border-red-500" : "border-gray-300"} rounded-lg flex items-center justify-center text-center cursor-pointer hover:bg-gray-50 transition-colors overflow-hidden`}>
+                      <input
+                        type="file"
+                        id="card-image"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            setCardImage(file);
+                            setCardImagePreview(URL.createObjectURL(file));
+                          }
+                        }}
+                      />
+                      <label htmlFor="card-image" className="cursor-pointer flex flex-col items-center w-full h-full justify-center">
+                        {cardImagePreview ? (
+                          <img src={cardImagePreview} alt="Card image preview" className="w-full h-full object-cover" />
+                        ) : (
+                          <>
+                            <Upload className="h-6 w-6 text-gray-400 mb-2" />
+                            <span className="text-xs text-gray-500">Click to upload</span>
+                            <span className="text-xs text-gray-400 mt-1">800×800px, 1:1</span>
+                          </>
+                        )}
+                      </label>
+                    </div>
+                    {cardImage && (
+                      <button
+                        type="button"
+                        onClick={() => { setCardImage(null); setCardImagePreview(""); }}
+                        className="mt-2 text-xs text-red-500 hover:text-red-700"
+                      >
+                        Remove card image
+                      </button>
+                    )}
+                    {bannerMode === "full" && !cardImage && attemptedSteps.includes(step) && (
+                      <p className="mt-1 text-xs text-red-500">Card image is required when uploading a full banner</p>
                     )}
                   </div>
 
@@ -1614,6 +1655,9 @@ const VendorRegistrationForm = () => {
                         </p>
                         <p className="text-gray-600">
                           Banner: {bannerMode === "full" ? (banner ? "✓ Uploaded" : "✗ Not uploaded") : `✓ ${bannerImages.length} image${bannerImages.length !== 1 ? "s" : ""} (collage)`}
+                        </p>
+                        <p className="text-gray-600">
+                          Card Image: {cardImage ? "✓ Uploaded" : bannerMode === "collage" ? "Auto (first collage image)" : "✗ Not uploaded"}
                         </p>
                         <p className="text-gray-600">
                           Business Type:{" "}

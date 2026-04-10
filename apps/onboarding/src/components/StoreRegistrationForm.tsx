@@ -37,6 +37,7 @@ interface FormData {
   // secondaryColor: string;
   subscriptionTier: "free" | "tier1" | "tier2" | "tier3";
   needsConsultation: boolean;
+  showReligiousProducts: boolean;
   taxExemptionForm: File | null;
   collectsDonations: boolean | null;
   donationPlatform: string;
@@ -98,6 +99,7 @@ const StoreRegistrationForm = () => {
     photos: [],
     subscriptionTier: "tier1",
     needsConsultation: false,
+    showReligiousProducts: true,
     taxExemptionForm: null,
     collectsDonations: null,
     donationPlatform: "",
@@ -253,7 +255,7 @@ const StoreRegistrationForm = () => {
     setFormData((prev) => ({
       ...prev,
       organizationName: parish.name,
-      description: parish.description ? parish.description.substring(0, 250) : "",
+      description: parish.description ? parish.description.substring(0, 1000) : "",
       foundingYear: parish.founded || "",
       streetAddress: parish.streetAddress || "",
       city: parish.city || "",
@@ -767,115 +769,170 @@ const StoreRegistrationForm = () => {
                   </div>
                 )}
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  {/* Left: Organization Info */}
+                {/* Row 1: Org core info | Admin core info */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
+                  {/* Left: Organization core */}
                   <div>
                     <h3 className="text-lg font-medium mb-4">Organization Information</h3>
-                    <Label htmlFor="organizationName" className="block text-sm font-medium text-gray-700 mb-1">Organization Name *</Label>
-                    <Input id="organizationName" name="organizationName" value={formData.organizationName} onChange={handleInputChange} required maxLength={250} className={`w-full ${!formData.organizationName && attemptedSteps.includes(2) ? "border-red-500" : ""}`} />
-                    {!formData.organizationName && attemptedSteps.includes(2) && (<p className="mt-1 text-sm text-red-500">Organization name is required</p>)}
-                    <Label htmlFor="organizationType" className="text-sm font-medium text-gray-700 mb-1 mt-4 flex items-center gap-2">
-                      Organization Type
-                      {formData.subscriptionTier !== "free" && (
-                        <Tooltip text="This is automatically set based on the subscription plan you selected in Step 1.">
-                          <Info className="h-4 w-4 text-gray-400 hover:text-[#006699]" />
-                        </Tooltip>
-                      )}
-                    </Label>
-                    <select
-                      id="organizationType"
-                      name="organizationType"
-                      value={formData.organizationType}
-                      disabled={formData.subscriptionTier !== "free"}
-                      onChange={handleInputChange}
-                      className={`w-full rounded-md border py-2 px-3 ${formData.subscriptionTier !== "free" ? "border-gray-200 bg-gray-100 text-gray-500 cursor-not-allowed" : "border-gray-300 text-gray-900"}`}
-                    >
-                      <option value="cause">Cause/Non-profit</option>
-                      <option value="parish">Parish</option>
-                      <option value="diocese">Diocese/Archdiocese</option>
-                    </select>
-                    <p className="mt-1 text-xs text-gray-400">Based on your selected plan</p>
-                    <Label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1 mt-4">Organization Description *</Label>
-                    <Textarea 
-                      id="description" 
-                      name="description" 
-                      value={formData.description} 
-                      onChange={handleInputChange} 
-                      required
-                      maxLength={250}
-                      className={`w-full h-32 ${!formData.description && attemptedSteps.includes(2) ? "border-red-500" : ""}`} 
-                      placeholder="Tell us about your organization and mission..." 
-                    />
-                    {!formData.description && attemptedSteps.includes(2) && (
-                      <p className="mt-1 text-sm text-red-500">Organization description is required</p>
-                    )}
-                    
-                    <Label htmlFor="impact" className="block text-sm font-medium text-gray-700 mb-1 mt-4">Impact of the Organization *</Label>
-                    <Input 
-                      id="impact" 
-                      name="impact" 
-                      value={formData.impact} 
-                      onChange={handleInputChange} 
-                      maxLength={50}
-                      required 
-                      className={`w-full ${!formData.impact && attemptedSteps.includes(2) ? "border-red-500" : ""}`} 
-                      placeholder="Brief description of your organization's impact..." 
-                    />
-                    <div className="flex justify-between items-center mt-1">
-                      {!formData.impact && attemptedSteps.includes(2) && (
-                        <p className="text-sm text-red-500">Impact description is required</p>
-                      )}
-                      <p className="text-sm text-gray-500 ml-auto">{formData.impact.length}/50 characters</p>
+                    <div className="mb-4">
+                      <Label htmlFor="organizationName" className="block text-sm font-medium text-gray-700 mb-1">Organization Name *</Label>
+                      <Input id="organizationName" name="organizationName" value={formData.organizationName} onChange={handleInputChange} required maxLength={250} className={`w-full ${!formData.organizationName && attemptedSteps.includes(2) ? "border-red-500" : ""}`} />
+                      {!formData.organizationName && attemptedSteps.includes(2) && (<p className="mt-1 text-sm text-red-500">Organization name is required</p>)}
                     </div>
-                    
-                    <Label htmlFor="foundingYear" className="block text-sm font-medium text-gray-700 mb-1 mt-4">Founding Year *</Label>
-                    <Input 
-                      id="foundingYear" 
-                      name="foundingYear" 
-                      type="text"
-                      pattern="[0-9]{4}"
-                      maxLength={4}
-                      value={formData.foundingYear} 
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        // Only allow digits and limit to 4 characters
-                        if (/^\d{0,4}$/.test(value)) {
-                          setFormData({ ...formData, foundingYear: value });
-                          if (value && !validateFoundingYear(value)) {
-                            setFoundingYearError('Founding year must be exactly 4 digits');
-                          } else {
-                            setFoundingYearError('');
+                    <div className="mb-4">
+                      <Label htmlFor="organizationType" className="text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
+                        Organization Type
+                        {formData.subscriptionTier !== "free" && (
+                          <Tooltip text="This is automatically set based on the subscription plan you selected in Step 1.">
+                            <Info className="h-4 w-4 text-gray-400 hover:text-[#006699]" />
+                          </Tooltip>
+                        )}
+                      </Label>
+                      <select
+                        id="organizationType"
+                        name="organizationType"
+                        value={formData.organizationType}
+                        disabled={formData.subscriptionTier !== "free"}
+                        onChange={handleInputChange}
+                        className={`w-full rounded-md border py-2 px-3 ${formData.subscriptionTier !== "free" ? "border-gray-200 bg-gray-100 text-gray-500 cursor-not-allowed" : "border-gray-300 text-gray-900"}`}
+                      >
+                        <option value="cause">Cause/Non-profit</option>
+                        <option value="parish">Parish</option>
+                        <option value="diocese">Diocese/Archdiocese</option>
+                      </select>
+                      <p className="mt-1 text-xs text-gray-400">Based on your selected plan</p>
+                    </div>
+                    <div className="mb-4">
+                      <Label htmlFor="foundingYear" className="block text-sm font-medium text-gray-700 mb-1">Founding Year *</Label>
+                      <Input
+                        id="foundingYear"
+                        name="foundingYear"
+                        type="text"
+                        pattern="[0-9]{4}"
+                        maxLength={4}
+                        value={formData.foundingYear}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (/^\d{0,4}$/.test(value)) {
+                            setFormData({ ...formData, foundingYear: value });
+                            if (value && !validateFoundingYear(value)) {
+                              setFoundingYearError('Founding year must be exactly 4 digits');
+                            } else {
+                              setFoundingYearError('');
+                            }
                           }
-                        }
-                      }}
-                      required 
-                      className={`w-full ${(!formData.foundingYear && attemptedSteps.includes(2)) || foundingYearError ? "border-red-500" : ""}`} 
-                      placeholder="YYYY" 
-                    />
-                    {!formData.foundingYear && attemptedSteps.includes(2) && (
-                      <p className="mt-1 text-sm text-red-500">Founding year is required</p>
-                    )}
-                    {foundingYearError && (
-                      <p className="mt-1 text-sm text-red-500">
-                        {foundingYearError}
-                      </p>
-                    )}
-
-                    <Label htmlFor="slogan" className="block text-sm font-medium text-gray-700 mb-1 mt-4">Slogan</Label>
-                    <Textarea 
-                      id="slogan" 
-                      name="slogan" 
-                      value={formData.slogan} 
-                      onChange={handleInputChange} 
-                      maxLength={75}
-                      className="w-full h-20" 
-                      placeholder="Your organization's slogan or tagline..." 
-                    />
-                    <div className="flex justify-end mt-1">
-                      <p className="text-sm text-gray-500">{formData.slogan.length}/75 characters</p>
+                        }}
+                        required
+                        className={`w-full ${(!formData.foundingYear && attemptedSteps.includes(2)) || foundingYearError ? "border-red-500" : ""}`}
+                        placeholder="YYYY"
+                      />
+                      {!formData.foundingYear && attemptedSteps.includes(2) && (
+                        <p className="mt-1 text-sm text-red-500">Founding year is required</p>
+                      )}
+                      {foundingYearError && (
+                        <p className="mt-1 text-sm text-red-500">{foundingYearError}</p>
+                      )}
                     </div>
-                    {/* Donation Collection Question */}
-                    <Label className="block text-sm font-medium text-gray-700 mb-1 mt-4">Do you currently collect online donations? *</Label>
+                    <div>
+                      <Label htmlFor="impact" className="block text-sm font-medium text-gray-700 mb-1">Impact of the Organization *</Label>
+                      <Input
+                        id="impact"
+                        name="impact"
+                        value={formData.impact}
+                        onChange={handleInputChange}
+                        maxLength={50}
+                        required
+                        className={`w-full ${!formData.impact && attemptedSteps.includes(2) ? "border-red-500" : ""}`}
+                        placeholder="Brief description of your organization's impact..."
+                      />
+                      <div className="flex justify-between items-center mt-1">
+                        {!formData.impact && attemptedSteps.includes(2) && (
+                          <p className="text-sm text-red-500">Impact description is required</p>
+                        )}
+                        <p className="text-sm text-gray-500 ml-auto">{formData.impact.length}/50</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right: Administrator core */}
+                  <div>
+                    <h3 className="text-lg font-medium mb-4">Administrator Information</h3>
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <Label htmlFor="adminFirstName" className="block text-sm font-medium text-gray-700 mb-1">First Name *</Label>
+                        <Input id="adminFirstName" name="adminFirstName" value={formData.adminFirstName} onChange={handleInputChange} required maxLength={250} className={`w-full ${!formData.adminFirstName && attemptedSteps.includes(2) ? "border-red-500" : ""}`} />
+                        {!formData.adminFirstName && attemptedSteps.includes(2) && (<p className="mt-1 text-sm text-red-500">First name is required</p>)}
+                      </div>
+                      <div>
+                        <Label htmlFor="adminLastName" className="block text-sm font-medium text-gray-700 mb-1">Last Name *</Label>
+                        <Input id="adminLastName" name="adminLastName" value={formData.adminLastName} onChange={handleInputChange} required maxLength={250} className={`w-full ${!formData.adminLastName && attemptedSteps.includes(2) ? "border-red-500" : ""}`} />
+                        {!formData.adminLastName && attemptedSteps.includes(2) && (<p className="mt-1 text-sm text-red-500">Last name is required</p>)}
+                      </div>
+                    </div>
+                    <div className="mb-4">
+                      <Label htmlFor="adminRole" className="block text-sm font-medium text-gray-700 mb-1">Role / Title *</Label>
+                      <Input id="adminRole" name="adminRole" value={formData.adminRole} onChange={handleInputChange} required maxLength={250} placeholder="e.g. Parish Administrator, Bishop" className={`w-full ${!formData.adminRole && attemptedSteps.includes(2) ? "border-red-500" : ""}`} />
+                      {!formData.adminRole && attemptedSteps.includes(2) && (<p className="mt-1 text-sm text-red-500">Role / Title is required</p>)}
+                    </div>
+                    <div className="mb-4">
+                      <Label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email *</Label>
+                      <Input id="email" name="email" type="email" value={formData.email} onChange={handleInputChange} required maxLength={250} className={`w-full ${(!formData.email && attemptedSteps.includes(2)) || emailError ? "border-red-500" : ""}`} />
+                      {!formData.email && attemptedSteps.includes(2) && (<p className="mt-1 text-sm text-red-500">Email is required</p>)}
+                      {emailError && (<p className="mt-1 text-sm text-red-500">{emailError}</p>)}
+                      <p className="mt-1 text-sm text-gray-500">We'll send your login credentials to this email</p>
+                    </div>
+                    <div>
+                      <Label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-1">Phone Number *</Label>
+                      <Input id="phoneNumber" name="phoneNumber" value={formData.phoneNumber} onChange={handleInputChange} required maxLength={20} placeholder="e.g. +1 (555) 123-4567" className={`w-full ${(!formData.phoneNumber && attemptedSteps.includes(2)) || phoneError ? "border-red-500" : ""}`} />
+                      {!formData.phoneNumber && attemptedSteps.includes(2) && (<p className="mt-1 text-sm text-red-500">Phone number is required</p>)}
+                      {phoneError && (<p className="mt-1 text-sm text-red-500">{phoneError}</p>)}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Row 2: Description — full width */}
+                <div className="mb-6 pt-6 border-t border-gray-100">
+                  <Label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">Organization Description *</Label>
+                  <Textarea
+                    id="description"
+                    name="description"
+                    value={formData.description}
+                    onChange={handleInputChange}
+                    required
+                    maxLength={1000}
+                    className={`w-full h-36 ${!formData.description && attemptedSteps.includes(2) ? "border-red-500" : ""}`}
+                    placeholder="Tell us about your organization and mission..."
+                  />
+                  <div className="flex justify-between items-center mt-1">
+                    {!formData.description && attemptedSteps.includes(2) && (
+                      <p className="text-sm text-red-500">Organization description is required</p>
+                    )}
+                    <p className="text-xs text-gray-400 ml-auto">{formData.description.length}/1000</p>
+                  </div>
+                </div>
+
+                {/* Row 3: Slogan — full width */}
+                <div className="mb-6">
+                  <Label htmlFor="slogan" className="block text-sm font-medium text-gray-700 mb-1">Slogan</Label>
+                  <Textarea
+                    id="slogan"
+                    name="slogan"
+                    value={formData.slogan}
+                    onChange={handleInputChange}
+                    maxLength={75}
+                    className="w-full h-20"
+                    placeholder="Your organization's slogan or tagline..."
+                  />
+                  <div className="flex justify-end mt-1">
+                    <p className="text-sm text-gray-500">{formData.slogan.length}/75</p>
+                  </div>
+                </div>
+
+                {/* Row 4: Donations | Religious Products — side by side */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6 pt-6 border-t border-gray-100">
+                  {/* Donations */}
+                  <div>
+                    <Label className="block text-sm font-medium text-gray-700 mb-1">Do you currently collect online donations? *</Label>
                     <div className="flex items-center gap-6 mb-2">
                       <label className="flex items-center gap-2">
                         <input
@@ -909,12 +966,10 @@ const StoreRegistrationForm = () => {
                     {formData.collectsDonations === null && attemptedSteps.includes(2) && (
                       <p className="text-sm text-red-500 mb-2">This field is required</p>
                     )}
-
-                    {/* Donation Platform Dropdown (conditional) */}
                     {formData.collectsDonations === true && (
                       <div className="mt-4">
                         <Label htmlFor="donationPlatform" className="block text-sm font-medium text-gray-700 mb-1">
-                          Which platform do you use to manage or collect donations? *
+                          Which platform do you use? *
                         </Label>
                         <select
                           id="donationPlatform"
@@ -936,9 +991,7 @@ const StoreRegistrationForm = () => {
                         </select>
                         {formData.donationPlatform === "other" && (
                           <div className="mt-2">
-                            <Label htmlFor="otherDonationPlatform" className="block text-sm font-medium text-gray-700 mb-1">
-                              Please specify
-                            </Label>
+                            <Label htmlFor="otherDonationPlatform" className="block text-sm font-medium text-gray-700 mb-1">Please specify</Label>
                             <Input
                               id="otherDonationPlatform"
                               value={formData.otherDonationPlatform}
@@ -954,83 +1007,81 @@ const StoreRegistrationForm = () => {
                           </div>
                         )}
                         {donationPlatformError && (
-                          <p className="mt-1 text-sm text-red-500">
-                            {donationPlatformError}
-                          </p>
+                          <p className="mt-1 text-sm text-red-500">{donationPlatformError}</p>
                         )}
                       </div>
                     )}
                   </div>
-                  {/* Right: Administrator Info */}
-                  <div>
-                    <h3 className="text-lg font-medium mb-4">Administrator Information</h3>
-                    <div className="grid grid-cols-2 gap-4 mb-4">
-                      <div>
-                        <Label htmlFor="adminFirstName" className="block text-sm font-medium text-gray-700 mb-1">First Name *</Label>
-                        <Input id="adminFirstName" name="adminFirstName" value={formData.adminFirstName} onChange={handleInputChange} required maxLength={250} className={`w-full ${!formData.adminFirstName && attemptedSteps.includes(2) ? "border-red-500" : ""}`} />
-                        {!formData.adminFirstName && attemptedSteps.includes(2) && (<p className="mt-1 text-sm text-red-500">First name is required</p>)}
-                      </div>
-                      <div>
-                        <Label htmlFor="adminLastName" className="block text-sm font-medium text-gray-700 mb-1">Last Name *</Label>
-                        <Input id="adminLastName" name="adminLastName" value={formData.adminLastName} onChange={handleInputChange} required maxLength={250} className={`w-full ${!formData.adminLastName && attemptedSteps.includes(2) ? "border-red-500" : ""}`} />
-                        {!formData.adminLastName && attemptedSteps.includes(2) && (<p className="mt-1 text-sm text-red-500">Last name is required</p>)}
-                      </div>
-                    </div>
-                    <Label htmlFor="adminRole" className="block text-sm font-medium text-gray-700 mb-1">Role / Title *</Label>
-                    <Input id="adminRole" name="adminRole" value={formData.adminRole} onChange={handleInputChange} required maxLength={250} placeholder="e.g. Parish Administrator, Bishop" className={`w-full ${!formData.adminRole && attemptedSteps.includes(2) ? "border-red-500" : ""}`} />
-                    {!formData.adminRole && attemptedSteps.includes(2) && (<p className="mt-1 text-sm text-red-500">Role / Title is required</p>)}
-                    <Label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1 mt-4">Email *</Label>
-                    <Input id="email" name="email" type="email" value={formData.email} onChange={handleInputChange} required maxLength={250} className={`w-full ${(!formData.email && attemptedSteps.includes(2)) || emailError ? "border-red-500" : ""}`} />
-                    {!formData.email && attemptedSteps.includes(2) && (<p className="mt-1 text-sm text-red-500">Email is required</p>)}
-                    {emailError && (
-                      <p className="mt-1 text-sm text-red-500">
-                        {emailError}
-                      </p>
-                    )}
-                    <p className="mt-1 text-sm text-gray-500">We'll send your login credentials to this email</p>
-                    <Label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-1 mt-4">Phone Number *</Label>
-                    <Input id="phoneNumber" name="phoneNumber" value={formData.phoneNumber} onChange={handleInputChange} required maxLength={20} placeholder="e.g. +1 (555) 123-4567" className={`w-full ${(!formData.phoneNumber && attemptedSteps.includes(2)) || phoneError ? "border-red-500" : ""}`} />
-                    {!formData.phoneNumber && attemptedSteps.includes(2) && (<p className="mt-1 text-sm text-red-500">Phone number is required</p>)}
-                    {phoneError && (<p className="mt-1 text-sm text-red-500">{phoneError}</p>)}
 
-                    <Label className="block text-md font-medium text-gray-700 mb-1 mt-8">Address</Label>
-                    <div className="space-y-4">
-                      <div>
-                        <Label htmlFor="streetAddress" className="block text-sm font-medium text-gray-700 mb-1">Street Address *</Label>
-                        <Input id="streetAddress" name="streetAddress" value={formData.streetAddress} onChange={handleInputChange} required maxLength={250} className={`w-full ${!formData.streetAddress && attemptedSteps.includes(2) ? "border-red-500" : ""}`} />
-                        {!formData.streetAddress && attemptedSteps.includes(2) && (<p className="mt-1 text-sm text-red-500">Street address is required</p>)}
-                      </div>
-                      <div className="mb-4">
-                        <ExternalLocationSelector
-                          value={externalLocation}
-                          onChange={(loc) => {
-                            setExternalLocation(loc);
-                            setFormData(prev => ({
-                              ...prev,
-                              city: loc.cityName,
-                              location: { country: loc.countryName, subdivision: loc.stateName },
-                            }));
-                          }}
-                          countryError={!externalLocation.countryId && attemptedSteps.includes(2)}
-                          stateError={!externalLocation.stateId && attemptedSteps.includes(2)}
-                          cityError={!externalLocation.cityId && attemptedSteps.includes(2)}
-                          showErrors={attemptedSteps.includes(2)}
+                  {/* Religious Products */}
+                  <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg self-start">
+                    <Label className="block text-sm font-medium text-gray-800 mb-1">
+                      Would you like to show religious products on your store?
+                    </Label>
+                    <p className="text-xs text-gray-500 mb-3">
+                      ParishMart offers a curated selection of religious products. When your supporters purchase through your store,
+                      you receive a percentage of each sale as a donation — at no cost to you.
+                    </p>
+                    <div className="flex items-center gap-6">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="showReligiousProducts"
+                          value="yes"
+                          checked={formData.showReligiousProducts === true}
+                          onChange={() => setFormData({ ...formData, showReligiousProducts: true })}
                         />
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mb-4">
-                        <div>
-                          <Label htmlFor="zipCode" className="block text-sm font-medium text-gray-700 mb-1">Zip Code *</Label>
-                          <Input id="zipCode" name="zipCode" value={formData.zipCode} onChange={handleInputChange} required maxLength={10} className={`w-full ${(!formData.zipCode && attemptedSteps.includes(2)) || zipCodeError ? "border-red-500" : ""}`} />
-                          {!formData.zipCode && attemptedSteps.includes(2) && (<p className="mt-1 text-sm text-red-500">Zip code is required</p>)}
-                          {zipCodeError && (<p className="mt-1 text-sm text-red-500">{zipCodeError}</p>)}
-                        </div>
-                      </div>
+                        <span className="text-sm">Yes, show them</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="showReligiousProducts"
+                          value="no"
+                          checked={formData.showReligiousProducts === false}
+                          onChange={() => setFormData({ ...formData, showReligiousProducts: false })}
+                        />
+                        <span className="text-sm">No thanks</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Row 5: Address — full width */}
+                <div className="pt-6 border-t border-gray-100 mb-6">
+                  <h3 className="text-lg font-medium mb-4">Address</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <Label htmlFor="streetAddress" className="block text-sm font-medium text-gray-700 mb-1">Street Address *</Label>
+                      <Input id="streetAddress" name="streetAddress" value={formData.streetAddress} onChange={handleInputChange} required maxLength={250} className={`w-full mb-4 ${!formData.streetAddress && attemptedSteps.includes(2) ? "border-red-500" : ""}`} />
+                      {!formData.streetAddress && attemptedSteps.includes(2) && (<p className="mb-4 text-sm text-red-500">Street address is required</p>)}
+                      <Label htmlFor="zipCode" className="block text-sm font-medium text-gray-700 mb-1">Zip Code *</Label>
+                      <Input id="zipCode" name="zipCode" value={formData.zipCode} onChange={handleInputChange} required maxLength={10} className={`w-full ${(!formData.zipCode && attemptedSteps.includes(2)) || zipCodeError ? "border-red-500" : ""}`} />
+                      {!formData.zipCode && attemptedSteps.includes(2) && (<p className="mt-1 text-sm text-red-500">Zip code is required</p>)}
+                      {zipCodeError && (<p className="mt-1 text-sm text-red-500">{zipCodeError}</p>)}
+                    </div>
+                    <div>
+                      <ExternalLocationSelector
+                        value={externalLocation}
+                        onChange={(loc) => {
+                          setExternalLocation(loc);
+                          setFormData(prev => ({
+                            ...prev,
+                            city: loc.cityName,
+                            location: { country: loc.countryName, subdivision: loc.stateName },
+                          }));
+                        }}
+                        countryError={!externalLocation.countryId && attemptedSteps.includes(2)}
+                        stateError={!externalLocation.stateId && attemptedSteps.includes(2)}
+                        cityError={!externalLocation.cityId && attemptedSteps.includes(2)}
+                        showErrors={attemptedSteps.includes(2)}
+                      />
                     </div>
                   </div>
                 </div>
 
                 {/* Referral */}
-                <div className="mt-8 pt-6 border-t border-gray-200">
+                <div className="pt-6 border-t border-gray-200">
                   <h3 className="text-lg font-medium mb-4">Referral</h3>
                   <div className="max-w-md">
                     <Label htmlFor="referredBy" className="block text-sm font-medium text-gray-700 mb-1">How did you hear from us?</Label>
@@ -1647,6 +1698,9 @@ const StoreRegistrationForm = () => {
                           Collects Donations: {formData.collectsDonations ? "Yes" : "No"}
                         </p>
                       )}
+                      <p className="text-gray-600">
+                        Religious Products: {formData.showReligiousProducts ? "Yes" : "No"}
+                      </p>
                       {formData.collectsDonations && formData.donationPlatform && (
                         <p className="text-gray-600">
                           Donation Platform: {formData.donationPlatform === "other" ? formData.otherDonationPlatform : formData.donationPlatform}

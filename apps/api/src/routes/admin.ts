@@ -197,12 +197,12 @@ async function activateVendorApproval(client: PoolClient, vendorId: number, user
 
     console.log(`✅ Vendor approved successfully: ${vendorId}`);
 
-    // Step 1b: Set subscription dates (free tier gets 30-day trial from approval date)
+    // Step 1b: Set subscription dates (free tier gets 3-month trial from approval date)
     await client.query(`
       UPDATE businesses
       SET current_subscription_start_date = NOW(),
           current_subscription_end_date = CASE
-            WHEN current_subscription_type = 'free' THEN NOW() + INTERVAL '30 days'
+            WHEN current_subscription_type = 'free' THEN NOW() + INTERVAL '3 months'
             ELSE current_subscription_end_date
           END,
           is_subscription_active = true
@@ -304,12 +304,12 @@ async function activateStoreApproval(client: PoolClient, adminId: number, userDa
 
     console.log(`✅ Administrator approved successfully: ${adminId}`);
 
-    // Step 1b: Set subscription dates (free tier gets 30-day trial from approval date)
+    // Step 1b: Set subscription dates (free tier gets 3-month trial from approval date)
     await client.query(`
       UPDATE organizations
       SET current_subscription_start_date = NOW(),
           current_subscription_end_date = CASE
-            WHEN current_subscription_type = 'free' THEN NOW() + INTERVAL '30 days'
+            WHEN current_subscription_type = 'free' THEN NOW() + INTERVAL '3 months'
             ELSE current_subscription_end_date
           END,
           is_subscription_active = true
@@ -962,10 +962,17 @@ router.get('/dashboard/vendors', requireSuperAdminAuth, async (req: Request, res
         v.about_you,
         v.community_contribution,
         v.mission_affiliation,
+        b.external_country_id,
+        b.external_state_id,
+        b.external_city_id,
+        b.external_mission_store_id,
+        v.terms_accepted,
+        v.terms_accepted_at,
         (SELECT bm.processed_media_url FROM businessmedia bm WHERE bm.business_id = b.business_id AND bm.media_type = 'logo' AND bm.processed_media_url IS NOT NULL ORDER BY bm.media_order LIMIT 1) AS logo_processed_url,
         (SELECT bm.media_url FROM businessmedia bm WHERE bm.business_id = b.business_id AND bm.media_type = 'logo' ORDER BY bm.media_order LIMIT 1) AS logo_raw_url,
         (SELECT bm.processed_media_url FROM businessmedia bm WHERE bm.business_id = b.business_id AND bm.media_type = 'banner' AND bm.processed_media_url IS NOT NULL ORDER BY bm.media_order LIMIT 1) AS banner_processed_url,
         (SELECT json_agg(bm.media_url ORDER BY bm.media_order) FROM businessmedia bm WHERE bm.business_id = b.business_id AND bm.media_type = 'banner') AS banner_images,
+        (SELECT bm.media_url FROM businessmedia bm WHERE bm.business_id = b.business_id AND bm.media_type = 'card_image' ORDER BY bm.media_order LIMIT 1) AS card_image_url,
         b.processed_results
       FROM vendors v
       LEFT JOIN businesses b ON b.vendor_id = v.vendor_id
@@ -1029,10 +1036,16 @@ router.get('/dashboard/stores', requireSuperAdminAuth, async (req: Request, res:
         o.subscription_amount,
         o.billing_cycle,
         o.parish_count,
+        o.show_religious_products,
+        a.external_country_id,
+        a.external_state_id,
+        a.external_city_id,
         a.role,
         a.referred_by,
         a.referral_associate_name,
         a.social_media_platform,
+        a.terms_accepted,
+        a.terms_accepted_at,
         (SELECT sm.processed_media_url FROM storemedia sm WHERE sm.organization_id = o.organization_id AND sm.media_type = 'logo' AND sm.processed_media_url IS NOT NULL ORDER BY sm.media_order LIMIT 1) AS logo_processed_url,
         (SELECT sm.media_url FROM storemedia sm WHERE sm.organization_id = o.organization_id AND sm.media_type = 'logo' ORDER BY sm.media_order LIMIT 1) AS logo_raw_url,
         (SELECT sm.processed_media_url FROM storemedia sm WHERE sm.organization_id = o.organization_id AND sm.media_type = 'banner' AND sm.processed_media_url IS NOT NULL ORDER BY sm.media_order LIMIT 1) AS banner_processed_url,
