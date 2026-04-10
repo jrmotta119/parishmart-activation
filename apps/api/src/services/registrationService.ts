@@ -43,6 +43,11 @@ interface VendorFormData {
   bannerMode?: string;
   billingCycle?: string;
   subscriptionAmount?: number;
+  // External marketplace IDs
+  externalCountryId?: number;
+  externalStateId?: number;
+  externalCityId?: number;
+  externalMissionStoreId?: number;
 }
 
 interface StoreFormData {
@@ -88,6 +93,10 @@ interface StoreFormData {
   parishCount?: number;
   billingCycle?: string;
   subscriptionAmount?: number;
+  // External marketplace IDs
+  externalCountryId?: number;
+  externalStateId?: number;
+  externalCityId?: number;
 }
 
 export class RegistrationService {
@@ -183,8 +192,10 @@ export class RegistrationService {
           business_address, business_city, business_state, business_country, business_zip_code,
           business_reach, business_type,
           website_links, contact_email, contact_phone, current_subscription_type,
-          logo_has_transparent_bg, banner_mode, subscription_amount, billing_cycle, created_at, updated_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, NOW(), NOW())
+          logo_has_transparent_bg, banner_mode, subscription_amount, billing_cycle,
+          external_country_id, external_state_id, external_city_id, external_mission_store_id,
+          created_at, updated_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, NOW(), NOW())
         RETURNING business_id
       `, [
         vendorId,
@@ -205,7 +216,11 @@ export class RegistrationService {
         formData.logoHasTransparentBg === 'true' || formData.logoHasTransparentBg === true,
         formData.bannerMode || 'collage',
         formData.subscriptionAmount || null,
-        formData.billingCycle || null
+        formData.billingCycle || null,
+        formData.externalCountryId || null,
+        formData.externalStateId || null,
+        formData.externalCityId || null,
+        formData.externalMissionStoreId || null,
       ]);
       
       const businessId = businessResult.rows[0].business_id;
@@ -414,8 +429,9 @@ export class RegistrationService {
           street_address, city, state, country, zip_code, phone_number,
           role, referred_by, referral_associate_name, social_media_platform,
           terms_accepted, terms_accepted_at,
+          external_country_id, external_state_id, external_city_id,
           approval_status, created_at, updated_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, 'pending', NOW(), NOW())
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, 'pending', NOW(), NOW())
         RETURNING admin_id
       `, [
         organizationId,
@@ -434,7 +450,10 @@ export class RegistrationService {
         formData.referralAssociateName || null,
         formData.referredBy === 'social' ? (formData.socialMediaPlatform || null) : null,
         formData.termsAccepted === true || formData.termsAccepted === ('true' as any),
-        formData.termsAccepted ? new Date().toISOString() : null
+        formData.termsAccepted ? new Date().toISOString() : null,
+        formData.externalCountryId || null,
+        formData.externalStateId || null,
+        formData.externalCityId || null,
       ]);
       
       const adminId = adminResult.rows[0].admin_id;

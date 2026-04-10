@@ -14,14 +14,25 @@ import Header from "./Header";
 import Footer from "./Footer";
 import AnnouncementStrip from "./AnnouncementStrip";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
-import CountryStateSelector from "./CountryStateSelector";
+import ExternalLocationSelector, { type LocationValue } from "./ExternalLocationSelector";
 
-interface Mission {
-  mission_id: string;
-  mission_name: string;
-  description?: string;
-  active: boolean;
+interface ExternalStore {
+  id: number;
+  name: string;
+  tipo: number;
 }
+
+interface MarketplacePlan {
+  name: string;
+  slug: string;
+  description: string;
+}
+
+const VENDOR_PLAN_MAP: Record<string, string> = {
+  tier1: 'basic',
+  tier2: 'commerce',
+  tier3: 'featured-partner',
+};
 
 interface FormData {
   firstName: string;
@@ -99,12 +110,18 @@ const VendorRegistrationForm = () => {
   const [parishSearch, setParishSearch] = useState("");
   const [customParish, setCustomParish] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [missions, setMissions] = useState<Mission[]>([]);
-  const [missionsLoading, setMissionsLoading] = useState(true);
-  const [missionsError, setMissionsError] = useState<string | null>(null);
+  const [externalStores, setExternalStores] = useState<ExternalStore[]>([]);
+  const [storesLoading, setStoresLoading] = useState(true);
+  const [storesError, setStoresError] = useState<string | null>(null);
+  const [externalMissionStoreId, setExternalMissionStoreId] = useState<number | undefined>(undefined);
+  const [externalLocation, setExternalLocation] = useState<LocationValue>({
+    countryName: '', stateName: '', cityName: '',
+    countryId: undefined, stateId: undefined, cityId: undefined,
+  });
   const [emailError, setEmailError] = useState<string>("");
   const [phoneError, setPhoneError] = useState<string>("");
   const [zipCodeError, setZipCodeError] = useState<string>("");
+  const [vendorPlans, setVendorPlans] = useState<MarketplacePlan[]>([]);
 
   const [showAnnouncement, setShowAnnouncement] = useState(true);
 
@@ -126,51 +143,38 @@ const VendorRegistrationForm = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Fetch missions from API
+  // Fetch stores from external marketplace API (parishes + causes)
   useEffect(() => {
-    const fetchMissions = async () => {
+    const fetchStores = async () => {
       try {
-        setMissionsLoading(true);
-        setMissionsError(null);
-
-        const response = await fetch(apiUrl('/api/vendors/missions'));
+        setStoresLoading(true);
+        setStoresError(null);
+        const response = await fetch(apiUrl('/api/external-data/stores'));
         const data = await response.json();
-
         if (data.success) {
-          setMissions(data.data || []);
-          console.log(`✅ Loaded ${data.data?.length || 0} missions from API`);
+          setExternalStores(data.data || []);
         } else {
-          throw new Error(data.message || 'Failed to fetch missions');
+          throw new Error(data.message || 'Failed to fetch stores');
         }
       } catch (error) {
-        console.error('❌ Error fetching missions:', error);
-        setMissionsError(error instanceof Error ? error.message : 'Failed to load missions');
-
-        // Fallback to hardcoded list if API fails
-        const fallbackMissions: Mission[] = [
-          { mission_id: 'fallback-1', mission_name: "St. Mary's Parish", active: true },
-          { mission_id: 'fallback-2', mission_name: "St. Joseph's Church", active: true },
-          { mission_id: 'fallback-3', mission_name: 'Holy Trinity Parish', active: true },
-          { mission_id: 'fallback-4', mission_name: 'Sacred Heart Church', active: true },
-          { mission_id: 'fallback-5', mission_name: "St. Patrick's Cathedral", active: true },
-          { mission_id: 'fallback-6', mission_name: 'Our Lady of Perpetual Help', active: true },
-          { mission_id: 'fallback-7', mission_name: 'St. Francis of Assisi', active: true },
-          { mission_id: 'fallback-8', mission_name: 'Christ the King Parish', active: true },
-          { mission_id: 'fallback-9', mission_name: 'Immaculate Conception Church', active: true },
-          { mission_id: 'fallback-10', mission_name: 'St. Thomas Aquinas Parish', active: true }
-        ];
-
-        setMissions(fallbackMissions);
-        console.log('⚠️ Using fallback missions list');
+        console.error('❌ Error fetching stores:', error);
+        setStoresError(error instanceof Error ? error.message : 'Failed to load stores');
       } finally {
-        setMissionsLoading(false);
+        setStoresLoading(false);
       }
     };
-
-    fetchMissions();
+    fetchStores();
   }, []);
 
-  // Missions are now loaded dynamically from the API
+  // Fetch vendor membership plans from external API
+  useEffect(() => {
+    fetch(apiUrl('/api/external-data/membership-plans?type=vendor'))
+      .then(r => r.json())
+      .then(data => { if (data.success) setVendorPlans(data.data || []); })
+      .catch(err => console.error('Failed to load vendor plans:', err));
+  }, []);
+
+  const vendorPlanBySlug = (slug: string) => vendorPlans.find(p => p.slug === slug);
 
   // Email validation function
   const validateEmail = (email: string): boolean => {
@@ -310,9 +314,9 @@ const VendorRegistrationForm = () => {
       !bannerValid ||
       !formData.reach ||
       !formData.businessAddress ||
-      !formData.businessCity ||
-      !formData.businessLocation.country ||
-      !formData.businessLocation.subdivision ||
+      !externalLocation.countryId ||
+      !externalLocation.stateId ||
+      !externalLocation.cityId ||
       !formData.businessZipCode
     ) {
       setToastMessage("Please fill in all required fields before submitting");
@@ -330,11 +334,14 @@ const VendorRegistrationForm = () => {
       // Add registration type
       submitData.append('registrationType', 'vendor');
       
-      // Handle parish affiliation with custom parish override
+      // Handle parish affiliation
       submitData.append('parishAffiliation', formData.parishAffiliation || "");
-      if (customParish.trim()) {
-        submitData.append('customParish', customParish.trim());
-      }
+
+      // External location IDs
+      if (externalLocation.countryId)      submitData.append('externalCountryId',      String(externalLocation.countryId));
+      if (externalLocation.stateId)        submitData.append('externalStateId',        String(externalLocation.stateId));
+      if (externalLocation.cityId)         submitData.append('externalCityId',         String(externalLocation.cityId));
+      if (externalMissionStoreId)          submitData.append('externalMissionStoreId', String(externalMissionStoreId));
       
       // Add all form fields (except those handled separately below)
       Object.entries(formData).forEach(([key, value]) => {
@@ -695,7 +702,7 @@ const VendorRegistrationForm = () => {
                         className="w-full border border-gray-300 rounded-md py-2 px-3 text-left"
                         onClick={() => setDropdownOpen((open) => !open)}
                       >
-                        {formData.parishAffiliation || "Select a parish or non-profit (optional)"}
+                        {formData.parishAffiliation || "Select a parish or cause (optional)"}
                       </button>
                       {dropdownOpen && (
                         <div className="absolute z-10 w-full bg-white border border-gray-300 rounded-md mt-1 shadow-lg">
@@ -708,39 +715,27 @@ const VendorRegistrationForm = () => {
                             autoFocus
                           />
                           <div className="max-h-48 overflow-y-auto">
-                            {missionsLoading ? (
-                              <div className="px-3 py-2 text-gray-500">Loading missions...</div>
-                            ) : missionsError ? (
-                              <div className="px-3 py-2 text-red-500">Error loading missions</div>
+                            {storesLoading ? (
+                              <div className="px-3 py-2 text-gray-500">Loading stores...</div>
+                            ) : storesError ? (
+                              <div className="px-3 py-2 text-red-500">Error loading stores</div>
                             ) : (
-                              [...missions
-                                .filter(mission => mission.mission_name.toLowerCase().includes(parishSearch.toLowerCase()))
-                                .map(mission => (
+                              externalStores
+                                .filter(store => store.name.toLowerCase().includes(parishSearch.toLowerCase()))
+                                .map(store => (
                                   <div
-                                    key={mission.mission_id}
+                                    key={store.id}
                                     className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
                                     onClick={() => {
-                                      setFormData({ ...formData, parishAffiliation: mission.mission_name });
+                                      setFormData({ ...formData, parishAffiliation: store.name });
+                                      setExternalMissionStoreId(store.id);
                                       setDropdownOpen(false);
                                       setParishSearch("");
                                     }}
                                   >
-                                    {mission.mission_name}
+                                    {store.name}
                                   </div>
-                                )),
-                                // Add "Other" option at the end
-                                <div
-                                  key="other"
-                                  className="px-3 py-2 hover:bg-gray-100 cursor-pointer border-t border-gray-200"
-                                  onClick={() => {
-                                    setFormData({ ...formData, parishAffiliation: "Other" });
-                                    setDropdownOpen(false);
-                                    setParishSearch("");
-                                  }}
-                                >
-                                  Other
-                                </div>
-                              ]
+                                ))
                             )}
                           </div>
                         </div>
@@ -750,22 +745,6 @@ const VendorRegistrationForm = () => {
                       A percentage of your sales will be donated to your
                       selected mission (Parish, Church, or Cause)
                     </p>
-                    {formData.parishAffiliation === "Other" && (
-                      <div className="mt-2">
-                        <Label htmlFor="customParish" className="block text-sm font-medium text-gray-700 mb-1">
-                          Please specify the mission or non-profit
-                        </Label>
-                        <Input
-                          id="customParish"
-                          name="customParish"
-                          value={customParish}
-                          onChange={e => setCustomParish(e.target.value)}
-                          className="w-full"
-                          maxLength={250}
-                          placeholder="Type the mission or non-profit name"
-                        />
-                      </div>
-                    )}
                   </div>
 
                   <div className="mb-6">
@@ -1003,38 +982,20 @@ const VendorRegistrationForm = () => {
                     )}
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                    <div>
-                      <Label
-                        htmlFor="businessCity"
-                        className="block text-sm font-medium text-gray-700 mb-1"
-                      >
-                        City *
-                      </Label>
-                      <Input
-                        id="businessCity"
-                        name="businessCity"
-                        value={formData.businessCity}
-                        onChange={handleInputChange}
-                        required
-                        maxLength={250}
-                        className={`w-full ${!formData.businessCity && attemptedSteps.includes(step) && "border-red-300"}`}
-                        placeholder="City"
-                      />
-                      {!formData.businessCity && attemptedSteps.includes(step) && (
-                        <p className="mt-1 text-sm text-red-600">
-                          City is required
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
                   <div className="mb-6">
-                    <CountryStateSelector
-                      value={formData.businessLocation}
-                      onChange={(value) => setFormData({ ...formData, businessLocation: value })}
-                      countryError={!formData.businessLocation.country && attemptedSteps.includes(step)}
-                      stateError={!formData.businessLocation.subdivision && attemptedSteps.includes(step)}
+                    <ExternalLocationSelector
+                      value={externalLocation}
+                      onChange={(loc) => {
+                        setExternalLocation(loc);
+                        setFormData(prev => ({
+                          ...prev,
+                          businessCity: loc.cityName,
+                          businessLocation: { country: loc.countryName, subdivision: loc.stateName },
+                        }));
+                      }}
+                      countryError={!externalLocation.countryId && attemptedSteps.includes(step)}
+                      stateError={!externalLocation.stateId && attemptedSteps.includes(step)}
+                      cityError={!externalLocation.cityId && attemptedSteps.includes(step)}
                       showErrors={attemptedSteps.includes(step)}
                     />
                   </div>
@@ -1319,6 +1280,9 @@ const VendorRegistrationForm = () => {
                         <div className="inline-block bg-amber-100 text-amber-800 text-xs font-semibold px-3 py-1 rounded-full mb-4">
                           GROWING EXPOSURE
                         </div>
+                        <h3 className="text-lg font-bold text-gray-900 mb-2">
+                          {vendorPlanBySlug(VENDOR_PLAN_MAP.tier1)?.name ?? "Local"}
+                        </h3>
                         <div className="mb-1">
                           <p className="text-3xl font-bold text-gray-900">
                             {isAnnual ? "$390" : "$39"}
@@ -1333,7 +1297,9 @@ const VendorRegistrationForm = () => {
                             </>
                           )}
                         </div>
-                        <p className="text-xs text-gray-500 mt-3 mb-4 leading-snug">Grow with ParishMart</p>
+                        <p className="text-xs text-gray-500 mt-3 mb-4 leading-snug">
+                          {vendorPlanBySlug(VENDOR_PLAN_MAP.tier1)?.description ?? "Grow with ParishMart"}
+                        </p>
                         <ul className="space-y-3 text-sm">
                           <li className="flex items-start">
                             <span className="text-gray-400 font-bold mr-2 mt-0.5">↑</span>
@@ -1371,6 +1337,9 @@ const VendorRegistrationForm = () => {
                         <div className="inline-block bg-[#1a365d] text-white text-xs font-semibold px-3 py-1 rounded-full mb-4">
                           BEST FOR SERVICES
                         </div>
+                        <h3 className="text-lg font-bold text-gray-900 mb-2">
+                          {vendorPlanBySlug(VENDOR_PLAN_MAP.tier2)?.name ?? "Bookings & Services"}
+                        </h3>
                         <div className="mb-4">
                           <p className="text-3xl font-bold text-gray-900">
                             {isAnnual ? "$790" : "$79"}
@@ -1384,7 +1353,9 @@ const VendorRegistrationForm = () => {
                               <p className="text-xs text-green-600 font-medium">Save ~17%</p>
                             </>
                           )}
-                          <p className="text-xs text-gray-500 mt-2 italic">Turn visibility into real customers</p>
+                          <p className="text-xs text-gray-500 mt-2 italic">
+                            {vendorPlanBySlug(VENDOR_PLAN_MAP.tier2)?.description ?? "Turn visibility into real customers"}
+                          </p>
                         </div>
                         <ul className="space-y-3 text-sm">
                           <li className="flex items-start">
@@ -1431,6 +1402,9 @@ const VendorRegistrationForm = () => {
                         <div className="inline-block bg-amber-100 text-amber-800 text-xs font-semibold px-3 py-1 rounded-full mb-4">
                           SELL PRODUCTS
                         </div>
+                        <h3 className="text-lg font-bold text-gray-900 mb-2">
+                          {vendorPlanBySlug(VENDOR_PLAN_MAP.tier3)?.name ?? "Sell Products"}
+                        </h3>
                         <div className="mb-4">
                           <p className="text-3xl font-bold text-gray-900">
                             {isAnnual ? "$989" : "$99"}
@@ -1591,10 +1565,10 @@ const VendorRegistrationForm = () => {
                           {formData.subscriptionType === "free"
                             ? "Free"
                             : formData.subscriptionType === "tier1"
-                              ? "Local"
+                              ? (vendorPlanBySlug(VENDOR_PLAN_MAP.tier1)?.name ?? "Local")
                               : formData.subscriptionType === "tier2"
-                                ? "Bookings & Services"
-                                : "Sell Products"}
+                                ? (vendorPlanBySlug(VENDOR_PLAN_MAP.tier2)?.name ?? "Bookings & Services")
+                                : (vendorPlanBySlug(VENDOR_PLAN_MAP.tier3)?.name ?? "Sell Products")}
                           <span className="text-gray-500"> ({isAnnual ? "Annual" : "Monthly"})</span>
                         </p>
                         <p className="text-gray-600">

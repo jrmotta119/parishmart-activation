@@ -67,33 +67,109 @@ export interface MarketplaceCountry {
   code: string;
 }
 
+export interface MarketplaceState {
+  id: number;
+  name: string;
+  abbreviation: string;
+  country_id: number;
+}
+
+export interface MarketplaceCity {
+  id: number;
+  name: string;
+  slug: string;
+  state_id: number;
+  zip_code: string | null;
+}
+
+export interface MarketplacePlan {
+  name: string;
+  slug: string;
+  description: string;
+  type: 'vendor' | 'partner';
+  is_active: boolean;
+}
+
+export interface MarketplaceStore {
+  id: number;
+  name: string;
+  tipo: number;
+}
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+function baseUrl(): string {
+  if (!MARKETPLACE_BASE_URL) throw new Error('MARKETPLACE_API_URL is not configured');
+  return MARKETPLACE_BASE_URL.replace(/\/+$/, '');
+}
+
+function assertCredentials(): void {
+  if (!MARKETPLACE_API_KEY || !MARKETPLACE_API_SECRET) {
+    throw new Error('MARKETPLACE_API_KEY / MARKETPLACE_API_SECRET are not configured');
+  }
+}
+
+async function getJson<T>(path: string, extraHeaders?: Record<string, string>): Promise<T> {
+  assertCredentials();
+  const url = `${baseUrl()}${path}`;
+  // Sign only the path component — query strings must not be included in the canonical string
+  const pathForSigning = path.split('?')[0];
+  const headers = { ...buildHeaders('GET', pathForSigning), ...(extraHeaders || {}) };
+  console.log(`[marketplace] GET ${url}`, extraHeaders && Object.keys(extraHeaders).length ? `headers=${JSON.stringify(extraHeaders)}` : '');
+  const res = await fetch(url, { method: 'GET', headers });
+  console.log(`[marketplace] response status=${res.status} ok=${res.ok}`);
+  if (!res.ok) {
+    const text = await res.text();
+    console.error(`[marketplace] error body: ${text}`);
+    throw new Error(`Marketplace GET ${path} failed (${res.status}): ${text}`);
+  }
+  const data = await res.json() as { success: boolean; data: T };
+  console.log(`[marketplace] success=${data.success} data length=${Array.isArray(data.data) ? (data.data as unknown[]).length : typeof data.data}`);
+  if (!data.success) throw new Error(`Marketplace GET ${path} returned success=false`);
+  return data.data;
+}
+
 // ─── Service ─────────────────────────────────────────────────────────────────
 
 export class MarketplaceService {
-  /**
-   * Fetch the list of published countries from the marketplace.
-   * Use as a connectivity / auth validation check.
-   */
+  /** Fetch published countries. */
   static async getCountries(): Promise<MarketplaceCountry[]> {
-    if (!MARKETPLACE_BASE_URL) throw new Error('MARKETPLACE_API_URL is not configured');
-    if (!MARKETPLACE_API_KEY || !MARKETPLACE_API_SECRET) {
-      throw new Error('MARKETPLACE_API_KEY / MARKETPLACE_API_SECRET are not configured');
-    }
+    return getJson<MarketplaceCountry[]>('/api/v1/external-api/countries');
+  }
 
-    const path = '/api/v1/external-api/countries';
-    const res  = await fetch(`${MARKETPLACE_BASE_URL.replace(/\/+$/, '')}${path}`, {
-      method:  'GET',
-      headers: buildHeaders('GET', path),
-    });
+  /**
+   * Fetch states for a country.
+   * @param countryId  External country ID (defaults to 1 = United States on their end)
+   */
+  static async getStates(countryId?: number): Promise<MarketplaceState[]> {
+    const extra: Record<string, string> = countryId !== undefined ? { Country_id: String(countryId) } : {};
+    return getJson<MarketplaceState[]>('/api/v1/external-api/states', extra);
+  }
 
-    if (!res.ok) {
-      const text = await res.text();
-      throw new Error(`Marketplace getCountries failed (${res.status}): ${text}`);
-    }
+  /**
+   * Fetch cities for a state.
+   * @param stateId  External state ID (required by their API)
+   */
+  static async getCities(stateId: number): Promise<MarketplaceCity[]> {
+    return getJson<MarketplaceCity[]>(`/api/v1/external-api/cities?state_id=${stateId}`);
+  }
 
-    const data = await res.json() as { success: boolean; data: MarketplaceCountry[] };
-    if (!data.success) throw new Error('Marketplace getCountries returned success=false');
-    return data.data;
+  /**
+   * Fetch active membership plans.
+   * @param type  "vendor" or "partner" — omit to get all
+   */
+  static async getMembershipPlans(type?: 'vendor' | 'partner'): Promise<MarketplacePlan[]> {
+    const extra: Record<string, string> = type ? { type } : {};
+    return getJson<MarketplacePlan[]>('/api/v1/external-api/membership-plans', extra);
+  }
+
+  /**
+   * Fetch published stores.
+   * @param tipo  Comma-separated tipo numbers e.g. "1,2" (1=parish, 2=cause)
+   */
+  static async getStores(tipo?: string): Promise<MarketplaceStore[]> {
+    const extra: Record<string, string> = tipo ? { tipo } : {};
+    return getJson<MarketplaceStore[]>('/api/v1/external-api/stores', extra);
   }
 
   /**

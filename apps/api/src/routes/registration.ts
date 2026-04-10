@@ -65,8 +65,15 @@ router.post('/', registrationLimiter, upload, async (req: Request, res: Response
       });
     }
 
+    // Parse external location IDs (arrive as strings from multipart FormData)
+    const parseId = (v: unknown) => { const n = Number(v); return Number.isFinite(n) && n > 0 ? n : undefined; };
+    if (formData.externalCountryId)      formData.externalCountryId      = parseId(formData.externalCountryId);
+    if (formData.externalStateId)        formData.externalStateId        = parseId(formData.externalStateId);
+    if (formData.externalCityId)         formData.externalCityId         = parseId(formData.externalCityId);
+    if (formData.externalMissionStoreId) formData.externalMissionStoreId = parseId(formData.externalMissionStoreId);
+
     let result;
-    
+
     if (registrationType === 'vendor') {
       result = await RegistrationService.processVendorRegistration(formData, files);
     } else {
