@@ -9,7 +9,7 @@ import { Upload, Check, ArrowRight, Info } from "lucide-react";
 import Header from "./Header";
 import Footer from "./Footer";
 import AnnouncementStrip from "./AnnouncementStrip";
-import CountryStateSelector from "./CountryStateSelector";
+import ExternalLocationSelector, { type LocationValue } from "./ExternalLocationSelector";
 import ParishSelector, { type PreloadedParish } from "./ParishSelector";
 
 interface FormData {
@@ -51,6 +51,18 @@ interface FormData {
   billingCycle: "monthly" | "annual";
   subscriptionAmount: number;
 }
+
+interface MarketplacePlan {
+  name: string;
+  slug: string;
+  description: string;
+}
+
+const STORE_PLAN_MAP: Record<string, string> = {
+  tier1: 'cause-plan',
+  tier2: 'parish-growth-plan',
+  tier3: 'diocese-network-plan',
+};
 
 // Tooltip component
 const Tooltip = ({ text, children }: { text: string; children: React.ReactNode }) => (
@@ -122,9 +134,14 @@ const StoreRegistrationForm = () => {
 
   const [selectedParish, setSelectedParish] = useState<PreloadedParish | null>(null);
   const [isManualEntry, setIsManualEntry] = useState(false);
+  const [externalLocation, setExternalLocation] = useState<LocationValue>({
+    countryName: '', stateName: '', cityName: '',
+    countryId: undefined, stateId: undefined, cityId: undefined,
+  });
 
   const [customPrimaryColor, setCustomPrimaryColor] = useState("#006699");
   const [customSecondaryColor, setCustomSecondaryColor] = useState("#e6f7ff");
+  const [storePlans, setStorePlans] = useState<MarketplacePlan[]>([]);
 
 
   const [showAnnouncement, setShowAnnouncement] = useState(true);
@@ -137,6 +154,16 @@ const StoreRegistrationForm = () => {
     { name: "Orange", primary: "#ed6c02", secondary: "#fff3e0" },
     { name: "Teal", primary: "#00796b", secondary: "#e0f2f1" },
   ];
+
+  // Fetch partner/store membership plans from external API
+  useEffect(() => {
+    fetch(apiUrl('/api/external-data/membership-plans?type=partner'))
+      .then(r => r.json())
+      .then(data => { if (data.success) setStorePlans(data.data || []); })
+      .catch(err => console.error('Failed to load store plans:', err));
+  }, []);
+
+  const storePlanBySlug = (slug: string) => storePlans.find(p => p.slug === slug);
 
   // Email validation function
   const validateEmail = (email: string): boolean => {
@@ -242,6 +269,58 @@ const StoreRegistrationForm = () => {
     setPhoneError("");
     setZipCodeError("");
     setFoundingYearError("");
+
+    // Resolve external IDs: US country is always id=1; look up state by abbreviation, then city by name
+    if (parish.state) {
+      fetch(apiUrl('/api/external-data/states?country_id=1'))
+        .then(r => r.json())
+        .then(async data => {
+          if (!data.success) return;
+          const stateMatch = (data.data as { id: number; name: string; abbreviation: string }[])
+            .find(s => s.abbreviation === parish.state);
+
+          // Set country + state immediately so the city dropdown loads
+          setExternalLocation({
+            countryName: 'United States of America',
+            stateName: stateMatch ? stateMatch.name : parish.state,
+            cityName: '',
+            countryId: 1,
+            stateId: stateMatch?.id,
+            cityId: undefined,
+          });
+
+          // Then resolve city by name match
+          if (stateMatch && parish.city) {
+            const cityRes = await fetch(apiUrl(`/api/external-data/cities?state_id=${stateMatch.id}`));
+            const cityData = await cityRes.json();
+            if (cityData.success) {
+              const cityName = parish.city.trim().toLowerCase();
+              const cityMatch = (cityData.data as { id: number; name: string }[])
+                .find(c => c.name.trim().toLowerCase() === cityName);
+              if (cityMatch) {
+                setExternalLocation({
+                  countryName: 'United States of America',
+                  stateName: stateMatch.name,
+                  cityName: cityMatch.name,
+                  countryId: 1,
+                  stateId: stateMatch.id,
+                  cityId: cityMatch.id,
+                });
+              }
+            }
+          }
+        })
+        .catch(err => console.error('Failed to resolve location for parish autofill:', err));
+    } else {
+      setExternalLocation({
+        countryName: 'United States of America',
+        stateName: '',
+        cityName: '',
+        countryId: 1,
+        stateId: undefined,
+        cityId: undefined,
+      });
+    }
   };
 
   const handleParishClear = () => {
@@ -259,6 +338,7 @@ const StoreRegistrationForm = () => {
       email: "",
       location: { country: "", subdivision: "" },
     }));
+    setExternalLocation({ countryName: '', stateName: '', cityName: '', countryId: undefined, stateId: undefined, cityId: undefined });
   };
 
   const handleManualEntry = () => {
@@ -383,9 +463,9 @@ const StoreRegistrationForm = () => {
       !formData.adminLastName ||
       !formData.email ||
       !formData.streetAddress ||
-      !formData.city ||
-      !formData.location.country ||
-      !formData.location.subdivision ||
+      !externalLocation.countryId ||
+      !externalLocation.stateId ||
+      !externalLocation.cityId ||
       !formData.zipCode ||
       !formData.organizationName ||
       !formData.impact ||
@@ -462,6 +542,11 @@ const StoreRegistrationForm = () => {
       }
 
       // Terms acceptance (stored separately from formData state)
+      // External location IDs
+      if (externalLocation.countryId) submitData.append('externalCountryId', String(externalLocation.countryId));
+      if (externalLocation.stateId)   submitData.append('externalStateId',   String(externalLocation.stateId));
+      if (externalLocation.cityId)    submitData.append('externalCityId',    String(externalLocation.cityId));
+
       submitData.append('termsAccepted', acceptedTerms.toString());
 
       // Send form data to API endpoint
@@ -501,7 +586,7 @@ const StoreRegistrationForm = () => {
       }
     } else if (step === 2) {
       if (!formData.adminFirstName || !formData.adminLastName || !formData.adminRole || !formData.email || !formData.phoneNumber ||
-          !formData.streetAddress || !formData.city || !formData.location.country || !formData.location.subdivision || !formData.zipCode ||
+          !formData.streetAddress || !externalLocation.countryId || !externalLocation.stateId || !externalLocation.cityId || !formData.zipCode ||
           !formData.organizationName || !formData.description ||
           !formData.impact || !formData.foundingYear || !formData.referredBy ||
           (formData.referredBy === "ministry_brands" && !formData.referralAssociateName) ||
@@ -915,27 +1000,30 @@ const StoreRegistrationForm = () => {
                         <Input id="streetAddress" name="streetAddress" value={formData.streetAddress} onChange={handleInputChange} required maxLength={250} className={`w-full ${!formData.streetAddress && attemptedSteps.includes(2) ? "border-red-500" : ""}`} />
                         {!formData.streetAddress && attemptedSteps.includes(2) && (<p className="mt-1 text-sm text-red-500">Street address is required</p>)}
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        <div>
-                          <Label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">City *</Label>
-                          <Input id="city" name="city" value={formData.city} onChange={handleInputChange} required maxLength={250} className={`w-full ${!formData.city && attemptedSteps.includes(2) ? "border-red-500" : ""}`} />
-                          {!formData.city && attemptedSteps.includes(2) && (<p className="mt-1 text-sm text-red-500">City is required</p>)}
-                        </div>
+                      <div className="mb-4">
+                        <ExternalLocationSelector
+                          value={externalLocation}
+                          onChange={(loc) => {
+                            setExternalLocation(loc);
+                            setFormData(prev => ({
+                              ...prev,
+                              city: loc.cityName,
+                              location: { country: loc.countryName, subdivision: loc.stateName },
+                            }));
+                          }}
+                          countryError={!externalLocation.countryId && attemptedSteps.includes(2)}
+                          stateError={!externalLocation.stateId && attemptedSteps.includes(2)}
+                          cityError={!externalLocation.cityId && attemptedSteps.includes(2)}
+                          showErrors={attemptedSteps.includes(2)}
+                        />
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mb-4">
                         <div>
                           <Label htmlFor="zipCode" className="block text-sm font-medium text-gray-700 mb-1">Zip Code *</Label>
                           <Input id="zipCode" name="zipCode" value={formData.zipCode} onChange={handleInputChange} required maxLength={10} className={`w-full ${(!formData.zipCode && attemptedSteps.includes(2)) || zipCodeError ? "border-red-500" : ""}`} />
                           {!formData.zipCode && attemptedSteps.includes(2) && (<p className="mt-1 text-sm text-red-500">Zip code is required</p>)}
                           {zipCodeError && (<p className="mt-1 text-sm text-red-500">{zipCodeError}</p>)}
                         </div>
-                      </div>
-                      <div className="mb-4">
-                        <CountryStateSelector
-                          value={formData.location}
-                          onChange={(value) => setFormData({ ...formData, location: value })}
-                          countryError={!formData.location.country && attemptedSteps.includes(2)}
-                          stateError={!formData.location.subdivision && attemptedSteps.includes(2)}
-                          showErrors={attemptedSteps.includes(2)}
-                        />
                       </div>
                     </div>
                   </div>
@@ -1115,7 +1203,9 @@ const StoreRegistrationForm = () => {
                         <Check className="h-3.5 w-3.5 text-white" />
                       </div>
                     )}
-                    <h3 className="text-xl font-bold text-gray-900 mb-4">Cause Plan</h3>
+                    <h3 className="text-xl font-bold text-gray-900 mb-4">
+                      {storePlanBySlug(STORE_PLAN_MAP.tier1)?.name ?? "Cause Plan"}
+                    </h3>
                     <div className="mb-4">
                       {isAnnual ? (
                         <>
@@ -1153,7 +1243,9 @@ const StoreRegistrationForm = () => {
                         <Check className="h-3.5 w-3.5 text-white" />
                       </div>
                     )}
-                    <h3 className="text-xl font-bold text-gray-900 mb-4 mt-2">Parish Growth Plan</h3>
+                    <h3 className="text-xl font-bold text-gray-900 mb-4 mt-2">
+                      {storePlanBySlug(STORE_PLAN_MAP.tier2)?.name ?? "Parish Growth Plan"}
+                    </h3>
                     <div className="mb-4">
                       {isAnnual ? (
                         <>
@@ -1192,7 +1284,9 @@ const StoreRegistrationForm = () => {
                       </div>
                     )}
                     <div className="bg-[#1a365d] px-6 py-4">
-                      <h3 className="text-xl font-bold text-white">Diocese Network Plan</h3>
+                      <h3 className="text-xl font-bold text-white">
+                        {storePlanBySlug(STORE_PLAN_MAP.tier3)?.name ?? "Diocese Network Plan"}
+                      </h3>
                     </div>
                     <div className="p-6 flex flex-col flex-grow">
                       <div className="mb-4">
@@ -1511,10 +1605,10 @@ const StoreRegistrationForm = () => {
                         {formData.subscriptionTier === "free"
                           ? "Free"
                           : formData.subscriptionTier === "tier1"
-                            ? "Cause Plan"
+                            ? (storePlanBySlug(STORE_PLAN_MAP.tier1)?.name ?? "Cause Plan")
                             : formData.subscriptionTier === "tier2"
-                              ? "Parish Growth Plan"
-                              : "Diocese Network Plan"}
+                              ? (storePlanBySlug(STORE_PLAN_MAP.tier2)?.name ?? "Parish Growth Plan")
+                              : (storePlanBySlug(STORE_PLAN_MAP.tier3)?.name ?? "Diocese Network Plan")}
                         {formData.subscriptionTier === "tier3" && (
                           <span className="text-gray-500"> — {formData.parishCount} {formData.parishCount === 1 ? 'parish' : 'parishes'}</span>
                         )}

@@ -82,7 +82,7 @@ const AboutUs = () => {
             <div className="text-center lg:text-left">
               <div className="bg-blue-100 rounded-lg mb-6 h-48 flex items-center justify-center overflow-hidden">
                 <img
-                  src="https://parishmart-files-public.s3.us-east-2.amazonaws.com/media/friends-embracing-beach-looking-sky.jpg"
+                  src="https://parishmart-files-public.s3.us-east-2.amazonaws.com/media/AboutUs/friends-embracing-beach-looking-sky+(2).jpg"
                   alt="Mission - Helping hands"
                   className="w-full h-full object-cover"
                 />
@@ -98,7 +98,7 @@ const AboutUs = () => {
             <div className="text-center lg:text-left">
               <div className="bg-blue-100 rounded-lg mb-6 h-48 flex items-center justify-center overflow-hidden">
                 <img
-                  src="https://parishmart-files-public.s3.us-east-2.amazonaws.com/media/couple-s-hand-holding-tied-valentine-gift.jpg"
+                  src="https://parishmart-files-public.s3.us-east-2.amazonaws.com/media/AboutUs/couple-s-hand-holding-tied-valentine-gift+(2).jpg"
                   alt="Vision - Future planning"
                   className="w-full h-full object-cover"
                 />
@@ -169,7 +169,7 @@ const AboutUs = () => {
             <div className="flex items-start justify-center mt-16 lg:mt-20">
               <div className="bg-blue-100 rounded-lg h-64 w-full flex items-center justify-center overflow-hidden">
                 <img
-                  src="https://parishmart-files-public.s3.us-east-2.amazonaws.com/media/strength-people-hands-success-meeting.jpg"
+                  src="https://parishmart-files-public.s3.us-east-2.amazonaws.com/media/AboutUs/strength-people-hands-success-meeting+(2).jpg"
                   alt="Values - Community and trust"
                   className="w-full h-full object-cover"
                 />
@@ -233,21 +233,21 @@ const AboutUs = () => {
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
                 <div className="bg-blue-100 rounded-lg h-48 flex items-center justify-center overflow-hidden">
                   <img
-                    src="https://parishmart-files-public.s3.us-east-2.amazonaws.com/media/tourists-go-up-hill-sunrise.jpg"
+                    src="https://parishmart-files-public.s3.us-east-2.amazonaws.com/media/AboutUs/business-success-concept-wooden-table-top-view-hands-protecting-wooden-figures-people.jpg"
                     alt="Entrepreneurship journey"
                     className="w-full h-full object-cover"
                   />
                 </div>
                 <div className="bg-blue-100 rounded-lg h-48 flex items-center justify-center overflow-hidden">
                   <img
-                    src="https://parishmart-files-public.s3.us-east-2.amazonaws.com/media/app-woman-white-solution-closeup-two.jpg"
+                    src="https://parishmart-files-public.s3.us-east-2.amazonaws.com/media/AboutUs/app-woman-white-solution-closeup-two+(1).jpg"
                     alt="Faith and family"
                     className="w-full h-full object-cover"
                   />
                 </div>
                 <div className="bg-blue-100 rounded-lg h-48 flex items-center justify-center overflow-hidden">
                   <img
-                    src="https://parishmart-files-public.s3.us-east-2.amazonaws.com/media/businesses_w_t.png"
+                    src="https://parishmart-files-public.s3.us-east-2.amazonaws.com/media/AboutUs/tourists-go-up-hill-sunrise+(1).jpg"
                     alt="Community support"
                     className="w-full h-full object-cover"
                   />

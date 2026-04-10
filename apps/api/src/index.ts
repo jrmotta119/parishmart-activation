@@ -25,6 +25,7 @@ import adminRoutes from './routes/admin';
 import emailTestRoutes from './routes/emailTest';
 import webhookRoutes from './routes/webhooks';
 import externalApiRoutes from './routes/externalApi';
+import externalDataRoutes from './routes/externalData';
 
 // Import middleware
 import { errorHandler } from './middleware/errorHandler';
@@ -155,6 +156,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/email-test', emailTestRoutes);
 app.use('/api/webhook', webhookRoutes);
 app.use('/api/external', externalApiRoutes);
+app.use('/api/external-data', externalDataRoutes);
 
 // Serve client build files in production
 if (process.env.NODE_ENV === 'production') {
