@@ -157,7 +157,7 @@ const SellWithUs = () => {
                   Start Selling with Purpose
                 </Button>
                 <Button
-                  onClick={() => (window.location.href = "https://shop.parishmart.com/contact")}
+                  onClick={() => (window.location.href = "https://calendly.com/gurupia/parishmart")}
                   variant="outline"
                   className="border-2 border-white text-white bg-[#006699] hover:bg-white/30 font-semibold px-8 py-3 text-base h-auto"
                 >
