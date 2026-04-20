@@ -4,6 +4,12 @@ import Home from "./components/home";
 import StoreRegistration from "./components/StoreRegistration";
 import StoreRegistrationForm from "./components/StoreRegistrationForm";
 import VendorRegistrationForm from "./components/VendorRegistrationForm";
+import BusinessActivation from "./components/BusinessActivation";
+import ParishActivation from "./components/ParishActivation";
+import CauseActivation from "./components/CauseActivation";
+import DioceseActivation from "./components/DioceseActivation";
+import SponsorActivation from "./components/SponsorActivation";
+import ActivationHub from "./components/ActivationHub";
 import SellWithUs from "./components/SellWithUs";
 import ProductsPage from "./components/ProductsPage";
 import ShopPage from "./components/ShopPage";
@@ -43,16 +49,25 @@ function App() {
 
             <Routes>
               <Route path="/" element={<Home />} />
-              <Route path="/why-register" element={<StoreRegistration />} />
+              <Route path="/why-register" element={<Navigate to="/activate" />} />
+              <Route path="/sell-with-us" element={<Navigate to="/activate" />} />
               <Route
                 path="/store-registration"
                 element={<StoreRegistrationForm />}
               />
               <Route
                 path="/vendor-registration-form"
+                element={<BusinessActivation />}
+              />
+              <Route
+                path="/vendor-registration-form-legacy"
                 element={<VendorRegistrationForm />}
               />
-              <Route path="/sell-with-us" element={<SellWithUs />} />
+              <Route path="/parish-activation" element={<ParishActivation />} />
+              <Route path="/cause-activation" element={<CauseActivation />} />
+              <Route path="/diocese-activation" element={<DioceseActivation />} />
+              <Route path="/sponsor-activation" element={<SponsorActivation />} />
+              <Route path="/activate" element={<ActivationHub />} />
               <Route path="/shop" element={<ShopPage />} />
               <Route path="/marketplace" element={<MarketplacePage />} />
               <Route path="/marketplace/:category" element={<MarketplacePage />} />

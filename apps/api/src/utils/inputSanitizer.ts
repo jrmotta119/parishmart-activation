@@ -77,32 +77,32 @@ export function sanitizeRequired(value: string | undefined | null, fieldName: st
 export function sanitizeStoreFormData(raw: Record<string, any>): Record<string, any> {
   return {
     ...raw,
-    // Administrator fields
-    adminFirstName:         sanitizeRequired(raw.adminFirstName,      'First name',          FIELD_LIMITS.SHORT),
-    adminLastName:          sanitizeRequired(raw.adminLastName,       'Last name',           FIELD_LIMITS.SHORT),
-    email:                  sanitizeRequired(raw.email,               'Email',               FIELD_LIMITS.EMAIL),
-    adminRole:              sanitizeField   (raw.adminRole,           'Role',                FIELD_LIMITS.SHORT),
-    phoneNumber:            sanitizeField   (raw.phoneNumber,         'Phone number',        FIELD_LIMITS.PHONE),
-    streetAddress:          sanitizeRequired(raw.streetAddress,       'Street address',      FIELD_LIMITS.SHORT),
-    city:                   sanitizeRequired(raw.city,                'City',                FIELD_LIMITS.SHORT),
-    zipCode:                sanitizeRequired(raw.zipCode,             'Zip code',            50),
+    // Administrator fields — all optional during onboarding; missing data can be completed from the dashboard
+    adminFirstName:         sanitizeField(raw.adminFirstName,       'First name',          FIELD_LIMITS.SHORT),
+    adminLastName:          sanitizeField(raw.adminLastName,        'Last name',           FIELD_LIMITS.SHORT),
+    email:                  sanitizeField(raw.email,                'Email',               FIELD_LIMITS.EMAIL),
+    adminRole:              sanitizeField(raw.adminRole,            'Role',                FIELD_LIMITS.SHORT),
+    phoneNumber:            sanitizeField(raw.phoneNumber,          'Phone number',        FIELD_LIMITS.PHONE),
+    streetAddress:          sanitizeField(raw.streetAddress,        'Street address',      FIELD_LIMITS.SHORT),
+    city:                   sanitizeField(raw.city,                 'City',                FIELD_LIMITS.SHORT),
+    zipCode:                sanitizeField(raw.zipCode,              'Zip code',            50),
 
     // Organization fields
-    organizationName:       sanitizeRequired(raw.organizationName,    'Organization name',   FIELD_LIMITS.SHORT),
-    organizationType:       sanitizeRequired(raw.organizationType,    'Organization type',   FIELD_LIMITS.SHORT),
-    otherOrganizationType:  sanitizeField   (raw.otherOrganizationType,'Other org type',     FIELD_LIMITS.SHORT),
-    description:            sanitizeRequired(raw.description,         'Description',         FIELD_LIMITS.LONG),
-    impact:                 sanitizeRequired(raw.impact,              'Impact',              FIELD_LIMITS.LONG),
-    foundingYear:           sanitizeRequired(raw.foundingYear,        'Founding year',       10),
-    slogan:                 sanitizeField   (raw.slogan,              'Slogan',              FIELD_LIMITS.MEDIUM),
-    donationPlatform:       sanitizeField   (raw.donationPlatform,    'Donation platform',   FIELD_LIMITS.SHORT),
-    otherDonationPlatform:  sanitizeField   (raw.otherDonationPlatform,'Other donation platform', FIELD_LIMITS.SHORT),
+    organizationName:       sanitizeField(raw.organizationName,     'Organization name',   FIELD_LIMITS.SHORT),
+    organizationType:       sanitizeField(raw.organizationType,     'Organization type',   FIELD_LIMITS.SHORT),
+    otherOrganizationType:  sanitizeField(raw.otherOrganizationType,'Other org type',      FIELD_LIMITS.SHORT),
+    description:            sanitizeField(raw.description,          'Description',         FIELD_LIMITS.LONG),
+    impact:                 sanitizeField(raw.impact,               'Impact',              FIELD_LIMITS.LONG),
+    foundingYear:           sanitizeField(raw.foundingYear,         'Founding year',       10),
+    slogan:                 sanitizeField(raw.slogan,               'Slogan',              FIELD_LIMITS.MEDIUM),
+    donationPlatform:       sanitizeField(raw.donationPlatform,     'Donation platform',   FIELD_LIMITS.SHORT),
+    otherDonationPlatform:  sanitizeField(raw.otherDonationPlatform,'Other donation platform', FIELD_LIMITS.SHORT),
 
     // Referral fields
-    referredBy:             sanitizeField   (raw.referredBy,          'Referred by',         FIELD_LIMITS.SHORT),
-    otherReferredBy:        sanitizeField   (raw.otherReferredBy,     'Other referral',      FIELD_LIMITS.SHORT),
-    referralAssociateName:  sanitizeField   (raw.referralAssociateName,'Referral associate', FIELD_LIMITS.SHORT),
-    socialMediaPlatform:    sanitizeField   (raw.socialMediaPlatform, 'Social media platform', FIELD_LIMITS.SHORT),
+    referredBy:             sanitizeField(raw.referredBy,           'Referred by',         FIELD_LIMITS.SHORT),
+    otherReferredBy:        sanitizeField(raw.otherReferredBy,      'Other referral',      FIELD_LIMITS.SHORT),
+    referralAssociateName:  sanitizeField(raw.referralAssociateName,'Referral associate',  FIELD_LIMITS.SHORT),
+    socialMediaPlatform:    sanitizeField(raw.socialMediaPlatform,  'Social media platform', FIELD_LIMITS.SHORT),
   };
 }
 

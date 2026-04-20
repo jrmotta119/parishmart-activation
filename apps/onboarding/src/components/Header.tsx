@@ -120,16 +120,28 @@ const Header = (_props: HeaderProps) => {
         <div className="container mx-auto px-4">
           <nav className="flex justify-center items-center h-12 gap-1 md:gap-8 overflow-x-auto">
             <a
-              href="/why-register"
+              href="/activate"
               className="text-[#006699] hover:text-[#005588] px-2 py-1 text-xs md:text-sm font-medium whitespace-nowrap"
             >
-              Partner with us
+              Activate
             </a>
             <a
-              href="/sell-with-us"
+              href="/parish-activation"
               className="text-[#006699] hover:text-[#005588] px-2 py-1 text-xs md:text-sm font-medium whitespace-nowrap"
             >
-              Sell with us
+              Parishes
+            </a>
+            <a
+              href="/vendor-registration-form"
+              className="text-[#006699] hover:text-[#005588] px-2 py-1 text-xs md:text-sm font-medium whitespace-nowrap"
+            >
+              Local Business
+            </a>
+            <a
+              href="/sponsor-activation"
+              className="text-[#006699] hover:text-[#005588] px-2 py-1 text-xs md:text-sm font-medium whitespace-nowrap"
+            >
+              Sponsors
             </a>
             <a
               href="https://shop.parishmart.com/"

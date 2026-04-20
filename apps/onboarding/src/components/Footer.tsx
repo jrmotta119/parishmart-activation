@@ -102,24 +102,33 @@ const Footer = ({
             </ul>
           </div>
 
-          {/* Your Business */}
+          {/* Activate */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Your Business</h3>
+            <h3 className="text-lg font-semibold mb-4">Activate</h3>
             <ul className="space-y-2">
               <li>
-                <a
-                  href="/why-register"
-                  className="text-gray-600 hover:text-[#006699] transition-colors"
-                >
-                  Partner with us
+                <a href="/parish-activation" className="text-gray-600 hover:text-[#006699] transition-colors">
+                  Parishes
                 </a>
               </li>
               <li>
-                <a
-                  href="/sell-with-us"
-                  className="text-gray-600 hover:text-[#006699] transition-colors"
-                >
-                  Sell with us
+                <a href="/cause-activation" className="text-gray-600 hover:text-[#006699] transition-colors">
+                  Causes & Missions
+                </a>
+              </li>
+              <li>
+                <a href="/diocese-activation" className="text-gray-600 hover:text-[#006699] transition-colors">
+                  Diocese
+                </a>
+              </li>
+              <li>
+                <a href="/vendor-registration-form" className="text-gray-600 hover:text-[#006699] transition-colors">
+                  Local Business
+                </a>
+              </li>
+              <li>
+                <a href="/sponsor-activation" className="text-gray-600 hover:text-[#006699] transition-colors">
+                  Sponsors
                 </a>
               </li>
             </ul>
