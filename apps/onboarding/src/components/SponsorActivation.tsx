@@ -3,10 +3,11 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Textarea } from "./ui/textarea";
-import { Upload, ArrowRight, ArrowLeft, Check, ExternalLink } from "lucide-react";
+import { Upload, ArrowRight, ArrowLeft, Check, ExternalLink, MapPin, Church, Globe, Heart, Store, Pencil, Share2 } from "lucide-react";
 import Header from "./Header";
 import Footer from "./Footer";
 import parishes from "@/data/preloadedParishes.json";
+import parishMartLogo from "../assets/logo1.png";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -161,6 +162,9 @@ const SponsorActivation = () => {
               <img src="https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg" alt="" className="w-full h-full object-cover" />
               <div className="absolute inset-0 bg-gradient-to-r from-[#0f1729]/95 via-[#0f1729]/85 to-[#0f1729]/50" />
             </div>
+            <div className="absolute top-6 left-6 z-20">
+              <img src={parishMartLogo} alt="ParishMart" className="h-8 w-auto" />
+            </div>
             <div className="relative z-10 max-w-3xl mx-auto px-6 py-20 text-center">
               <p className="text-[#4DB8E0] text-sm uppercase tracking-widest mb-4">ParishMart Sponsors</p>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6">
@@ -192,9 +196,9 @@ const SponsorActivation = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
               {([
-                { id: "local" as const, icon: "📍", title: "Local Sponsor", desc: "Support one parish or local cause. Visible within a single community." },
-                { id: "diocesan" as const, icon: "⛪", title: "Diocesan Sponsor", desc: "Reach multiple parishes within one diocese. Regional brand presence." },
-                { id: "national" as const, icon: "🌐", title: "Regional / National", desc: "Scale your visibility across multiple communities and dioceses." },
+                { id: "local" as const, Icon: MapPin, title: "Local Sponsor", desc: "Support one parish or local cause. Visible within a single community." },
+                { id: "diocesan" as const, Icon: Church, title: "Diocesan Sponsor", desc: "Reach multiple parishes within one diocese. Regional brand presence." },
+                { id: "national" as const, Icon: Globe, title: "Regional / National", desc: "Scale your visibility across multiple communities and dioceses." },
               ]).map((t) => (
                 <button
                   key={t.id}
@@ -203,7 +207,11 @@ const SponsorActivation = () => {
                     sponsorTier === t.id ? "border-[#006699] bg-[#006699]/5" : "border-gray-200 hover:border-[#006699]"
                   }`}
                 >
-                  <div className="text-3xl mb-3">{t.icon}</div>
+                  <div className={`w-11 h-11 rounded-xl flex items-center justify-center mb-3 transition-colors ${
+                    sponsorTier === t.id ? "bg-[#006699]/15" : "bg-gray-100 group-hover:bg-[#006699]/10"
+                  }`}>
+                    <t.Icon className={`h-5 w-5 ${sponsorTier === t.id ? "text-[#006699]" : "text-gray-500 group-hover:text-[#006699]"}`} />
+                  </div>
                   <h3 className="font-bold text-gray-900 mb-2 group-hover:text-[#006699]">{t.title}</h3>
                   <p className="text-sm text-gray-500">{t.desc}</p>
                   <span className="inline-flex items-center text-sm font-semibold text-[#006699] mt-4">
@@ -495,7 +503,7 @@ const SponsorActivation = () => {
               <div className="p-6 space-y-6">
                 {supportTarget && (
                   <div className="flex items-center gap-2 text-sm text-[#006699] bg-[#006699]/5 rounded-lg px-3 py-2">
-                    <span>💒</span>
+                    <Heart className="h-4 w-4 flex-shrink-0" />
                     <span>Proudly supporting <strong>{supportTarget.name}</strong></span>
                   </div>
                 )}
@@ -589,8 +597,8 @@ const SponsorActivation = () => {
         {/* ── SUCCESS ───────────────────────────────────────────────────── */}
         {screen === "success" && (
           <div className="max-w-3xl mx-auto px-4 sm:px-6 py-16 text-center">
-            <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
-              <Check className="h-10 w-10 text-green-600" />
+            <div className="w-20 h-20 rounded-full bg-[#e8f4f9] border-2 border-[#45b1e1]/40 flex items-center justify-center mx-auto mb-6">
+              <Check className="h-10 w-10 text-[#006699]" />
             </div>
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
               Your sponsor profile is active
@@ -601,12 +609,14 @@ const SponsorActivation = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-12">
               {[
-                { icon: "🏪", title: "View your page", desc: "See your live sponsor page." },
-                { icon: "✏️", title: "Edit profile", desc: "Update logo, offer, or details." },
-                { icon: "📣", title: "Share page", desc: "Share your sponsor presence." },
+                { Icon: Store, title: "View your page", desc: "See your live sponsor page." },
+                { Icon: Pencil, title: "Edit profile", desc: "Update logo, offer, or details." },
+                { Icon: Share2, title: "Share page", desc: "Share your sponsor presence." },
               ].map((a) => (
                 <div key={a.title} className="bg-white rounded-2xl border-2 border-gray-200 p-6 hover:border-[#006699] hover:shadow-md transition-all cursor-pointer">
-                  <div className="text-3xl mb-3">{a.icon}</div>
+                  <div className="w-10 h-10 rounded-full bg-[#006699]/10 flex items-center justify-center mx-auto mb-3">
+                    <a.Icon className="h-5 w-5 text-[#006699]" />
+                  </div>
                   <h4 className="font-semibold text-gray-900 mb-1">{a.title}</h4>
                   <p className="text-xs text-gray-500 mb-4">{a.desc}</p>
                   <span className="text-sm font-medium text-[#006699]">Open <ExternalLink className="inline h-3.5 w-3.5 ml-1" /></span>
@@ -614,7 +624,7 @@ const SponsorActivation = () => {
               ))}
             </div>
 
-            <Button onClick={() => (window.location.href = "/")} className="bg-[#006699] hover:bg-[#005588] text-white font-semibold px-10 py-3 h-auto text-base">
+            <Button onClick={() => (window.location.href = "/")} className="bg-[#006699] hover:bg-[#1e3960] text-white font-semibold px-10 py-3 h-auto text-base">
               Go to Dashboard <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
           </div>

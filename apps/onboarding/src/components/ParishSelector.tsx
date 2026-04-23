@@ -83,15 +83,15 @@ export default function ParishSelector({
   const inputRef = useRef<HTMLInputElement>(null);
 
   const filtered = useMemo(() => {
-    if (!search.trim()) return parishes as PreloadedParish[];
-    const q = search.toLowerCase();
+    const q = search.trim().toLowerCase();
+    if (q.length < 2) return [];
     return (parishes as PreloadedParish[]).filter(
       (p) =>
         p.name.toLowerCase().includes(q) ||
         p.city.toLowerCase().includes(q) ||
         p.deanery.toLowerCase().includes(q) ||
         p.zipCode.includes(q)
-    );
+    ).slice(0, 50);
   }, [search]);
 
   useEffect(() => {
@@ -166,9 +166,6 @@ export default function ParishSelector({
         {selectedParish.description && (
           <p className="mt-3 text-sm text-gray-600 line-clamp-2">{selectedParish.description}</p>
         )}
-        <p className="mt-3 text-xs text-blue-600 font-medium">
-          Fields below have been pre-filled. You can edit them if needed.
-        </p>
       </div>
     );
   }
@@ -208,7 +205,11 @@ export default function ParishSelector({
           </div>
 
           <div className="max-h-[320px] overflow-y-auto">
-            {filtered.length === 0 ? (
+            {search.trim().length < 2 ? (
+              <div className="py-8 text-center text-sm text-gray-400">
+                <p>Type at least 2 characters to search</p>
+              </div>
+            ) : filtered.length === 0 ? (
               <div className="py-8 text-center text-sm text-gray-500">
                 <p>No parishes found matching "{search}"</p>
               </div>

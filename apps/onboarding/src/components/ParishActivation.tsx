@@ -2,7 +2,7 @@ import React, { useState, useMemo } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
-import { ArrowRight, ArrowLeft, Search, Check, ExternalLink } from "lucide-react";
+import { ArrowRight, ArrowLeft, Search, Check, ExternalLink, CreditCard, Heart, Share2 } from "lucide-react";
 import Header from "./Header";
 import Footer from "./Footer";
 import parishes from "@/data/preloadedParishes.json";
@@ -33,8 +33,8 @@ type Screen = "search" | "preview" | "activate" | "success";
 const HERO_IMAGES = [
   "https://images.pexels.com/photos/208216/pexels-photo-208216.jpeg",
   "https://images.pexels.com/photos/1207965/pexels-photo-1207965.jpeg",
-  "https://images.pexels.com/photos/159862/art-school-of-athens-raphael-italian-159862.jpeg",
-  "https://images.pexels.com/photos/2310641/pexels-photo-2310641.jpeg",
+  "https://parishmart-files-public.s3.us-east-2.amazonaws.com/MockData/CHURCH_Annunciation.jpg",
+  "https://parishmart-files-public.s3.us-east-2.amazonaws.com/MockData/CHURCH_All_Saints.jpg",
 ];
 
 function heroForParish(id: string) {
@@ -89,6 +89,17 @@ const ParishActivation = () => {
   const [screen, setScreen] = useState<Screen>("search");
   const [query, setQuery] = useState("");
   const [selectedParish, setSelectedParish] = useState<Parish | null>(null);
+
+  // Engine toggles — all active by default
+  const [activeEngines, setActiveEngines] = useState<Record<string, boolean>>({
+    "Online Giving": true,
+    "Religious Gifts": true,
+    "Parish Merch": true,
+    "Local Business Supporters": true,
+  });
+
+  const toggleEngine = (title: string) =>
+    setActiveEngines((prev) => ({ ...prev, [title]: !prev[title] }));
 
   // Activation form
   const [contactName, setContactName] = useState("");
@@ -290,32 +301,44 @@ const ParishActivation = () => {
 
               <div className="h-px mx-5 mb-4 bg-[#d4a853]/30" />
 
-              {/* 4 Engine Cards */}
+              {/* 4 Engine Cards — click to toggle */}
               <div className="grid grid-cols-2 gap-3 px-4 pb-6">
-                {ENGINE_CARDS.map((card) => (
-                  <div
-                    key={card.title}
-                    className="relative flex flex-col justify-between rounded-2xl p-4 text-left min-h-[130px] md:min-h-[150px] overflow-hidden"
-                    style={{ background: `linear-gradient(140deg, ${card.from} 0%, ${card.to} 100%)` }}
-                  >
-                    <div className="flex items-start justify-between">
-                      <span className="text-xl md:text-2xl leading-none" style={{ color: "#4DB8E0", fontFamily: "Georgia, serif" }}>
-                        {card.symbol}
-                      </span>
-                      <span className="text-[9px] font-medium tracking-widest uppercase rounded-full px-2 py-0.5 bg-white/10 text-[#4DB8E0] border border-[#4DB8E0]/30">
-                        Active
-                      </span>
-                    </div>
-                    <div>
-                      <div className="mb-2 h-px opacity-25 bg-[#4DB8E0]" />
-                      <h3 className="text-base md:text-lg italic leading-tight text-white" style={{ fontFamily: "Georgia, serif" }}>
-                        {card.title}
-                      </h3>
-                      <p className="text-[10px] md:text-[11px] mt-1 text-white/60">{card.subtitle}</p>
-                    </div>
-                  </div>
-                ))}
+                {ENGINE_CARDS.map((card) => {
+                  const active = activeEngines[card.title];
+                  return (
+                    <button
+                      key={card.title}
+                      type="button"
+                      onClick={() => toggleEngine(card.title)}
+                      className={`relative flex flex-col justify-between rounded-2xl p-4 text-left min-h-[130px] md:min-h-[150px] overflow-hidden transition-all duration-200 ${
+                        active ? "opacity-100" : "opacity-40 grayscale"
+                      }`}
+                      style={{ background: `linear-gradient(140deg, ${card.from} 0%, ${card.to} 100%)` }}
+                    >
+                      <div className="flex items-start justify-between">
+                        <span className="text-xl md:text-2xl leading-none" style={{ color: "#45b1e1", fontFamily: "Georgia, serif" }}>
+                          {card.symbol}
+                        </span>
+                        <span className={`text-[9px] font-medium tracking-widest uppercase rounded-full px-2 py-0.5 border ${
+                          active
+                            ? "bg-white/10 text-[#45b1e1] border-[#45b1e1]/30"
+                            : "bg-white/10 text-white/40 border-white/20"
+                        }`}>
+                          {active ? "Active" : "Off"}
+                        </span>
+                      </div>
+                      <div>
+                        <div className="mb-2 h-px opacity-25 bg-[#45b1e1]" />
+                        <h3 className="text-base md:text-lg italic leading-tight text-white" style={{ fontFamily: "Georgia, serif" }}>
+                          {card.title}
+                        </h3>
+                        <p className="text-[10px] md:text-[11px] mt-1 text-white/60">{card.subtitle}</p>
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
+              <p className="text-center text-[11px] text-gray-400 pb-4">Tap a card to enable or disable it</p>
             </div>
 
             {/* CTA */}
@@ -453,8 +476,8 @@ const ParishActivation = () => {
         {/* ── SUCCESS ──────────────────────────────────────────────────── */}
         {screen === "success" && selectedParish && (
           <div className="max-w-3xl mx-auto px-4 sm:px-6 py-16 text-center">
-            <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
-              <Check className="h-10 w-10 text-green-600" />
+            <div className="w-20 h-20 rounded-full bg-[#e8f4f9] border-2 border-[#45b1e1]/40 flex items-center justify-center mx-auto mb-6">
+              <Check className="h-10 w-10 text-[#006699]" />
             </div>
 
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
@@ -467,7 +490,9 @@ const ParishActivation = () => {
             {/* 3 Action cards */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-12">
               <div className="bg-white rounded-2xl border-2 border-gray-200 p-6 hover:border-[#006699] hover:shadow-md transition-all cursor-pointer">
-                <div className="text-3xl mb-3">💳</div>
+                <div className="w-10 h-10 rounded-full bg-[#006699]/10 flex items-center justify-center mx-auto mb-3">
+                  <CreditCard className="h-5 w-5 text-[#006699]" />
+                </div>
                 <h4 className="font-semibold text-gray-900 mb-1">Set Up Payouts</h4>
                 <p className="text-xs text-gray-500 mb-4">Connect Stripe to start receiving donations and sales.</p>
                 <span className="text-sm font-medium text-[#006699]">
@@ -476,7 +501,9 @@ const ParishActivation = () => {
               </div>
 
               <div className="bg-white rounded-2xl border-2 border-gray-200 p-6 hover:border-[#006699] hover:shadow-md transition-all cursor-pointer">
-                <div className="text-3xl mb-3">♡</div>
+                <div className="w-10 h-10 rounded-full bg-[#006699]/10 flex items-center justify-center mx-auto mb-3">
+                  <Heart className="h-5 w-5 text-[#006699]" />
+                </div>
                 <h4 className="font-semibold text-gray-900 mb-1">Review Giving</h4>
                 <p className="text-xs text-gray-500 mb-4">Customize your giving campaigns and causes.</p>
                 <span className="text-sm font-medium text-[#006699]">
@@ -485,7 +512,9 @@ const ParishActivation = () => {
               </div>
 
               <div className="bg-white rounded-2xl border-2 border-gray-200 p-6 hover:border-[#006699] hover:shadow-md transition-all cursor-pointer">
-                <div className="text-3xl mb-3">📣</div>
+                <div className="w-10 h-10 rounded-full bg-[#006699]/10 flex items-center justify-center mx-auto mb-3">
+                  <Share2 className="h-5 w-5 text-[#006699]" />
+                </div>
                 <h4 className="font-semibold text-gray-900 mb-1">Invite Supporters</h4>
                 <p className="text-xs text-gray-500 mb-4">Share your store with parishioners and local businesses.</p>
                 <span className="text-sm font-medium text-[#006699]">
@@ -496,7 +525,7 @@ const ParishActivation = () => {
 
             <Button
               onClick={() => window.location.href = "/"}
-              className="bg-[#006699] hover:bg-[#005588] text-white font-semibold px-10 py-3 h-auto text-base"
+              className="bg-[#006699] hover:bg-[#1e3960] text-white font-semibold px-10 py-3 h-auto text-base"
             >
               Finish & Go to My Store <ArrowRight className="ml-2 h-5 w-5" />
             </Button>

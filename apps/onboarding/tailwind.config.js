@@ -51,6 +51,15 @@ module.exports = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        // ParishMart brand palette
+        "parish-blue":    "#1e3960",
+        "faith-teal":     "#006699",
+        "hope-blue":      "#45b1e1",
+        "starlight-blue": "#104d75",
+        "cornerstone":    "#DDDDDD",
+        "grace-gray":     "#b2b0b0",
+        "holy-white":     "#FFFFFF",
+        "charcoal":       "#1C1C1C",
       },
       borderRadius: {
         lg: "var(--radius)",

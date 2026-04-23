@@ -3,10 +3,11 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Textarea } from "./ui/textarea";
-import { Upload, ArrowRight, ArrowLeft, Check } from "lucide-react";
+import { Upload, ArrowRight, ArrowLeft, Check, Wrench, ShoppingBag, Package, Link, FileText, PenLine, MessageSquare, Calendar, Heart, Sparkles, Megaphone, Settings, CreditCard } from "lucide-react";
 import Header from "./Header";
 import Footer from "./Footer";
 import ParishSelector, { type PreloadedParish } from "./ParishSelector";
+import logo from "../assets/logo1.png";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -62,11 +63,11 @@ const SERVICE_TAGS = [
 ];
 
 const CATALOG_METHODS = [
-  { id: "amazon", label: "Import from Amazon", icon: "📦" },
-  { id: "shopify", label: "Import from Shopify", icon: "🛍️" },
-  { id: "other-marketplace", label: "Import from another marketplace", icon: "🔗" },
-  { id: "csv", label: "Upload with Excel / CSV", icon: "📄" },
-  { id: "manual", label: "Add manually", icon: "✏️" },
+  { id: "amazon", label: "Import from Amazon", Icon: Package },
+  { id: "shopify", label: "Import from Shopify", Icon: ShoppingBag },
+  { id: "other-marketplace", label: "Import from another marketplace", Icon: Link },
+  { id: "csv", label: "Upload with Excel / CSV", Icon: FileText },
+  { id: "manual", label: "Add manually", Icon: PenLine },
 ];
 
 const DISCOUNT_OPTIONS = ["10", "15", "20"];
@@ -260,6 +261,9 @@ const BusinessActivation = () => {
               />
               <div className="absolute inset-0 bg-gradient-to-r from-[#1a2341]/95 via-[#1a2341]/80 to-[#1a2341]/40" />
             </div>
+            <div className="absolute top-6 left-6 z-20">
+              <img src={logo} alt="ParishMart" className="h-8 w-auto" />
+            </div>
             <div className="relative z-10 max-w-3xl mx-auto px-6 py-20 text-center">
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6">
                 Do you want your business to create{" "}
@@ -321,7 +325,9 @@ const BusinessActivation = () => {
                   }}
                   className="group border-2 border-gray-200 hover:border-[#006699] rounded-2xl p-8 text-left transition-all hover:shadow-lg"
                 >
-                  <div className="text-4xl mb-4">🛠️</div>
+                  <div className="w-12 h-12 rounded-xl bg-[#006699]/10 flex items-center justify-center mb-4 group-hover:bg-[#006699]/20 transition-colors">
+                    <Wrench className="h-6 w-6 text-[#006699]" />
+                  </div>
                   <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-[#006699]">
                     Services
                   </h3>
@@ -341,7 +347,9 @@ const BusinessActivation = () => {
                   }}
                   className="group border-2 border-gray-200 hover:border-[#006699] rounded-2xl p-8 text-left transition-all hover:shadow-lg"
                 >
-                  <div className="text-4xl mb-4">🏪</div>
+                  <div className="w-12 h-12 rounded-xl bg-[#006699]/10 flex items-center justify-center mb-4 group-hover:bg-[#006699]/20 transition-colors">
+                    <ShoppingBag className="h-6 w-6 text-[#006699]" />
+                  </div>
                   <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-[#006699]">
                     Products
                   </h3>
@@ -614,7 +622,11 @@ const BusinessActivation = () => {
                     : "border-gray-200 hover:border-gray-400"
                 }`}
               >
-                <div className="text-3xl mb-2">💬</div>
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 ${
+                  formData.contactMethod === "info" ? "bg-[#006699]/15" : "bg-gray-100"
+                }`}>
+                  <MessageSquare className={`h-6 w-6 ${formData.contactMethod === "info" ? "text-[#006699]" : "text-gray-400"}`} />
+                </div>
                 <h4 className="font-semibold text-gray-900">More Information</h4>
                 <p className="text-xs text-gray-500 mt-1">People can request details</p>
               </button>
@@ -628,7 +640,11 @@ const BusinessActivation = () => {
                     : "border-gray-200 hover:border-gray-400"
                 }`}
               >
-                <div className="text-3xl mb-2">📅</div>
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 ${
+                  formData.contactMethod === "book" ? "bg-[#006699]/15" : "bg-gray-100"
+                }`}>
+                  <Calendar className={`h-6 w-6 ${formData.contactMethod === "book" ? "text-[#006699]" : "text-gray-400"}`} />
+                </div>
                 <h4 className="font-semibold text-gray-900">Book Now</h4>
                 <p className="text-xs text-gray-500 mt-1">Direct booking or scheduling</p>
               </button>
@@ -670,15 +686,21 @@ const BusinessActivation = () => {
 
               <div className="bg-white/10 rounded-2xl p-5 mb-6 text-left space-y-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">💒</div>
+                  <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+                    <Heart className="h-4 w-4 text-[#45b1e1]" />
+                  </div>
                   <p className="text-sm"><span className="font-semibold">$75</span> goes directly to your chosen parish or cause</p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">✨</div>
+                  <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+                    <Sparkles className="h-4 w-4 text-[#45b1e1]" />
+                  </div>
                   <p className="text-sm">No commissions on your services</p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">📣</div>
+                  <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+                    <Megaphone className="h-4 w-4 text-[#45b1e1]" />
+                  </div>
                   <p className="text-sm">Featured in the parish community marketplace</p>
                 </div>
               </div>
@@ -724,21 +746,28 @@ const BusinessActivation = () => {
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {CATALOG_METHODS.map((m) => (
-                <button
-                  key={m.id}
-                  type="button"
-                  onClick={() => setFormData((p) => ({ ...p, catalogMethod: m.id }))}
-                  className={`p-5 rounded-2xl border-2 text-left transition-all ${
-                    formData.catalogMethod === m.id
-                      ? "border-[#006699] bg-[#006699]/5 shadow-md"
-                      : "border-gray-200 hover:border-gray-400"
-                  }`}
-                >
-                  <div className="text-3xl mb-2">{m.icon}</div>
-                  <h4 className="font-semibold text-gray-900 text-sm">{m.label}</h4>
-                </button>
-              ))}
+              {CATALOG_METHODS.map((m) => {
+                const Icon = m.Icon;
+                return (
+                  <button
+                    key={m.id}
+                    type="button"
+                    onClick={() => setFormData((p) => ({ ...p, catalogMethod: m.id }))}
+                    className={`p-5 rounded-2xl border-2 text-left transition-all ${
+                      formData.catalogMethod === m.id
+                        ? "border-[#006699] bg-[#006699]/5 shadow-md"
+                        : "border-gray-200 hover:border-gray-400"
+                    }`}
+                  >
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center mb-3 ${
+                      formData.catalogMethod === m.id ? "bg-[#006699]/15" : "bg-gray-100"
+                    }`}>
+                      <Icon className={`h-5 w-5 ${formData.catalogMethod === m.id ? "text-[#006699]" : "text-gray-500"}`} />
+                    </div>
+                    <h4 className="font-semibold text-gray-900 text-sm">{m.label}</h4>
+                  </button>
+                );
+              })}
             </div>
 
             <NavButtons />
@@ -787,11 +816,20 @@ const BusinessActivation = () => {
 
               <div className="bg-white/10 rounded-2xl p-5 text-left space-y-4">
                 <div>
-                  <p className="text-sm font-semibold mb-1">20% per transaction</p>
-                  <div className="space-y-1.5 ml-4 text-sm text-white/80">
-                    <p>💒 10% → Your chosen parish or cause</p>
-                    <p>⚙️ 10% → Platform operations</p>
-                    <p>💳 ~5% → Stripe / payment fees</p>
+                  <p className="text-sm font-semibold mb-3">20% per transaction</p>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-sm text-white/80">
+                      <Heart className="h-3.5 w-3.5 text-[#45b1e1] flex-shrink-0" />
+                      <span>10% → Your chosen parish or cause</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-white/80">
+                      <Settings className="h-3.5 w-3.5 text-[#45b1e1] flex-shrink-0" />
+                      <span>10% → Platform operations</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-white/80">
+                      <CreditCard className="h-3.5 w-3.5 text-[#45b1e1] flex-shrink-0" />
+                      <span>~5% → Stripe / payment fees</span>
+                    </div>
                   </div>
                 </div>
               </div>

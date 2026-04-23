@@ -2,10 +2,11 @@ import React, { useState, useMemo } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
-import { ArrowRight, ArrowLeft, Check, ExternalLink } from "lucide-react";
+import { ArrowRight, ArrowLeft, Check, ExternalLink, Church, GraduationCap, Globe, ShoppingBag, Users, Mail, BarChart3, Megaphone } from "lucide-react";
 import Header from "./Header";
 import Footer from "./Footer";
 import parishes from "@/data/preloadedParishes.json";
+import logo from "../assets/logo1.png";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -154,6 +155,10 @@ const DioceseActivation = () => {
             <div className="absolute inset-0 z-0">
               <img src="https://images.pexels.com/photos/2310641/pexels-photo-2310641.jpeg" alt="" className="w-full h-full object-cover" />
               <div className="absolute inset-0 bg-gradient-to-r from-[#0f1729]/95 via-[#0f1729]/85 to-[#0f1729]/50" />
+            </div>
+            {/* Logo always visible on immersive screen */}
+            <div className="absolute top-6 left-6 z-20">
+              <img src={logo} alt="ParishMart" className="h-8 w-auto" />
             </div>
             <div className="relative z-10 max-w-3xl mx-auto px-6 py-20 text-center">
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6">
@@ -304,13 +309,15 @@ const DioceseActivation = () => {
             {/* 4 Stat cards */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
               {[
-                { label: "Parishes", value: parishCount, icon: "⛪", desc: "ready to activate" },
-                { label: "Schools", value: schoolCount, icon: "🎓", desc: "can integrate" },
-                { label: "Missions", value: missionCount, icon: "🌍", desc: "connected" },
-                { label: "Local Business", value: "∞", icon: "🏪", desc: "unlimited support" },
+                { label: "Parishes", value: parishCount, Icon: Church, desc: "ready to activate" },
+                { label: "Schools", value: schoolCount, Icon: GraduationCap, desc: "can integrate" },
+                { label: "Missions", value: missionCount, Icon: Globe, desc: "connected" },
+                { label: "Local Business", value: "∞", Icon: ShoppingBag, desc: "unlimited support" },
               ].map((s) => (
                 <div key={s.label} className="bg-gradient-to-br from-[#006699] to-[#004d73] rounded-2xl p-5 text-white text-center">
-                  <span className="text-2xl">{s.icon}</span>
+                  <div className="flex justify-center">
+                    <s.Icon className="h-6 w-6 text-[#45b1e1]" />
+                  </div>
                   <p className="text-3xl font-bold mt-2">{s.value}</p>
                   <p className="text-xs text-white/60 uppercase tracking-wider mt-1">{s.label}</p>
                   <p className="text-[10px] text-white/40 mt-0.5">{s.desc}</p>
@@ -355,13 +362,13 @@ const DioceseActivation = () => {
 
             <div className="space-y-3 mb-8">
               {([
-                { key: "giving" as const, label: "Online Giving (Donations)", icon: "♡" },
-                { key: "religious" as const, label: "Religious Products", icon: "✛" },
-                { key: "merch" as const, label: "Parish Merch", icon: "◈" },
-                { key: "localBiz" as const, label: "Local Business Supporters", icon: "◉" },
-                { key: "sponsors" as const, label: "Diocese-level Sponsors", icon: "🤝" },
-                { key: "campaigns" as const, label: "Centralized Campaigns", icon: "📢" },
-              ]).map((item) => (
+                { key: "giving" as const, label: "Online Giving (Donations)", symbol: "♡" },
+                { key: "religious" as const, label: "Religious Products", symbol: "✛" },
+                { key: "merch" as const, label: "Parish Merch", symbol: "◈" },
+                { key: "localBiz" as const, label: "Local Business Supporters", symbol: "◉" },
+                { key: "sponsors" as const, label: "Diocese-level Sponsors", Icon: Users },
+                { key: "campaigns" as const, label: "Centralized Campaigns", Icon: Megaphone },
+              ] as Array<{ key: keyof typeof toggles; label: string; symbol?: string; Icon?: React.ElementType }>).map((item) => (
                 <button
                   key={item.key}
                   type="button"
@@ -372,7 +379,13 @@ const DioceseActivation = () => {
                       : "border-gray-200 bg-white opacity-60"
                   }`}
                 >
-                  <span className="text-xl w-8 text-center">{item.icon}</span>
+                  <div className="w-8 h-8 flex items-center justify-center flex-shrink-0">
+                    {item.symbol ? (
+                      <span className="text-lg leading-none" style={{ color: "#006699", fontFamily: "Georgia, serif" }}>{item.symbol}</span>
+                    ) : item.Icon ? (
+                      <item.Icon className="h-5 w-5 text-[#006699]" />
+                    ) : null}
+                  </div>
                   <span className="flex-1 font-medium text-gray-900">{item.label}</span>
                   <div className={`w-10 h-6 rounded-full relative transition-colors ${toggles[item.key] ? "bg-[#006699]" : "bg-gray-300"}`}>
                     <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${toggles[item.key] ? "left-[18px]" : "left-0.5"}`} />
@@ -475,14 +488,14 @@ const DioceseActivation = () => {
 
             {/* Actions */}
             <div className="flex flex-wrap gap-3 justify-center mb-8">
-              <div className="bg-[#006699]/5 border border-[#006699]/20 rounded-xl px-4 py-3 text-sm text-[#006699] font-medium">
-                ⛪ Activate all parishes
+              <div className="flex items-center gap-2 bg-[#006699]/5 border border-[#006699]/20 rounded-xl px-4 py-3 text-sm text-[#006699] font-medium">
+                <Church className="h-4 w-4" /> Activate all parishes
               </div>
-              <div className="bg-[#006699]/5 border border-[#006699]/20 rounded-xl px-4 py-3 text-sm text-[#006699] font-medium">
-                📧 Invite parishes
+              <div className="flex items-center gap-2 bg-[#006699]/5 border border-[#006699]/20 rounded-xl px-4 py-3 text-sm text-[#006699] font-medium">
+                <Mail className="h-4 w-4" /> Invite parishes
               </div>
-              <div className="bg-[#006699]/5 border border-[#006699]/20 rounded-xl px-4 py-3 text-sm text-[#006699] font-medium">
-                🏪 Invite businesses
+              <div className="flex items-center gap-2 bg-[#006699]/5 border border-[#006699]/20 rounded-xl px-4 py-3 text-sm text-[#006699] font-medium">
+                <ShoppingBag className="h-4 w-4" /> Invite businesses
               </div>
             </div>
 
@@ -540,8 +553,8 @@ const DioceseActivation = () => {
         {/* ── STEP 7: SUCCESS ───────────────────────────────────────────── */}
         {screen === "success" && (
           <div className="max-w-3xl mx-auto px-4 sm:px-6 py-16 text-center">
-            <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
-              <Check className="h-10 w-10 text-green-600" />
+            <div className="w-20 h-20 rounded-full bg-[#e8f4f9] border-2 border-[#45b1e1]/40 flex items-center justify-center mx-auto mb-6">
+              <Check className="h-10 w-10 text-[#006699]" />
             </div>
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
               Your Diocese is now active
@@ -552,19 +565,25 @@ const DioceseActivation = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-12">
               <div className="bg-white rounded-2xl border-2 border-gray-200 p-6 hover:border-[#006699] hover:shadow-md transition-all cursor-pointer">
-                <div className="text-3xl mb-3">📧</div>
+                <div className="w-10 h-10 rounded-full bg-[#006699]/10 flex items-center justify-center mx-auto mb-3">
+                  <Mail className="h-5 w-5 text-[#006699]" />
+                </div>
                 <h4 className="font-semibold text-gray-900 mb-1">Invite parishes</h4>
                 <p className="text-xs text-gray-500 mb-4">Notify parish administrators.</p>
                 <span className="text-sm font-medium text-[#006699]">Invite <ExternalLink className="inline h-3.5 w-3.5 ml-1" /></span>
               </div>
               <div className="bg-white rounded-2xl border-2 border-gray-200 p-6 hover:border-[#006699] hover:shadow-md transition-all cursor-pointer">
-                <div className="text-3xl mb-3">📊</div>
+                <div className="w-10 h-10 rounded-full bg-[#006699]/10 flex items-center justify-center mx-auto mb-3">
+                  <BarChart3 className="h-5 w-5 text-[#006699]" />
+                </div>
                 <h4 className="font-semibold text-gray-900 mb-1">Launch campaign</h4>
                 <p className="text-xs text-gray-500 mb-4">Centralized giving campaign.</p>
                 <span className="text-sm font-medium text-[#006699]">Create <ExternalLink className="inline h-3.5 w-3.5 ml-1" /></span>
               </div>
               <div className="bg-white rounded-2xl border-2 border-gray-200 p-6 hover:border-[#006699] hover:shadow-md transition-all cursor-pointer">
-                <div className="text-3xl mb-3">🏪</div>
+                <div className="w-10 h-10 rounded-full bg-[#006699]/10 flex items-center justify-center mx-auto mb-3">
+                  <ShoppingBag className="h-5 w-5 text-[#006699]" />
+                </div>
                 <h4 className="font-semibold text-gray-900 mb-1">Invite businesses</h4>
                 <p className="text-xs text-gray-500 mb-4">Local business supporters.</p>
                 <span className="text-sm font-medium text-[#006699]">Invite <ExternalLink className="inline h-3.5 w-3.5 ml-1" /></span>
@@ -573,7 +592,7 @@ const DioceseActivation = () => {
 
             <Button
               onClick={() => (window.location.href = "/")}
-              className="bg-[#006699] hover:bg-[#005588] text-white font-semibold px-10 py-3 h-auto text-base"
+              className="bg-[#006699] hover:bg-[#1e3960] text-white font-semibold px-10 py-3 h-auto text-base"
             >
               Go to Dashboard <ArrowRight className="ml-2 h-5 w-5" />
             </Button>

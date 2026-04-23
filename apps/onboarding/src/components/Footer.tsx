@@ -38,7 +38,7 @@ const Footer = ({
           <div className="lg:col-span-2">
             <div className="flex items-center mb-4">
               <Heart className="h-6 w-6 text-[#006699] mr-2" />
-              <h3 className="text-lg font-semibold">Our Mission description</h3>
+              <h3 className="text-lg font-semibold">Our Mission</h3>
             </div>
             <p className="text-gray-600 mb-4">{missionStatement}</p>
             <div className="flex space-x-4">

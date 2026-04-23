@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ArrowRight, Check } from "lucide-react";
+import { ArrowRight, Check, Landmark, Church, Heart, ShoppingBag, Users, LucideIcon } from "lucide-react";
 import { Button } from "./ui/button";
 import Header from "./Header";
 import Footer from "./Footer";
@@ -7,9 +7,19 @@ import AnnouncementStrip from "./AnnouncementStrip";
 
 // ─── Data ───────────────────────────────────────────────────────────────────
 
-const ACTIVATION_FLOWS = [
+interface ActivationFlow {
+  Icon: LucideIcon;
+  title: string;
+  desc: string;
+  tag: string;
+  href: string;
+  from: string;
+  to: string;
+}
+
+const ACTIVATION_FLOWS: ActivationFlow[] = [
   {
-    icon: "🏛️",
+    Icon: Landmark,
     title: "Diocese",
     desc: "Activate 50–200+ parishes at once with pre-loaded structure.",
     tag: "Batch activation",
@@ -18,7 +28,7 @@ const ACTIVATION_FLOWS = [
     to: "#1B4472",
   },
   {
-    icon: "⛪",
+    Icon: Church,
     title: "Parish",
     desc: "Your store is already built. Select, review, and activate in seconds.",
     tag: "1-click",
@@ -27,7 +37,7 @@ const ACTIVATION_FLOWS = [
     to: "#185A36",
   },
   {
-    icon: "💛",
+    Icon: Heart,
     title: "Cause / Mission",
     desc: "Ministry, retreat group, or nonprofit — activate support in minutes.",
     tag: "Fast & flexible",
@@ -36,7 +46,7 @@ const ACTIVATION_FLOWS = [
     to: "#6B2626",
   },
   {
-    icon: "🏪",
+    Icon: ShoppingBag,
     title: "Local Business",
     desc: "Turn every sale or service into direct support for a parish or cause.",
     tag: "Services & Products",
@@ -45,7 +55,7 @@ const ACTIVATION_FLOWS = [
     to: "#2D2D50",
   },
   {
-    icon: "🤝",
+    Icon: Users,
     title: "Sponsor",
     desc: "Institutional visibility and community impact through trusted presence.",
     tag: "Brand presence",
@@ -160,7 +170,7 @@ const HomePage = () => {
                 onClick={() => (window.location.href = "/activate")}
                 className="bg-white text-[#006699] hover:bg-gray-100 font-semibold px-8 py-4 text-lg h-auto rounded-xl shadow-xl"
               >
-                Activate Now <ArrowRight className="ml-2 h-5 w-5" />
+                Get Started <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
               <button
                 onClick={() =>
@@ -206,67 +216,77 @@ const HomePage = () => {
 
           {/* Top row: 3 cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">
-            {ACTIVATION_FLOWS.slice(0, 3).map((flow) => (
-              <a
-                key={flow.title}
-                href={flow.href}
-                className={`group relative flex flex-col justify-between rounded-3xl p-7 text-left overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 ${
-                  flow.title === "Parish" ? "min-h-[260px] ring-2 ring-[#4DB8E0]/30" : "min-h-[240px]"
-                }`}
-                style={{ background: `linear-gradient(145deg, ${flow.from} 0%, ${flow.to} 100%)` }}
-              >
-                {flow.title === "Parish" && (
-                  <span className="absolute top-0 right-6 bg-[#4DB8E0] text-[#0f1729] text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-b-lg">
-                    Most Popular
-                  </span>
-                )}
-                <div className="flex items-start justify-between">
-                  <span className="text-4xl drop-shadow-lg">{flow.icon}</span>
-                  <span className="text-[10px] font-semibold tracking-widest uppercase rounded-full px-3 py-1 bg-white/10 text-white/70 border border-white/10 backdrop-blur-sm">
-                    {flow.tag}
-                  </span>
-                </div>
-                <div className="mt-auto">
-                  <div className="mb-3 h-px bg-white/10" />
-                  <h3 className="text-2xl italic font-normal text-white leading-tight mb-2" style={{ fontFamily: "Georgia, serif" }}>
-                    {flow.title}
-                  </h3>
-                  <p className="text-sm text-white/50 leading-relaxed mb-5">{flow.desc}</p>
-                  <span className="inline-flex items-center gap-2 text-sm font-semibold text-[#4DB8E0] group-hover:text-white group-hover:gap-3 transition-all">
-                    Get started <ArrowRight className="h-4 w-4" />
-                  </span>
-                </div>
-              </a>
-            ))}
+            {ACTIVATION_FLOWS.slice(0, 3).map((flow) => {
+              const Icon = flow.Icon;
+              return (
+                <a
+                  key={flow.title}
+                  href={flow.href}
+                  className={`group relative flex flex-col justify-between rounded-3xl p-7 text-left overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 ${
+                    flow.title === "Parish" ? "min-h-[260px] ring-2 ring-[#45b1e1]/30" : "min-h-[240px]"
+                  }`}
+                  style={{ background: `linear-gradient(145deg, ${flow.from} 0%, ${flow.to} 100%)` }}
+                >
+                  {flow.title === "Parish" && (
+                    <span className="absolute top-0 right-6 bg-[#45b1e1] text-[#0f1729] text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-b-lg">
+                      Most Popular
+                    </span>
+                  )}
+                  <div className="flex items-start justify-between">
+                    <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
+                      <Icon className="h-5 w-5 text-[#45b1e1]" />
+                    </div>
+                    <span className="text-[10px] font-semibold tracking-widest uppercase rounded-full px-3 py-1 bg-white/10 text-white/70 border border-white/10 backdrop-blur-sm">
+                      {flow.tag}
+                    </span>
+                  </div>
+                  <div className="mt-auto">
+                    <div className="mb-3 h-px bg-white/10" />
+                    <h3 className="text-2xl italic font-normal text-white leading-tight mb-2" style={{ fontFamily: "Georgia, serif" }}>
+                      {flow.title}
+                    </h3>
+                    <p className="text-sm text-white/50 leading-relaxed mb-5">{flow.desc}</p>
+                    <span className="inline-flex items-center gap-2 text-sm font-semibold text-[#45b1e1] group-hover:text-white group-hover:gap-3 transition-all">
+                      Get started <ArrowRight className="h-4 w-4" />
+                    </span>
+                  </div>
+                </a>
+              );
+            })}
           </div>
 
           {/* Bottom row: 2 cards centered */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-4xl mx-auto">
-            {ACTIVATION_FLOWS.slice(3).map((flow) => (
-              <a
-                key={flow.title}
-                href={flow.href}
-                className="group relative flex flex-col justify-between rounded-3xl p-7 text-left min-h-[240px] overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-1"
-                style={{ background: `linear-gradient(145deg, ${flow.from} 0%, ${flow.to} 100%)` }}
-              >
-                <div className="flex items-start justify-between">
-                  <span className="text-4xl drop-shadow-lg">{flow.icon}</span>
-                  <span className="text-[10px] font-semibold tracking-widest uppercase rounded-full px-3 py-1 bg-white/10 text-white/70 border border-white/10 backdrop-blur-sm">
-                    {flow.tag}
-                  </span>
-                </div>
-                <div className="mt-auto">
-                  <div className="mb-3 h-px bg-white/10" />
-                  <h3 className="text-2xl italic font-normal text-white leading-tight mb-2" style={{ fontFamily: "Georgia, serif" }}>
-                    {flow.title}
-                  </h3>
-                  <p className="text-sm text-white/50 leading-relaxed mb-5">{flow.desc}</p>
-                  <span className="inline-flex items-center gap-2 text-sm font-semibold text-[#4DB8E0] group-hover:text-white group-hover:gap-3 transition-all">
-                    Get started <ArrowRight className="h-4 w-4" />
-                  </span>
-                </div>
-              </a>
-            ))}
+            {ACTIVATION_FLOWS.slice(3).map((flow) => {
+              const Icon = flow.Icon;
+              return (
+                <a
+                  key={flow.title}
+                  href={flow.href}
+                  className="group relative flex flex-col justify-between rounded-3xl p-7 text-left min-h-[240px] overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-1"
+                  style={{ background: `linear-gradient(145deg, ${flow.from} 0%, ${flow.to} 100%)` }}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
+                      <Icon className="h-5 w-5 text-[#45b1e1]" />
+                    </div>
+                    <span className="text-[10px] font-semibold tracking-widest uppercase rounded-full px-3 py-1 bg-white/10 text-white/70 border border-white/10 backdrop-blur-sm">
+                      {flow.tag}
+                    </span>
+                  </div>
+                  <div className="mt-auto">
+                    <div className="mb-3 h-px bg-white/10" />
+                    <h3 className="text-2xl italic font-normal text-white leading-tight mb-2" style={{ fontFamily: "Georgia, serif" }}>
+                      {flow.title}
+                    </h3>
+                    <p className="text-sm text-white/50 leading-relaxed mb-5">{flow.desc}</p>
+                    <span className="inline-flex items-center gap-2 text-sm font-semibold text-[#45b1e1] group-hover:text-white group-hover:gap-3 transition-all">
+                      Get started <ArrowRight className="h-4 w-4" />
+                    </span>
+                  </div>
+                </a>
+              );
+            })}
           </div>
         </div>
       </section>

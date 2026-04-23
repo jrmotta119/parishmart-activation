@@ -3,10 +3,11 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Textarea } from "./ui/textarea";
-import { Upload, ArrowRight, ArrowLeft, Check, ExternalLink } from "lucide-react";
+import { Upload, ArrowRight, ArrowLeft, Check, ExternalLink, Church, Globe, Store, Share2, Settings } from "lucide-react";
 import Header from "./Header";
 import Footer from "./Footer";
 import ParishSelector, { type PreloadedParish } from "./ParishSelector";
+import parishMartLogo from "../assets/logo1.png";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -202,6 +203,9 @@ const CauseActivation = () => {
               />
               <div className="absolute inset-0 bg-gradient-to-r from-[#1a2341]/95 via-[#1a2341]/80 to-[#1a2341]/40" />
             </div>
+            <div className="absolute top-6 left-6 z-20">
+              <img src={parishMartLogo} alt="ParishMart" className="h-8 w-auto" />
+            </div>
             <div className="relative z-10 max-w-3xl mx-auto px-6 py-20 text-center">
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6">
                 Start supporting your mission{" "}
@@ -290,16 +294,20 @@ const CauseActivation = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-lg mx-auto">
                 <button
                   onClick={() => setParishChoice("yes")}
-                  className="p-6 rounded-2xl border-2 border-gray-200 hover:border-[#006699] hover:shadow-md transition-all text-center"
+                  className="p-6 rounded-2xl border-2 border-gray-200 hover:border-[#006699] hover:shadow-md transition-all text-center group"
                 >
-                  <div className="text-3xl mb-2">⛪</div>
+                  <div className="w-12 h-12 rounded-full bg-[#006699]/10 flex items-center justify-center mx-auto mb-3 group-hover:bg-[#006699]/20 transition-colors">
+                    <Church className="h-6 w-6 text-[#006699]" />
+                  </div>
                   <h4 className="font-semibold text-gray-900">Yes, link to a parish</h4>
                 </button>
                 <button
                   onClick={() => { setParishChoice("no"); next(); }}
-                  className="p-6 rounded-2xl border-2 border-gray-200 hover:border-[#006699] hover:shadow-md transition-all text-center"
+                  className="p-6 rounded-2xl border-2 border-gray-200 hover:border-[#006699] hover:shadow-md transition-all text-center group"
                 >
-                  <div className="text-3xl mb-2">🌍</div>
+                  <div className="w-12 h-12 rounded-full bg-[#006699]/10 flex items-center justify-center mx-auto mb-3 group-hover:bg-[#006699]/20 transition-colors">
+                    <Globe className="h-6 w-6 text-[#006699]" />
+                  </div>
                   <h4 className="font-semibold text-gray-900">No, continue independent</h4>
                 </button>
               </div>
@@ -658,8 +666,8 @@ const CauseActivation = () => {
         {/* ── SCREEN 7: SUCCESS ─────────────────────────────────────────── */}
         {screen === "success" && (
           <div className="max-w-3xl mx-auto px-4 sm:px-6 py-16 text-center">
-            <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
-              <Check className="h-10 w-10 text-green-600" />
+            <div className="w-20 h-20 rounded-full bg-[#e8f4f9] border-2 border-[#45b1e1]/40 flex items-center justify-center mx-auto mb-6">
+              <Check className="h-10 w-10 text-[#006699]" />
             </div>
 
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
@@ -671,21 +679,27 @@ const CauseActivation = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-12">
               <div className="bg-white rounded-2xl border-2 border-gray-200 p-6 hover:border-[#006699] hover:shadow-md transition-all cursor-pointer">
-                <div className="text-3xl mb-3">🏪</div>
+                <div className="w-10 h-10 rounded-full bg-[#006699]/10 flex items-center justify-center mx-auto mb-3">
+                  <Store className="h-5 w-5 text-[#006699]" />
+                </div>
                 <h4 className="font-semibold text-gray-900 mb-1">Go to my store</h4>
                 <p className="text-xs text-gray-500 mb-4">See your live cause page.</p>
                 <span className="text-sm font-medium text-[#006699]">View Store <ExternalLink className="inline h-3.5 w-3.5 ml-1" /></span>
               </div>
 
               <div className="bg-white rounded-2xl border-2 border-gray-200 p-6 hover:border-[#006699] hover:shadow-md transition-all cursor-pointer">
-                <div className="text-3xl mb-3">📣</div>
+                <div className="w-10 h-10 rounded-full bg-[#006699]/10 flex items-center justify-center mx-auto mb-3">
+                  <Share2 className="h-5 w-5 text-[#006699]" />
+                </div>
                 <h4 className="font-semibold text-gray-900 mb-1">Invite supporters</h4>
                 <p className="text-xs text-gray-500 mb-4">Share with your community.</p>
                 <span className="text-sm font-medium text-[#006699]">Invite <ExternalLink className="inline h-3.5 w-3.5 ml-1" /></span>
               </div>
 
               <div className="bg-white rounded-2xl border-2 border-gray-200 p-6 hover:border-[#006699] hover:shadow-md transition-all cursor-pointer">
-                <div className="text-3xl mb-3">🎨</div>
+                <div className="w-10 h-10 rounded-full bg-[#006699]/10 flex items-center justify-center mx-auto mb-3">
+                  <Settings className="h-5 w-5 text-[#006699]" />
+                </div>
                 <h4 className="font-semibold text-gray-900 mb-1">Customize later</h4>
                 <p className="text-xs text-gray-500 mb-4">Edit from your dashboard anytime.</p>
                 <span className="text-sm font-medium text-[#006699]">Dashboard <ExternalLink className="inline h-3.5 w-3.5 ml-1" /></span>
@@ -694,7 +708,7 @@ const CauseActivation = () => {
 
             <Button
               onClick={() => (window.location.href = "/")}
-              className="bg-[#006699] hover:bg-[#005588] text-white font-semibold px-10 py-3 h-auto text-base"
+              className="bg-[#006699] hover:bg-[#1e3960] text-white font-semibold px-10 py-3 h-auto text-base"
             >
               Finish <ArrowRight className="ml-2 h-5 w-5" />
             </Button>

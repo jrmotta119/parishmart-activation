@@ -1,13 +1,25 @@
 import React from "react";
-import { ArrowRight, Check } from "lucide-react";
+import { ArrowRight, Check, Landmark, Church, Heart, ShoppingBag, Users, LucideIcon } from "lucide-react";
 import { Button } from "./ui/button";
 import Header from "./Header";
 import Footer from "./Footer";
 
-const FLOWS = [
+interface Flow {
+  id: string;
+  Icon: LucideIcon;
+  title: string;
+  desc: string;
+  tag: string;
+  href: string;
+  from: string;
+  to: string;
+  highlight: boolean;
+}
+
+const FLOWS: Flow[] = [
   {
     id: "diocese",
-    icon: "🏛️",
+    Icon: Landmark,
     title: "Diocese / Archdiocese",
     desc: "Activate 50–200+ parishes at once with pre-loaded structure and data.",
     tag: "Batch activation",
@@ -18,7 +30,7 @@ const FLOWS = [
   },
   {
     id: "parish",
-    icon: "⛪",
+    Icon: Church,
     title: "Parish",
     desc: "Your store is already built. Just select, review, and activate in seconds.",
     tag: "1-click activation",
@@ -29,7 +41,7 @@ const FLOWS = [
   },
   {
     id: "cause",
-    icon: "💛",
+    Icon: Heart,
     title: "Cause / Mission",
     desc: "Ministry, retreat group, nonprofit — activate support for your mission in minutes.",
     tag: "Fast & flexible",
@@ -40,7 +52,7 @@ const FLOWS = [
   },
   {
     id: "biz",
-    icon: "🏪",
+    Icon: ShoppingBag,
     title: "Local Business",
     desc: "Turn every sale or service into direct support for a parish or cause.",
     tag: "Services & Products",
@@ -51,7 +63,7 @@ const FLOWS = [
   },
   {
     id: "sponsor",
-    icon: "🤝",
+    Icon: Users,
     title: "Sponsor",
     desc: "Institutional visibility and trusted community presence for your brand.",
     tag: "Brand presence",
@@ -65,7 +77,7 @@ const FLOWS = [
 const ActivationHub = () => {
   return (
     <div className="min-h-screen bg-[#faf9f7] flex flex-col">
-      <div className="sticky top-0 left-0 w-full z-40 bg-white border-b border-gray-100">
+      <div className="sticky top-0 left-0 w-full z-40">
         <Header />
       </div>
 
@@ -81,7 +93,7 @@ const ActivationHub = () => {
 
         <div className="relative z-10 max-w-4xl mx-auto px-6 pt-20 pb-32 md:pt-28 md:pb-40 text-center">
           <div className="inline-block bg-white/10 backdrop-blur-sm border border-white/10 rounded-full px-4 py-1.5 mb-6">
-            <span className="text-[#4DB8E0] text-xs uppercase tracking-widest font-medium">
+            <span className="text-[#45b1e1] text-xs uppercase tracking-widest font-medium">
               Activation Engine
             </span>
           </div>
@@ -89,7 +101,7 @@ const ActivationHub = () => {
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6">
             Activate your Parish<br />
             Ecosystem{" "}
-            <span className="text-[#4DB8E0] italic" style={{ fontFamily: "Georgia, serif" }}>
+            <span className="text-[#45b1e1] italic" style={{ fontFamily: "Georgia, serif" }}>
               in Minutes
             </span>
           </h1>
@@ -104,7 +116,6 @@ const ActivationHub = () => {
       {/* ── Cards ────────────────────────────────────────────────────── */}
       <section className="relative z-20 -mt-20 md:-mt-24 pb-16">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          {/* Subtitle */}
           <p className="text-center text-white/50 text-sm mb-8 font-medium">
             Choose your role to get started
           </p>
@@ -196,25 +207,28 @@ const ActivationHub = () => {
 
 // ─── Flow Card ──────────────────────────────────────────────────────────────
 
-function FlowCard({ flow }: { flow: (typeof FLOWS)[number] }) {
+function FlowCard({ flow }: { flow: Flow }) {
+  const Icon = flow.Icon;
   return (
     <a
       href={flow.href}
       className={`group relative flex flex-col justify-between rounded-3xl p-7 text-left overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 ${
-        flow.highlight ? "min-h-[260px] ring-2 ring-[#4DB8E0]/30" : "min-h-[240px]"
+        flow.highlight ? "min-h-[260px] ring-2 ring-[#45b1e1]/30" : "min-h-[240px]"
       }`}
       style={{
         background: `linear-gradient(145deg, ${flow.from} 0%, ${flow.to} 100%)`,
       }}
     >
       {flow.highlight && (
-        <span className="absolute top-0 right-6 bg-[#4DB8E0] text-[#0f1729] text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-b-lg">
+        <span className="absolute top-0 right-6 bg-[#45b1e1] text-[#0f1729] text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-b-lg">
           Most Popular
         </span>
       )}
 
       <div className="flex items-start justify-between">
-        <span className="text-4xl drop-shadow-lg">{flow.icon}</span>
+        <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
+          <Icon className="h-5 w-5 text-[#45b1e1]" />
+        </div>
         <span className="text-[10px] font-semibold tracking-widest uppercase rounded-full px-3 py-1 bg-white/10 text-white/70 border border-white/10 backdrop-blur-sm">
           {flow.tag}
         </span>
@@ -229,7 +243,7 @@ function FlowCard({ flow }: { flow: (typeof FLOWS)[number] }) {
           {flow.title}
         </h3>
         <p className="text-sm text-white/50 leading-relaxed mb-5">{flow.desc}</p>
-        <span className="inline-flex items-center gap-2 text-sm font-semibold text-[#4DB8E0] group-hover:text-white group-hover:gap-3 transition-all">
+        <span className="inline-flex items-center gap-2 text-sm font-semibold text-[#45b1e1] group-hover:text-white group-hover:gap-3 transition-all">
           Get started <ArrowRight className="h-4 w-4" />
         </span>
       </div>
