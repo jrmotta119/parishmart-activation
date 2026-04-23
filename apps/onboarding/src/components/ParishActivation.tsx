@@ -35,6 +35,8 @@ const HERO_IMAGES = [
   "https://images.pexels.com/photos/1207965/pexels-photo-1207965.jpeg",
   "https://parishmart-files-public.s3.us-east-2.amazonaws.com/MockData/CHURCH_Annunciation.jpg",
   "https://parishmart-files-public.s3.us-east-2.amazonaws.com/MockData/CHURCH_All_Saints.jpg",
+  "https://parishmart-files-public.s3.us-east-2.amazonaws.com/MockData/CHURCH_St_Francis_de_Sales.jpg",
+  "https://parishmart-files-public.s3.us-east-2.amazonaws.com/MockData/CHURCH_Our_Lady_of_La_Vang.jpg",
 ];
 
 function heroForParish(id: string) {
